@@ -470,11 +470,23 @@ function ProviderDetail({
         </div>
       ) : null}
 
+      {/*
+        The heading counts the reviews actually returned, NOT
+        `profile.rating.count`. Every provider in this environment carries a
+        seeded average and count (5.0 / 114, 4.6 / 120 …) with zero Rating
+        documents behind it, so `Reviews (114)` above an empty list reads as a
+        broken screen rather than a provider nobody has written about yet. The
+        star average still shows on the card — it is the written reviews that
+        are missing, and the copy says exactly that.
+      */}
       <div>
-        <Label>Reviews {profile?.rating?.count ? `(${profile.rating.count})` : ""}</Label>
+        <Label>Reviews {reviews.length ? `(${reviews.length})` : ""}</Label>
         {reviews.length === 0 ? (
           <p className="text-[13px] text-slate-600">
-            No written reviews yet for this provider.
+            No written reviews yet
+            {profile?.rating?.count
+              ? ` — this provider's ${profile.rating.average?.toFixed(1)} rating comes from ${profile.rating.count} scores left without a comment.`
+              : " for this provider."}
           </p>
         ) : (
           <div className="flex flex-col gap-2.5">

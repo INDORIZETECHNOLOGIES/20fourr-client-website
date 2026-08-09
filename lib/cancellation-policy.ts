@@ -87,8 +87,18 @@ export function refundForCancellation(
     return { percent: 0, refundPaise: 0, hoursRemaining: null };
   }
   const hours = (dutyStartsAt.getTime() - Date.now()) / 3_600_000;
+
+  /*
+   * Mirrors calculateCancellationRefund in utils/pricing.ts expression for
+   * expression, including its asymmetric comparisons: the top band is a strict
+   * `>` and the middle band is `>=`. Scanning the tiers with a uniform `>` is
+   * the obvious way to write this and it is wrong at exactly 12 hours, where it
+   * reports 0% against a server that refunds 50% — understating a refund at the
+   * one moment the number decides whether someone cancels.
+   */
+  const [tier1, tier2, tier3] = REFUND_TIERS;
   const tier =
-    REFUND_TIERS.find((t) => hours > t.fromHours) ?? REFUND_TIERS[REFUND_TIERS.length - 1];
+    hours > tier1.fromHours ? tier1 : hours >= tier2.fromHours ? tier2 : tier3;
   return {
     percent: tier.percent,
     refundPaise: Math.round((totalPaise * tier.percent) / 100),
