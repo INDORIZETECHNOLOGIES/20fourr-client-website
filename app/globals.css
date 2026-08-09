@@ -1,26 +1,266 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ---------------------------------------------------------------------------
+   20fourr design tokens.
+   Every color below is lifted verbatim from the approved Claude Design files
+   (Login / Signup / VerifyPhone / VerifyEmail). The only addition is
+   --color-danger: the designs have no error state, so they define no error color.
+   --------------------------------------------------------------------------- */
+@theme {
+  /* Surfaces */
+  --color-bg: #0a1220;
+  --color-surface: #101c2e;
+  --color-field: #13233b;
+  --color-field-otp: #0d1728;
+
+  /* Borders */
+  --color-border: #24374f;
+  --color-border-soft: #1c2c42;
+  --color-border-divider: #22304a;
+
+  /* Gold accent */
+  --color-gold: #e8a020;
+  --color-gold-soft: #2a2110;
+  --color-on-gold: #231404;
+
+  /* Notice panels */
+  --color-notice-bg: #221a0d;
+  --color-notice-fg: #c9a765;
+
+  /* Text ramp */
+  --color-text: #f4f6f9;
+  --color-text-input: #e9edf3;
+  --color-text-secondary: #c9d2de;
+  --color-text-muted: #8a97ab;
+  --color-text-label: #7b8aa0;
+  --color-text-dim: #6b7c94;
+  --color-placeholder: #5b6b82;
+
+  /* States */
+  --color-disabled-bg: #1a2740;
+  --color-disabled-fg: #5b6b82;
+  --color-success: #5fbf7a;
+  --color-toast: #22c55e;
+  --color-dot-off: #2a3a52;
+  --color-danger: #f87171;
+
+  /* Radii */
+  --radius-field: 16px;
+  --radius-card: 24px;
+  --radius-pill: 20px;
+  --radius-notice: 12px;
+  --radius-tile: 22px;
+
+  /* Type */
+  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  /* ---------------------------------------------------------------------
+     Dashboard shell — the PRODUCTION palette.
+
+     These values are lifted from the live client app's default theme
+     (`deepNavy` in SecureConnect/mobile/src/constants/theme.js). The dashboard
+     design comp used a different, brighter gold (#f5a623 on #060918); that comp
+     came from a separate Design project and diverged from what ships. The app
+     is the source of truth, so these now match it exactly.
+
+     The auth screens already use this gold (#E8A020) — they were derived from
+     the same palette — so the whole site is now on one brand color.
+
+     Tailwind's slate ramp is kept for text because it already lines up:
+     slate-400 #94a3b8 IS production's textSecondary. Likewise green-500,
+     red-500 match production's success and error.
+     --------------------------------------------------------------------- */
+  --color-app-bg: #060c16; /* background */
+  --color-app-sidebar: #0b1626; /* gradientHeader top stop */
+  --color-app-card: #0f1c2e; /* surface */
+  --color-app-card-raised: #162236; /* surfaceElevated */
+  --color-app-gold: #e8a020; /* primary */
+  --color-app-gold-light: #f2b23e; /* primaryLight */
+  --color-app-gold-deep: #c9851a; /* primaryDark */
+  --color-app-info: #3b82f6; /* secondary / info */
+  --color-app-warning: #f59e0b; /* warning */
+  --color-app-border: #1e3048; /* border */
+  --color-app-border-soft: #16263c; /* borderLight */
+  --color-app-disabled: #27384e; /* disabled */
+
+  --font-display: var(--font-outfit), "Outfit", ui-sans-serif, sans-serif;
+  --font-body: var(--font-dm-sans), "DM Sans", ui-sans-serif, sans-serif;
+
+  /* Breakpoints in px, overriding Tailwind's rem defaults.
+     In a media query `rem` resolves against the browser's *default* font size,
+     not the html element's — so a user who sets Chrome to a 20px default would
+     otherwise get every breakpoint scaled 1.25x (sm 640→800, lg 1024→1280) and
+     see the wrong layout at a given width. The designs are specified in px;
+     these keep the breakpoints there too. */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+
+  /* Spacing base in px for the same reason. The designs mix absolute values
+     (px-[18px], max-w-[620px]) with scale utilities (px-6, gap-4); leaving the
+     scale in rem makes the two drift apart under a non-16px root font and the
+     reproduction stops matching the comp. */
+  --spacing: 4px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Fluid display sizes. The designs are fixed at 56/52/44px; these hold that
+   exact value at desktop and scale down rather than overflowing on mobile. */
+/* px, not rem, so the headline holds the design's size (and stays on one line)
+   regardless of the reader's default font size — see the breakpoint note above. */
+@utility text-display-lg {
+  font-size: clamp(32px, 20px + 3.2vw, 56px);
+  line-height: 1.05;
+  font-weight: 800;
+}
+@utility text-display-md {
+  font-size: clamp(32px, 22px + 2.6vw, 52px);
+  line-height: 1.05;
+  font-weight: 800;
+}
+@utility text-display-sm {
+  font-size: clamp(28px, 21px + 2vw, 44px);
+  line-height: 1.1;
+  font-weight: 800;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* The uppercase micro-label above every input. */
+@utility label-caps {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--color-text-label);
+}
+
+/* The gold gradient shared by every primary button on the auth screens. */
+@utility bg-gold-gradient {
+  background-image: linear-gradient(180deg, #f0ac33, #d68a12);
+}
+
+/* The dashboard's gold gradient. Stops are production's `gradientPrimary`
+   (primary → primaryDark); only the angle differs from the auth one. */
+@utility bg-app-gold-gradient {
+  background-image: linear-gradient(135deg, #e8a020, #c9851a);
+}
+
+@layer base {
+  html {
+    background: var(--color-bg);
+  }
+
+  body {
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* The source files set outline:none on every input and never replace it.
+     Restore a visible focus indicator for keyboard users only. */
+  :focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  input::placeholder {
+    color: var(--color-placeholder);
+  }
+
+  /* Chrome autofill repaints inputs white, which destroys the dark fields. */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--color-text-input);
+    -webkit-box-shadow: 0 0 0 1000px var(--color-field) inset;
+    caret-color: var(--color-text-input);
+    transition: background-color 9999s ease-out 0s;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@keyframes toast-in {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes ring-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Dashboard: the live-status dot and the content enter transition. */
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.3);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+.animate-fade-up {
+  animation: fade-up 0.25s ease;
+}
+
+.animate-toast-in {
+  animation: toast-in 0.4s ease;
+}
+.animate-ring-pulse {
+  animation: ring-pulse 3s ease-in-out infinite;
+}
+.animate-spin-slow {
+  animation: spin 0.7s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .animate-toast-in {
+    animation: none;
+    transform: none;
+    opacity: 1;
+  }
+  .animate-fade-up {
+    animation: none;
+  }
 }
