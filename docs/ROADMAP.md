@@ -347,3 +347,80 @@ Not part of this plan, but already mapped so it isn't a surprise:
 
 The website's swap seams are already in place: `lib/auth.ts`,
 `lib/dashboard-data.ts`, `lib/session.ts`.
+
+
+---
+
+## Feature parity with the client app (audited 9 Aug 2026)
+
+Mapped every screen in `SecureConnect/mobile/src/screens/client` plus the
+shared ones a client reaches, against the website's routes AND the actions
+inside each screen.
+
+### Built since the audit
+- **Duty OTP** (`/dashboard/bookings/[id]/duty`) — start and end codes.
+- **Safety block** on the booking screen — SOS, incident report, absence alert
+  and dispute, each gated on the API's own status rules:
+
+  | Action | Allowed at |
+  | --- | --- |
+  | SOS | `duty_started` only (rate-limited, 429 SC_1201) |
+  | Incident | `duty_started` / `duty_ended` / `completed` / `settled` |
+  | Absence | `payment_done` / `duty_started` |
+  | Dispute | `duty_started` / `duty_ended` / `completed`, not already disputed |
+
+  Gates are mirrored client-side so an action is never offered and then
+  refused. Verified: all four endpoints reject correctly at `payment_done`,
+  which is exactly where the UI hides them.
+
+### Everything above is now built
+
+The audit's whole list has landed. What each one turned into, and the contract
+details worth not rediscovering:
+
+| Item | Where it lives | Note |
+| --- | --- | --- |
+| Coupon codes | `app/book/CouponField.tsx` | `POST /coupons/validate` |
+| Wallet redemption | `PayNowButton.tsx` | `coinsToUse` / `pointsToUse` on create-order |
+| Recurring bookings | `/dashboard/bookings/recurring` | uses `/recurring`, not the second parallel implementation |
+| Duty OTP | `/dashboard/bookings/[id]/duty` | start and end codes |
+| Safety block | `SafetyActions.tsx` | SOS / incident / absence / dispute, each status-gated |
+| Provider documents | `/dashboard/bookings/[id]/documents` | see the two gates below |
+| Provider availability | schedule step | blocks days off, shows the working-hours window |
+| Cancellation refund preview | `CancelBookingButton.tsx` | `refundForCancellation()` in `lib/cancellation-policy.ts` |
+| Minimum hours | schedule step | blocks under `minimumHours` before the server returns SC_411 |
+| Provider detail | `/book/provider` panel | per-category rates, service record, trust badges, reviews |
+| Rating + address prompts | `app/dashboard/HomePrompts.tsx` | prompts, not blocks — see below |
+| Per-booking chat unread | booking detail | `/chat/unread?bookingId=` on the chat action |
+
+Four things learned doing it, all of which contradict something that looked
+obvious:
+
+- **Provider documents have two gates, not one.** The booking must be paid, and
+  while it is still `payment_done` documents only reveal from 24h before duty
+  start. A 403 there usually means "too early", so the empty state says so
+  rather than showing a bare error. `fileUrl` is a short-lived presigned S3 URL
+  — never cache or proxy it.
+- **`blockedDates` is `{ date, reason }[]`, not `string[]`,** and the date is a
+  bare local `YYYY-MM-DD`. Compare it as a string; parsing it lands at UTC
+  midnight and shifts the day in IST.
+- **The rating gate does not block, and in the app it never even shows.** The
+  app reads `data.bookings` and `data.total ?? data.count`; the endpoint returns
+  `ratingRequired`, `pendingBookingCount` and `pendingBookingIds`, so the app's
+  "To Rate" tile is permanently 0. The website uses the real field names, which
+  means it surfaces pending ratings the app currently hides. Nothing server-side
+  refuses a new booking over an unrated one, so blocking would invent a rule.
+- **Hourly billing is entirely server-side.** There is no hourly *mode* to
+  build: `booking.service.ts` switches to `hourlyRate × totalHours` on its own
+  when the booking is single-day, the provider has `hourlyEnabled`, and the
+  hours fall short of a full day. The only client-side gap was `minimumHours`,
+  which now blocks before submission instead of after.
+
+Also worth knowing: `psaraLicense` is **not** in the public provider payload.
+`serializers/providerPublic.ts` is a strict allowlist that deliberately withholds
+licence numbers, KYC documents and bank details — `psara_verified` arrives as a
+computed trust badge instead. An earlier version of the detail panel declared a
+`psaraLicense` field that could never be populated.
+
+### Correctly not ported
+Splash, Onboarding, RoleSelection — app-shell concerns; the site is client-only.

@@ -9,8 +9,8 @@ import { PinFill } from "@/components/dashboard/icons";
 import { useApiQuery } from "@/hooks/useApiQuery";
 import { usePricePreview, endOfShift } from "@/lib/api/pricing";
 import { adaptAddress } from "@/lib/api/adapters";
-import type { ApiSavedAddress } from "@/lib/api/types";
-import { DURATION_PRESETS, REPEAT_PATTERNS } from "@/lib/booking-data";
+import type { ApiSavedAddress, ProviderAvailability } from "@/lib/api/types";
+import { DURATION_PRESETS } from "@/lib/booking-data";
 import { formatAddress } from "@/lib/dashboard-data";
 
 export default function ScheduleStep() {
@@ -24,6 +24,22 @@ export default function ScheduleStep() {
   );
   const addresses = (addressData?.addresses ?? []).map(adaptAddress);
 
+  /**
+   * The days this provider has already taken off.
+   *
+   * Without this the date field happily accepts a day the provider is away —
+   * the request goes in, sits at `pending`, and is rejected a day later. The
+   * server does not block the date at creation, so this is the only place the
+   * client finds out early.
+   */
+  const { data: availability } = useApiQuery<ProviderAvailability>(
+    draft.providerId ? `client/providers/${draft.providerId}/availability` : null,
+  );
+  const blocked = availability?.blockedDates ?? [];
+  // Compared as plain "YYYY-MM-DD" strings, never parsed — see the type note.
+  const blockedOn = blocked.find((d) => d.date === draft.date);
+  const workingHours = availability?.workingHours;
+
   // Priced by the server against this provider's own rates.
   const { data: price, loading: priceLoading, error: priceError } = usePricePreview(draft);
   const end = endOfShift(draft.date, draft.startTime, draft.hours);
@@ -31,11 +47,21 @@ export default function ScheduleStep() {
   // Can't book in the past.
   const today = new Date().toISOString().slice(0, 10);
   const errors = {
-    date: !draft.date ? "Pick a date." : draft.date < today ? "Date is in the past." : "",
+    date: !draft.date
+      ? "Pick a date."
+      : draft.date < today
+        ? "Date is in the past."
+        : blockedOn
+          ? `The provider is unavailable on this date${blockedOn.reason ? ` (${blockedOn.reason})` : ""}. Pick another day.`
+          : "",
     startTime: !draft.startTime ? "Pick a start time." : "",
+    hours:
+      draft.providerMinimumHours && draft.hours < draft.providerMinimumHours
+        ? `This provider's shortest shift is ${draft.providerMinimumHours} hours.`
+        : "",
     address: !draft.address.trim() ? "Service address is required." : "",
   };
-  const valid = !errors.date && !errors.startTime && !errors.address;
+  const valid = !errors.date && !errors.startTime && !errors.address && !errors.hours;
 
   return (
     <>
@@ -55,6 +81,16 @@ export default function ScheduleStep() {
                   onChange={(e) => update({ date: e.target.value })}
                   className={inputCls}
                 />
+                {blocked.length > 0 && !blockedOn ? (
+                  <p className="mt-1.5 text-[12px] text-slate-500">
+                    Unavailable:{" "}
+                    {blocked
+                      .slice(0, 4)
+                      .map((d) => d.date)
+                      .join(", ")}
+                    {blocked.length > 4 ? ` +${blocked.length - 4} more` : ""}
+                  </p>
+                ) : null}
               </Field>
               <Field
                 id="start-time"
@@ -68,6 +104,12 @@ export default function ScheduleStep() {
                   onChange={(e) => update({ startTime: e.target.value })}
                   className={inputCls}
                 />
+                {workingHours?.startTime ? (
+                  <p className="mt-1.5 text-[12px] text-slate-500">
+                    Usually works {workingHours.startTime}–{workingHours.endTime}. Outside
+                    that is still allowed, but likelier to be declined.
+                  </p>
+                ) : null}
               </Field>
             </div>
           </section>
@@ -106,6 +148,15 @@ export default function ScheduleStep() {
                 />
               </label>
             </div>
+            {errors.hours ? (
+              <p role="alert" className="mt-2 text-[12.5px] text-red-300">
+                {errors.hours}
+              </p>
+            ) : draft.providerMinimumHours ? (
+              <p className="mt-2 text-[12px] text-slate-500">
+                Minimum {draft.providerMinimumHours}h with this provider.
+              </p>
+            ) : null}
           </section>
 
           <section>
@@ -171,33 +222,19 @@ export default function ScheduleStep() {
             </p>
           </section>
 
+          {/* The repeat control that used to live here collected a pattern and
+              then threw it away — POST /bookings creates exactly one booking
+              and has no recurrence field. A series is a separate object created
+              via /recurring, so it is offered from a real booking instead. */}
           <section>
-            <SectionLabel>Repeat pattern</SectionLabel>
-            <div className="flex flex-wrap gap-2.5">
-              {REPEAT_PATTERNS.map((r) => (
-                <button
-                  key={r.id}
-                  type="button"
-                  onClick={() => update({ repeat: r.id })}
-                  aria-pressed={draft.repeat === r.id}
-                  className={[
-                    "rounded-full border px-5 py-2.5 text-[14px] font-semibold transition-colors",
-                    draft.repeat === r.id
-                      ? "border-app-gold bg-app-gold/12 text-app-gold"
-                      : "border-app-border text-slate-300 hover:border-app-gold/40",
-                  ].join(" ")}
-                >
-                  {r.label}
-                </button>
-              ))}
-            </div>
-            {draft.repeat !== "none" ? (
-              <p className="mt-2.5 text-[13px] text-slate-500">
-                Creates this booking on a regular schedule. Manage it later under
-                Bookings → Recurring.
-              </p>
-            ) : null}
+            <SectionLabel>Repeating this booking</SectionLabel>
+            <p className="text-[13.5px] leading-relaxed text-slate-500">
+              Book this once first. Once it exists you can turn it into a weekly,
+              fortnightly or monthly schedule from the booking itself — the provider and
+              times carry over.
+            </p>
           </section>
+
         </div>
 
         {/* Live price — from the server, never computed here */}

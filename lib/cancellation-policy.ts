@@ -71,3 +71,27 @@ export const REFUND_DESTINATION =
 /** True before any payment exists, where nothing can be withheld. */
 export const NOTHING_CHARGED_YET =
   "Nothing is charged until the provider accepts and you pay, so cancelling before that costs nothing.";
+
+/**
+ * The refund for cancelling *now*, given when duty starts.
+ *
+ * The app's cancellation screen shows this rather than only the tier table —
+ * "you get ₹X back" is the question someone actually has. Advisory only: the
+ * server recomputes on cancel, and an admin can change the tiers.
+ */
+export function refundForCancellation(
+  totalPaise: number,
+  dutyStartsAt: Date | null,
+): { percent: number; refundPaise: number; hoursRemaining: number | null } {
+  if (!dutyStartsAt || Number.isNaN(dutyStartsAt.getTime())) {
+    return { percent: 0, refundPaise: 0, hoursRemaining: null };
+  }
+  const hours = (dutyStartsAt.getTime() - Date.now()) / 3_600_000;
+  const tier =
+    REFUND_TIERS.find((t) => hours > t.fromHours) ?? REFUND_TIERS[REFUND_TIERS.length - 1];
+  return {
+    percent: tier.percent,
+    refundPaise: Math.round((totalPaise * tier.percent) / 100),
+    hoursRemaining: Math.max(0, hours),
+  };
+}

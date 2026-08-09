@@ -8,6 +8,7 @@ import {
   ServiceShortlist,
   StatTiles,
 } from "./Overview";
+import { HomePrompts } from "./HomePrompts";
 import {
   ActivityIcon,
   CalendarIcon,
@@ -27,6 +28,8 @@ export const metadata: Metadata = { title: "Dashboard" };
 export default function DashboardPage() {
   return (
     <OverviewProvider>
+      <HomePrompts />
+
       {/* Hero banner */}
       <div className="relative mb-[22px] overflow-hidden rounded-[18px] border border-white/7 bg-[linear-gradient(120deg,#0b1638_0%,#12266a_55%,#0d1c4e_100%)] px-6 py-7 sm:px-8">
         <span

@@ -4,7 +4,12 @@ import { useState } from "react";
 import { ShieldFill } from "@/components/dashboard/icons";
 import { api } from "@/lib/api/client";
 import { errorMessage } from "@/lib/api/errors";
-import { CANCELLATION_SUMMARY, REFUND_DESTINATION } from "@/lib/cancellation-policy";
+import {
+  CANCELLATION_SUMMARY,
+  REFUND_DESTINATION,
+  refundForCancellation,
+} from "@/lib/cancellation-policy";
+import { formatPaiseRounded } from "@/lib/money";
 
 /**
  * Cancel, wired to `POST /bookings/:id/cancel`.
@@ -19,14 +24,25 @@ import { CANCELLATION_SUMMARY, REFUND_DESTINATION } from "@/lib/cancellation-pol
 export function CancelBookingButton({
   bookingId,
   onCancelled,
+  totalPaise,
+  dutyStartsAt,
+  paid,
 }: {
   bookingId: string;
   onCancelled: () => void;
+  /** Booking total in paise, for the live refund estimate. */
+  totalPaise?: number;
+  /** Duty start, which is what the refund tiers are measured against. */
+  dutyStartsAt?: Date | null;
+  /** Before payment nothing was taken, so there is nothing to refund. */
+  paid?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const estimate = refundForCancellation(totalPaise ?? 0, dutyStartsAt ?? null);
 
   async function submit() {
     setBusy(true);
@@ -61,8 +77,28 @@ export function CancelBookingButton({
   return (
     <div className="rounded-xl border border-red-500/35 bg-red-500/6 p-4">
       <p className="text-[14px] font-semibold text-red-300">Cancel this booking?</p>
-      <p className="mt-1 text-[12.5px] leading-relaxed text-slate-400">
-        {CANCELLATION_SUMMARY} {REFUND_DESTINATION}
+      {paid && totalPaise ? (
+        <div className="mt-2 rounded-lg border border-white/8 bg-black/20 px-3 py-2.5">
+          <p className="text-[13px] text-slate-300">
+            Cancelling now refunds{" "}
+            <strong className="text-app-gold">
+              {formatPaiseRounded(estimate.refundPaise)}
+            </strong>{" "}
+            ({estimate.percent}% of {formatPaiseRounded(totalPaise)}).
+          </p>
+          {estimate.hoursRemaining !== null ? (
+            <p className="mt-0.5 text-[11.5px] text-slate-600">
+              {Math.floor(estimate.hoursRemaining)}h until duty starts · figure confirmed
+              by the server on cancel.
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
+      <p className="mt-2 text-[12.5px] leading-relaxed text-slate-400">
+        {paid
+          ? `${CANCELLATION_SUMMARY} ${REFUND_DESTINATION}`
+          : "Nothing has been charged for this booking, so there is nothing to refund."}
       </p>
 
       <label htmlFor="cancel-reason" className="mt-3 block text-[12px] text-slate-500">

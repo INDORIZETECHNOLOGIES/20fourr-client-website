@@ -171,12 +171,6 @@ export function isBookingPurpose(value: string): value is BookingPurposeId {
 
 export const DURATION_PRESETS = [4, 8, 12, 24];
 
-export const REPEAT_PATTERNS = [
-  { id: "none", label: "One-time" },
-  { id: "daily", label: "Daily" },
-  { id: "weekdays", label: "Weekdays" },
-  { id: "weekly", label: "Weekly" },
-];
 
 /** Convenience fee the app adds on top of the base amount, in basis points. */
 export const CONVENIENCE_FEE_BPS = 500; // 5%

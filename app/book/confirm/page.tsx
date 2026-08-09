@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useBooking } from "../BookingContext";
 import { ConsentGate } from "../ConsentGate";
 import { PriceSummary } from "../PriceSummary";
+import { CouponField } from "../CouponField";
 import { api } from "@/lib/api/client";
 import { errorMessage, isApiError } from "@/lib/api/errors";
 import { usePricePreview, endOfShift } from "@/lib/api/pricing";
@@ -18,6 +19,7 @@ export default function ConfirmStep() {
 
   const purpose = BOOKING_PURPOSES.find((p) => p.id === draft.purposeId);
   const { data: price, loading, error } = usePricePreview(draft);
+  const [couponCode, setCouponCode] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   /**
@@ -68,6 +70,8 @@ export default function ConfirmStep() {
           // The free text belongs to the purpose, not to general notes — the
           // API has a dedicated field for it (max 500 chars).
           bookingPurposeDetail: draft.purposeNote.trim().slice(0, 500) || undefined,
+          // Applied and re-validated server-side while the booking is priced.
+          ...(couponCode ? { couponCode } : {}),
           // All four are mandatory — the API returns SC_209 if any is missing.
           // They are sent from the draft, so each reflects a gate the user
           // actually passed rather than a hardcoded `true`.
@@ -163,10 +167,6 @@ export default function ConfirmStep() {
           />
           <Row label="Purpose" value={purpose?.label ?? "—"} />
           <Row label="City" value={draft.city ?? "—"} />
-          <Row
-            label="Repeat"
-            value={draft.repeat === "none" ? "One-time" : draft.repeat}
-          />
         </dl>
 
         <div className="mt-4 border-t border-white/8 pt-4">
@@ -193,6 +193,19 @@ export default function ConfirmStep() {
             it must be the same one the payment step charges. */}
         <div className="mt-4 border-t border-white/8 pt-4">
           <PriceSummary price={price} loading={loading} error={error} />
+        </div>
+
+        <div className="mt-4 border-t border-white/8 pt-4">
+          <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-[1px] text-slate-600">
+            Coupon
+          </p>
+          <CouponField
+            totalPaise={price?.totalAmount ?? 0}
+            serviceCategory={draft.serviceCategory}
+            platformRevenuePaise={price?.platformFee ?? 0}
+            value={couponCode}
+            onChange={(code) => setCouponCode(code)}
+          />
         </div>
       </div>
     </ConsentGate>

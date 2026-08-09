@@ -6,7 +6,14 @@ import { useBooking } from "../BookingContext";
 import { StepFooter, StepHeading } from "../BookingShell";
 import { CheckCircleFill, StarFill } from "@/components/dashboard/icons";
 import { useApiQuery } from "@/hooks/useApiQuery";
-import type { ApiProviderCard, ProviderSearchResponse } from "@/lib/api/types";
+import type {
+  ApiProviderCard,
+  ProviderProfileResponse,
+  ProviderSearchResponse,
+  RatingListResponse,
+} from "@/lib/api/types";
+import { TRUST_BADGE_LABELS } from "@/lib/api/types";
+import { relativeTime } from "@/lib/api/adapters";
 import { formatPaiseRounded } from "@/lib/money";
 
 /** Mirrors ALLOWED_SORTS on the discovery service. */
@@ -182,6 +189,7 @@ export default function ProviderStep() {
                 update({
                   providerId: p.id,
                   providerName: p.businessName || p.user?.fullName || "Provider",
+                  providerMinimumHours: p.pricing?.minimumHours ?? null,
                 })
               }
             />
@@ -314,6 +322,11 @@ function ProviderCard({
  * The detail panel is fetched on demand rather than with the list — the search
  * response is a deliberately masked summary, and pulling full profiles for
  * twelve cards to show one would be wasteful.
+ *
+ * The card and the profile disagree on shape in one place worth knowing: the
+ * card's `pricing` is a single flattened "from" rate across all categories,
+ * while the profile's is an array of per-category rates. The per-category rates
+ * are what actually gets charged, so they win here.
  */
 function ProviderDetail({
   providerId,
@@ -322,21 +335,19 @@ function ProviderDetail({
   providerId: string;
   card: ApiProviderCard;
 }) {
-  const { data, loading, error } = useApiQuery<Record<string, unknown>>(
+  const { data, loading, error } = useApiQuery<ProviderProfileResponse>(
     `client/providers/${providerId}`,
   );
+  // Only reviews written by clients — a provider's ratings *of* clients are on
+  // the same endpoint and would otherwise be mixed in.
+  const { data: reviewData } = useApiQuery<RatingListResponse>(
+    `ratings/user/${providerId}`,
+    { query: { role: "client", limit: 5 } },
+  );
 
-  const profile = (data?.provider ?? data) as
-    | {
-        businessName?: string;
-        description?: string;
-        yearsExperience?: number;
-        serviceCategories?: string[];
-        languages?: string[];
-        psaraLicense?: { licenseNumber?: string; verified?: boolean } | null;
-        trustBadges?: string[];
-      }
-    | undefined;
+  const profile = data?.provider;
+  const reviews = reviewData?.ratings ?? [];
+  const badges = profile?.trustBadges ?? card.trustBadges ?? [];
 
   if (loading) {
     return <div className="mt-4 h-24 animate-pulse rounded-xl bg-white/4" />;
@@ -351,56 +362,153 @@ function ProviderDetail({
   }
 
   return (
-    <div className="mt-4 grid grid-cols-1 gap-4 pb-2 sm:grid-cols-2">
-      <div>
-        <Label>About</Label>
-        <p className="text-[13.5px] leading-relaxed text-slate-400">
-          {profile?.description || "This provider hasn't added a description yet."}
-        </p>
-        {profile?.yearsExperience ? (
-          <p className="mt-2 text-[13px] text-slate-500">
-            {profile.yearsExperience} years experience
-          </p>
-        ) : null}
-      </div>
-
-      <div className="flex flex-col gap-3">
+    <div className="mt-4 flex flex-col gap-5 pb-2">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <div>
-          <Label>Services offered</Label>
-          <div className="flex flex-wrap gap-1.5">
-            {(profile?.serviceCategories ?? card.serviceCategories ?? []).map((c) => (
-              <span
-                key={c}
-                className="rounded-full bg-white/6 px-2.5 py-1 text-[12px] capitalize text-slate-300"
-              >
-                {c}
-              </span>
-            ))}
+          <Label>About</Label>
+          <p className="text-[13.5px] leading-relaxed text-slate-400">
+            {profile?.description || "This provider hasn't added a description yet."}
+          </p>
+
+          <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-[13px] text-slate-500">
+            {profile?.yearsExperience ? (
+              <span>{profile.yearsExperience} years experience</span>
+            ) : null}
+            {profile?.completedBookings ? (
+              <span>{profile.completedBookings} bookings completed</span>
+            ) : null}
+            {profile?.responseTime ? <span>Responds {profile.responseTime}</span> : null}
+            {profile?.numberOfPersonnel ? (
+              <span>{profile.numberOfPersonnel} personnel</span>
+            ) : null}
           </div>
+
+          {/* Service record — only individuals carry these. */}
+          {profile?.isExServiceman || profile?.isPoliceVeteran ? (
+            <p className="mt-3 text-[13px] text-slate-400">
+              {profile.isPoliceVeteran ? "Police veteran" : "Ex-serviceman"}
+              {profile.rankAtRetirement ? ` · ${profile.rankAtRetirement}` : ""}
+              {profile.regiment ? ` · ${profile.regiment}` : ""}
+              {profile.previousOrganization ? ` · ${profile.previousOrganization}` : ""}
+            </p>
+          ) : null}
         </div>
 
-        {(card.trustBadges ?? profile?.trustBadges ?? []).length > 0 ? (
+        <div className="flex flex-col gap-3">
           <div>
-            <Label>Trust badges</Label>
+            <Label>Services offered</Label>
             <div className="flex flex-wrap gap-1.5">
-              {(card.trustBadges ?? profile?.trustBadges ?? []).map((b) => (
+              {(profile?.serviceCategories ?? card.serviceCategories ?? []).map((c) => (
                 <span
-                  key={b}
-                  className="rounded-full bg-green-500/12 px-2.5 py-1 text-[12px] text-green-400"
+                  key={c}
+                  className="rounded-full bg-white/6 px-2.5 py-1 text-[12px] capitalize text-slate-300"
                 >
-                  {b.replace(/_/g, " ")}
+                  {c}
                 </span>
               ))}
             </div>
           </div>
-        ) : null}
 
-        {profile?.languages?.length ? (
-          <div>
-            <Label>Languages</Label>
-            <p className="text-[13.5px] text-slate-400">{profile.languages.join(" · ")}</p>
+          {badges.length > 0 ? (
+            <div>
+              <Label>Trust badges</Label>
+              <div className="flex flex-wrap gap-1.5">
+                {badges.map((b) => (
+                  <span
+                    key={b}
+                    className="rounded-full bg-green-500/12 px-2.5 py-1 text-[12px] text-green-400"
+                  >
+                    {TRUST_BADGE_LABELS[b] ?? b.replace(/_/g, " ")}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {profile?.specializations?.length ? (
+            <div>
+              <Label>Specialisations</Label>
+              <p className="text-[13.5px] text-slate-400">
+                {profile.specializations.join(" · ")}
+              </p>
+            </div>
+          ) : null}
+
+          {profile?.languages?.length ? (
+            <div>
+              <Label>Languages</Label>
+              <p className="text-[13.5px] text-slate-400">{profile.languages.join(" · ")}</p>
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      {/* Per-category rates — the exact figure still comes from the price
+          preview, which applies GST, the platform fee and any vehicle option. */}
+      {profile?.pricing?.length ? (
+        <div>
+          <Label>Rates</Label>
+          <div className="flex flex-col gap-1.5">
+            {profile.pricing.map((rate) => (
+              <div
+                key={rate.category}
+                className="flex flex-wrap items-baseline justify-between gap-2 rounded-lg border border-white/6 bg-white/3 px-3 py-2"
+              >
+                <span className="text-[13px] font-semibold capitalize text-slate-200">
+                  {rate.category}
+                </span>
+                <span className="text-[13px] text-slate-400">
+                  {rate.dailyRate ? `${formatPaiseRounded(rate.dailyRate)}/day` : null}
+                  {rate.hourlyEnabled && rate.hourlyRate
+                    ? ` · ${formatPaiseRounded(rate.hourlyRate)}/hr`
+                    : null}
+                  {rate.minimumHours ? ` · min ${rate.minimumHours}h` : null}
+                </span>
+              </div>
+            ))}
           </div>
-        ) : null}
+        </div>
+      ) : null}
+
+      <div>
+        <Label>Reviews {profile?.rating?.count ? `(${profile.rating.count})` : ""}</Label>
+        {reviews.length === 0 ? (
+          <p className="text-[13px] text-slate-600">
+            No written reviews yet for this provider.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-2.5">
+            {reviews.map((r) => (
+              <div key={r._id} className="rounded-lg border border-white/6 bg-white/3 px-3 py-2.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="flex items-center gap-1 text-[12.5px] font-bold text-app-gold">
+                    <StarFill size={12} />
+                    {r.rating.toFixed(1)}
+                  </span>
+                  <span className="text-[12.5px] text-slate-400">
+                    {r.fromUserId?.name ?? "Client"}
+                  </span>
+                  {r.createdAt ? (
+                    <span className="text-[12px] text-slate-600">
+                      {relativeTime(r.createdAt)}
+                    </span>
+                  ) : null}
+                </div>
+                {r.review ? (
+                  <p className="mt-1 text-[13px] leading-relaxed text-slate-400">
+                    {r.review}
+                  </p>
+                ) : null}
+                {r.response?.message ? (
+                  <p className="mt-2 border-l-2 border-app-gold/40 pl-3 text-[12.5px] leading-relaxed text-slate-500">
+                    <strong className="text-slate-400">Provider replied:</strong>{" "}
+                    {r.response.message}
+                  </p>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

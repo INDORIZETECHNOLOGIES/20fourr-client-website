@@ -52,6 +52,15 @@ export type BookingDraft = {
   providerId: string | null;
   /** Kept for the summary screens, which shouldn't refetch just to show a name. */
   providerName: string | null;
+  /**
+   * The provider's shortest bookable shift, carried from the search card.
+   *
+   * `POST /bookings` rejects anything under it with SC_411, and so does the
+   * price preview — but only after the user has filled in the whole schedule
+   * step. Holding it here lets the duration control say so at the point the
+   * choice is made. Null when the provider card didn't carry one.
+   */
+  providerMinimumHours: number | null;
   purposeId: string | null;
   purposeNote: string;
   date: string;
@@ -60,7 +69,6 @@ export type BookingDraft = {
   address: string;
   /** Matches the API's enum; drives the vehicle surcharge in the price preview. */
   vehicleOption: "none" | "vehicle" | "vehicleWithDriver";
-  repeat: string;
   couponCode: string | null;
   /**
    * Consent gates — each must be explicitly accepted, never inferred.
@@ -84,6 +92,7 @@ const EMPTY: BookingDraft = {
   city: null,
   providerId: null,
   providerName: null,
+  providerMinimumHours: null,
   purposeId: null,
   purposeNote: "",
   date: "",
@@ -91,7 +100,6 @@ const EMPTY: BookingDraft = {
   hours: 8,
   address: "",
   vehicleOption: "none",
-  repeat: "none",
   couponCode: null,
   riskAccepted: false,
   safetyAccepted: false,

@@ -14,11 +14,14 @@ import {
   UserIcon,
 } from "@/components/dashboard/icons";
 import { useApiQuery } from "@/hooks/useApiQuery";
-import { adaptBooking } from "@/lib/api/adapters";
+import { adaptBooking, dutyStartsAt } from "@/lib/api/adapters";
 import type { ApiBooking } from "@/lib/api/types";
 import { PayNowButton } from "./PayNowButton";
 import { CancelBookingButton } from "./CancelBookingButton";
-import { INVOICE_STATUSES } from "@/lib/api/types";
+import { SafetyActions } from "./SafetyActions";
+import { RepeatBookingButton } from "./RepeatBookingButton";
+import { KeyIcon } from "@/components/dashboard/icons";
+import { DOCS_ALLOWED_STATUSES, INVOICE_STATUSES, PAID_STATUSES } from "@/lib/api/types";
 import { ONGOING_STATUSES, statusStyle } from "@/lib/dashboard-data";
 import { formatPaise, formatPaiseRounded } from "@/lib/money";
 
@@ -51,6 +54,11 @@ export function BookingDetail({ id }: { id: string }) {
   const { data, loading, error, refetch } = useApiQuery<{ booking: ApiBooking }>(
     `bookings/${id}`,
   );
+  // Unread badge on the chat action, the way the app shows it.
+  const { data: unreadData } = useApiQuery<{ unreadCount: number }>("chat/unread", {
+    query: { bookingId: id },
+  });
+  const unread = unreadData?.unreadCount ?? 0;
 
   if (loading) {
     return (
@@ -210,6 +218,17 @@ export function BookingDetail({ id }: { id: string }) {
           {/* Both statuses can pay: `provider_accepted` is the first moment the
               API will open an order, and `payment_pending` is a previous
               attempt that didn't complete. */}
+          {/* The main thing a client does on the day. Available from payment
+              until duty ends — the screen itself decides start vs end code. */}
+          {["payment_done", "duty_started"].includes(bk.status) ? (
+            <ActionLink
+              icon={<KeyIcon size={16} />}
+              label={bk.status === "duty_started" ? "Share end code" : "Share start code"}
+              href={`/dashboard/bookings/${id}/duty`}
+              tone="warning"
+            />
+          ) : null}
+
           {bk.status === "provider_accepted" || bk.status === "payment_pending" ? (
             <PayNowButton
               bookingId={data.booking._id}
@@ -230,10 +249,24 @@ export function BookingDetail({ id }: { id: string }) {
 
           <ActionLink
             icon={<ChatIcon size={16} />}
-            label="Message provider"
+            label={
+              unread > 0 ? `Message provider (${unread})` : "Message provider"
+            }
             href={`/dashboard/bookings/${id}/chat`}
           />
-          <ActionLink icon={<ShieldFill size={16} />} label="Provider documents" pending />
+          {DOCS_ALLOWED_STATUSES.includes(bk.status) ? (
+            <ActionLink
+              icon={<ShieldFill size={16} />}
+              label="Provider documents"
+              href={`/dashboard/bookings/${id}/documents`}
+            />
+          ) : (
+            <ActionLink
+              icon={<ShieldFill size={16} />}
+              label="Provider documents"
+              pending
+            />
+          )}
           {/* An invoice only exists from payment_done onward; before that the
               API returns 400. Offering it earlier would be a dead click. */}
           {INVOICE_STATUSES.includes(bk.status) ? (
@@ -251,16 +284,22 @@ export function BookingDetail({ id }: { id: string }) {
           )}
 
           {ongoing ? (
-            <>
-              <ActionLink
-                icon={<ShieldFill size={16} />}
-                label="Raise absence alert"
-                tone="warning"
-                pending
-              />
-              <CancelBookingButton bookingId={data.booking._id} onCancelled={refetch} />
-            </>
+            <CancelBookingButton
+              bookingId={data.booking._id}
+              onCancelled={refetch}
+              totalPaise={data.booking.totalAmount}
+              dutyStartsAt={dutyStartsAt(data.booking)}
+              paid={PAID_STATUSES.includes(data.booking.status)}
+            />
           ) : null}
+
+          <RepeatBookingButton booking={data.booking} />
+
+          <SafetyActions
+            bookingId={data.booking._id}
+            status={bk.status}
+            onChanged={refetch}
+          />
         </aside>
       </div>
     </SubPage>

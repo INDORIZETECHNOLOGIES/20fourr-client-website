@@ -295,3 +295,25 @@ export function adaptNotification(notification: ApiNotification): AppNotificatio
     href: notificationHref(notification),
   };
 }
+
+/**
+ * When duty actually starts, as a Date.
+ *
+ * The API splits this across two fields — `startDate` is an ISO date and
+ * `startTime` is a bare clock string like "09:00" — so anything that measures
+ * time *until* the shift (the cancellation refund tiers, the 24h document
+ * reveal) has to recombine them. Using `startDate` alone reads as midnight and
+ * silently shifts the answer by most of a day.
+ */
+export function dutyStartsAt(booking: {
+  startDate?: string;
+  startTime?: string;
+}): Date | null {
+  if (!booking.startDate) return null;
+  const date = new Date(booking.startDate);
+  if (Number.isNaN(date.getTime())) return null;
+
+  const match = /^(\d{1,2}):(\d{2})/.exec(booking.startTime ?? "");
+  if (match) date.setHours(Number(match[1]), Number(match[2]), 0, 0);
+  return date;
+}
