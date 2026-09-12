@@ -22,8 +22,8 @@
  *  - The >24h tier is **90%, not 100%**. The mobile screen labels it "Full
  *    refund" and the FAQ says "without penalty"; the server refunds 0.9. Saying
  *    "full" would overstate what a client gets back by 10%.
- *  - Refunds are credited as **SecureCoins**, not returned to the card
- *    (`refundAsCoins: true`).
+ *  - Where the money goes depends on the billing engine (spec 0002 rule 8).
+ *    v1 credits SecureCoins. v6 records a payable and does not disburse it.
  *
  * These are settings, so an admin can change them. If the numbers here ever
  * disagree with the server, the server wins — and this file should be updated,
@@ -64,9 +64,95 @@ export const REFUND_TIERS: RefundTier[] = [
 export const CANCELLATION_SUMMARY =
   "Cancel more than 24 hours before the start time for a 90% refund, 50% between 12 and 24 hours, and nothing under 12 hours.";
 
-/** Where the money goes back to. Stated wherever a refund is mentioned. */
-export const REFUND_DESTINATION =
-  "Refunds are credited to your wallet as SecureCoins, not back to your card.";
+export type BillingEngine = "v1" | "v6";
+
+/**
+ * Where a refund goes.
+ *
+ * The v6 destination is decided, and it is a real gateway refund to the
+ * original payment method: Platform Architecture v6.0 §H ("Reversal on
+ * cancellation — before any transfer: POST /v1/refunds"), §G.1 ("Full refund to
+ * client … per Razorpay refund timeline") and §S-2. It is NOT wallet credit,
+ * which is the v1 behaviour and is being retired with v1.
+ *
+ * The gap is implementation, not policy: as of CLIENT_API_REFERENCE Appendix B
+ * the v6 cancel path records a credit note and sets `refundStatus: 'pending'`,
+ * and nothing in `src/billing/settlement/` calls the Razorpay refund API yet.
+ * So the copy states the destination the architecture commits to, and is honest
+ * that the timing is not yet automatic — rather than either promising a speed
+ * nothing delivers, or implying the money may never come back.
+ *
+ * Tighten this once the refund-release job exists — SecureConnect spec 0009
+ * ("Refund payable release") specifies it, including the exact `settled` copy
+ * this should become. The architecture defers to "Razorpay refund timeline" and
+ * names no number itself, so naming one here would be inventing it.
+ */
+export function refundDestination(engine: BillingEngine): string {
+  if (engine === "v6") {
+    return "Refunds go back to the payment method you used, not to a wallet.";
+  }
+  return "Refunds are credited to your wallet as SecureCoins, not back to your card.";
+}
+
+export type RefundState =
+  | "pending"
+  | "releasing"
+  | "settled"
+  | "failed"
+  | "manual_review";
+
+/**
+ * What to tell the client about a refund that already exists, per SecureConnect
+ * spec 0009's UI table.
+ *
+ * Three rules that hold across all of these: never name a date the platform does
+ * not control (the instrument timeline is Razorpay's, quoted as theirs), never
+ * surface a gateway id or a failure reason, and never imply the money may not
+ * come back. A refund needing manual review is late, not lost.
+ */
+export function refundNotice(
+  state: RefundState | null | undefined,
+  amountLabel: string,
+  engine: BillingEngine,
+  settledAt?: string | null,
+): { tone: "pending" | "done" | "attention"; text: string } | null {
+  if (!state) return null;
+
+  // The destination differs by engine and the copy must too: a v1 refund becomes
+  // SecureCoins in the wallet and never touches the card, a v6 refund goes back
+  // to the instrument and never touches the wallet. One sentence for both would
+  // be wrong for one of them.
+  const destination =
+    engine === "v6" ? "your original payment method" : "your wallet as SecureCoins";
+
+  if (state === "settled") {
+    const when = settledAt
+      ? new Date(settledAt).toLocaleDateString("en-IN", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        })
+      : null;
+    const trailer =
+      engine === "v6" ? " Your bank may take a few working days to show it." : "";
+    return {
+      tone: "done",
+      text: `${amountLabel} refunded to ${destination}${when ? ` on ${when}` : ""}.${trailer}`,
+    };
+  }
+
+  if (state === "failed" || state === "manual_review") {
+    return {
+      tone: "attention",
+      text: `${amountLabel} refund needs a manual check. Our team has been notified — contact support with this booking if you don't hear back.`,
+    };
+  }
+
+  return {
+    tone: "pending",
+    text: `${amountLabel} refund is being sent to ${destination}.`,
+  };
+}
 
 /** True before any payment exists, where nothing can be withheld. */
 export const NOTHING_CHARGED_YET =

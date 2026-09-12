@@ -150,14 +150,14 @@ export function SafetyActions({ bookingId, status, onChanged }: Props) {
   return (
     <div className="mt-4 flex flex-col gap-2.5">
       {done ? (
-        <p className="rounded-xl border border-green-500/35 bg-green-500/10 px-4 py-3 text-[13.5px] text-green-400">
+        <p className="rounded-lg border border-live bg-transparent px-4 py-3 text-body-sm text-live">
           {done}
         </p>
       ) : null}
       {error ? (
         <p
           role="alert"
-          className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-[13.5px] leading-relaxed text-red-300"
+          className="rounded-lg border border-fault bg-transparent px-4 py-3 text-body-sm leading-relaxed text-fault"
         >
           {error}
         </p>
@@ -167,11 +167,11 @@ export function SafetyActions({ bookingId, status, onChanged }: Props) {
       {canSos ? (
         open === "sos" ? (
           <Panel tone="danger" title="Raise an SOS?">
-            <p className="text-[13px] leading-relaxed text-slate-300">
+            <p className="text-body-sm leading-relaxed text-fg-mid">
               This alerts the 20fourr safety team immediately and shares your location if
               your browser allows it. Use it when someone is in danger.
             </p>
-            <p className="mt-2 text-[13px] font-semibold text-red-300">
+            <p className="mt-2 text-body-sm font-semibold text-fault">
               If there is an immediate threat to life, call 112 first.
             </p>
             <textarea
@@ -194,7 +194,7 @@ export function SafetyActions({ bookingId, status, onChanged }: Props) {
           <button
             type="button"
             onClick={() => setOpen("sos")}
-            className="flex items-center justify-center gap-2.5 rounded-xl bg-red-500/90 px-6 py-4 text-[15px] font-extrabold uppercase tracking-[1px] text-white transition-colors hover:bg-red-500"
+            className="flex items-center justify-center gap-2.5 rounded-lg bg-fault px-6 py-4 text-body font-semibold uppercase tracking-[1px] text-ground-ink transition-colors hover:opacity-90"
           >
             <AlertCircleIcon size={18} />
             SOS
@@ -206,7 +206,7 @@ export function SafetyActions({ bookingId, status, onChanged }: Props) {
       {canAbsence ? (
         open === "absence" ? (
           <Panel tone="warning" title="Report the provider absent">
-            <p className="text-[13px] leading-relaxed text-slate-400">
+            <p className="text-body-sm leading-relaxed text-fg-mid">
               Use this if the guard has not arrived, or has left the site during the
               shift. Checked against duty and geofence records.
             </p>
@@ -248,10 +248,10 @@ export function SafetyActions({ bookingId, status, onChanged }: Props) {
                   aria-pressed={category === c.id}
                   onClick={() => setCategory(c.id)}
                   className={[
-                    "rounded-full border px-3.5 py-1.5 text-[12.5px] font-semibold transition-colors",
+                    "rounded-full border px-3.5 py-1.5 text-body-sm font-semibold transition-colors",
                     category === c.id
-                      ? "border-app-gold bg-app-gold/12 text-app-gold"
-                      : "border-app-border text-slate-400 hover:border-app-gold/40",
+                      ? "border-brand bg-panel-raised text-brand"
+                      : "border-hairline text-fg-mid hover:border-edge",
                   ].join(" ")}
                 >
                   {c.label}
@@ -266,7 +266,7 @@ export function SafetyActions({ bookingId, status, onChanged }: Props) {
               placeholder="Describe what happened — dates, times and names help."
               className={inputCls}
             />
-            <p className="text-[11.5px] text-slate-600">
+            <p className="text-label text-fg-faint">
               {description.trim().length}/4000 · at least 5 characters
             </p>
             <Actions
@@ -289,7 +289,7 @@ export function SafetyActions({ bookingId, status, onChanged }: Props) {
       {canDispute ? (
         open === "dispute" ? (
           <Panel tone="danger" title="Dispute this booking">
-            <p className="text-[13px] leading-relaxed text-slate-400">
+            <p className="text-body-sm leading-relaxed text-fg-mid">
               This puts the booking under review and pauses the provider&apos;s payout
               while support investigates.
             </p>
@@ -330,7 +330,7 @@ export function SafetyActions({ bookingId, status, onChanged }: Props) {
 }
 
 const inputCls =
-  "mt-3 w-full rounded-lg border border-app-border bg-white/4 px-3 py-2.5 text-[13.5px] text-slate-100 outline-none transition-colors placeholder:text-slate-600 focus:border-app-gold/60";
+  "mt-3 w-full rounded-lg border border-hairline bg-panel-raised px-3 py-2.5 text-body-sm text-fg outline-none transition-colors placeholder:text-fg-faint focus:border-edge";
 
 function Panel({
   title,
@@ -344,18 +344,18 @@ function Panel({
   return (
     <div
       className={[
-        "rounded-xl border p-4",
+        "rounded-lg border p-4",
         tone === "danger"
-          ? "border-red-500/35 bg-red-500/6"
+          ? "border-fault bg-fault/6"
           : tone === "warning"
-            ? "border-app-warning/35 bg-app-warning/6"
-            : "border-app-border bg-app-card",
+            ? "border-attention bg-transparent"
+            : "border-hairline bg-panel",
       ].join(" ")}
     >
       <p
         className={[
-          "text-[14px] font-semibold",
-          tone === "danger" ? "text-red-300" : tone === "warning" ? "text-app-warning" : "text-slate-200",
+          "text-body font-semibold",
+          tone === "danger" ? "text-fault" : tone === "warning" ? "text-attention" : "text-fg",
         ].join(" ")}
       >
         {title}
@@ -385,12 +385,12 @@ function Actions({
         onClick={onConfirm}
         disabled={busy}
         className={[
-          "rounded-full px-5 py-2 text-[13.5px] font-bold transition-opacity disabled:opacity-50",
+          "rounded-sm px-5 py-2 text-body-sm font-semibold transition-opacity disabled:opacity-50",
           tone === "danger"
-            ? "bg-red-500/90 text-white"
+            ? "bg-fault text-ground-ink"
             : tone === "warning"
-              ? "bg-app-warning/90 text-black"
-              : "bg-app-gold-gradient text-black",
+              ? "bg-attention"
+              : "bg-brand text-brand-ink",
         ].join(" ")}
       >
         {confirmLabel}
@@ -398,7 +398,7 @@ function Actions({
       <button
         type="button"
         onClick={onCancel}
-        className="rounded-full border border-app-border px-5 py-2 text-[13.5px] font-semibold text-slate-300"
+        className="rounded-sm border border-hairline px-5 py-2 text-body-sm font-semibold text-fg-mid"
       >
         Cancel
       </button>
@@ -422,12 +422,12 @@ function ActionButton({
       type="button"
       onClick={onClick}
       className={[
-        "flex items-center gap-3 rounded-xl border px-4 py-3 text-[14px] font-semibold transition-colors",
+        "flex items-center gap-3 rounded-lg border px-4 py-3 text-body font-semibold transition-colors",
         tone === "danger"
-          ? "border-red-500/35 text-red-400 hover:bg-red-500/10"
+          ? "border-fault text-fault hover:bg-panel-raised"
           : tone === "warning"
-            ? "border-app-warning/35 text-app-warning hover:bg-app-warning/10"
-            : "border-app-border text-slate-300 hover:bg-white/5",
+            ? "border-attention text-attention hover:bg-transparent"
+            : "border-hairline text-fg-mid hover:bg-panel-raised",
       ].join(" ")}
     >
       {icon}

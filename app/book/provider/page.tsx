@@ -31,18 +31,25 @@ export default function ProviderStep() {
   const [hourlyOnly, setHourlyOnly] = useState(false);
 
   /**
-   * `ignoreCity` drops the city filter after it has been shown to return
-   * nothing.
+   * `ignoreLocation` drops BOTH the city and the deployment-state filter after
+   * they have been shown to return nothing.
    *
-   * The API matches city against a derived `serviceCitiesNorm` array which is
-   * empty on the current provider records, so *every* city returns zero while
-   * the unfiltered search returns dozens. Rather than dead-ending the funnel on
-   * a server-side data gap, the widened search is offered explicitly — never
-   * applied silently, because a client who asked for Pune must not be shown
-   * Chennai providers without being told.
+   * The API matches city against a derived `serviceCitiesNorm` array and state
+   * against `serviceState`, both of which are empty on the current provider
+   * records — so every location returns zero while the unfiltered search
+   * returns dozens. Rather than dead-ending the funnel on a server-side data
+   * gap, the widened search is offered explicitly, never applied silently: a
+   * client who asked for Pune must not be shown Chennai providers unasked.
+   *
+   * The state filter is here because architecture v6.0 §W.2-17 requires the
+   * provider list to be restricted to providers licensed for the deployment
+   * state. Once `REQUIRE_PSARA_STATE_MATCH` is on, a provider outside it is
+   * rejected at booking with SC_1414 — so widening is a real choice with a real
+   * consequence, and the notice below says so.
    */
-  const [ignoreCity, setIgnoreCity] = useState(false);
-  const cityApplied = Boolean(draft.city) && !ignoreCity;
+  const [ignoreLocation, setIgnoreLocation] = useState(false);
+  const locationApplied = Boolean(draft.city) && !ignoreLocation;
+  const stateApplied = Boolean(draft.deployment.stateName) && !ignoreLocation;
 
   const { data, loading, error, refetch } = useApiQuery<ProviderSearchResponse>(
     "client/providers/search",
@@ -53,7 +60,8 @@ export default function ProviderStep() {
         // The API rejects anything outside its four-value enum, so an unset
         // category is omitted rather than sent as an empty string.
         ...(draft.serviceCategory ? { category: draft.serviceCategory } : {}),
-        ...(cityApplied ? { city: draft.city } : {}),
+        ...(locationApplied ? { city: draft.city } : {}),
+        ...(stateApplied ? { state: draft.deployment.stateName } : {}),
         ...(hourlyOnly ? { hourlyEnabled: true } : {}),
         ...(draft.exServicemanOnly ? { exServiceman: true } : {}),
       },
@@ -67,7 +75,9 @@ export default function ProviderStep() {
     <>
       <StepHeading
         title="Choose a provider"
-        subtitle={[draft.serviceName, draft.city].filter(Boolean).join(" · ")}
+        subtitle={[draft.serviceName, draft.city, draft.deployment.stateName]
+          .filter(Boolean)
+          .join(" · ")}
       />
 
       <div className="mb-5 flex flex-wrap items-center gap-2">
@@ -78,34 +88,36 @@ export default function ProviderStep() {
             aria-pressed={sortBy === s.id}
             onClick={() => setSortBy(s.id)}
             className={[
-              "rounded-full border px-4 py-2 text-[13px] font-semibold transition-colors",
+              "rounded-sm border px-4 py-2 text-body-sm font-semibold transition-colors",
               sortBy === s.id
-                ? "border-app-gold bg-app-gold/12 text-app-gold"
-                : "border-app-border text-slate-400 hover:border-app-gold/40",
+                ? "border-brand bg-panel-raised text-brand"
+                : "border-hairline text-fg-mid hover:border-edge",
             ].join(" ")}
           >
             {s.label}
           </button>
         ))}
 
-        <label className="ml-auto flex cursor-pointer items-center gap-2 text-[13px] text-slate-400">
+        <label className="ml-auto flex cursor-pointer items-center gap-2 text-body-sm text-fg-mid">
           <input
             type="checkbox"
             checked={hourlyOnly}
             onChange={(e) => setHourlyOnly(e.target.checked)}
-            className="h-4 w-4 accent-app-gold"
+            className="h-4 w-4 accent-brand"
           />
           Hourly booking available
         </label>
       </div>
 
-      {!cityApplied && draft.city ? (
-        <p className="mb-5 rounded-xl border border-app-gold/30 bg-app-gold/8 px-4 py-3 text-[13.5px] text-app-gold">
-          Showing providers from all cities — none matched {draft.city}. Confirm coverage
-          with the provider before booking.{" "}
+      {!locationApplied && draft.city ? (
+        <p className="mb-5 rounded-lg border border-attention bg-panel-raised px-4 py-3 text-body-sm text-fg">
+          Showing providers everywhere — none matched {draft.city}
+          {draft.deployment.stateName ? `, ${draft.deployment.stateName}` : ""}. Confirm the
+          provider is licensed to work in {draft.deployment.stateName || "your deployment state"}{" "}
+          before booking.{" "}
           <button
             type="button"
-            onClick={() => setIgnoreCity(false)}
+            onClick={() => setIgnoreLocation(false)}
             className="font-semibold underline"
           >
             Back to {draft.city} only
@@ -114,7 +126,7 @@ export default function ProviderStep() {
       ) : null}
 
       {draft.exServicemanOnly ? (
-        <p className="mb-5 rounded-xl border border-violet-400/30 bg-violet-400/8 px-4 py-3 text-[13.5px] text-violet-300">
+        <p className="mb-5 rounded-lg border border-hairline bg-panel-raised px-4 py-3 text-body-sm text-fg-mid">
           Showing only providers with a verified ex-serviceman certificate.{" "}
           <button
             type="button"
@@ -131,48 +143,48 @@ export default function ProviderStep() {
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className="h-[124px] animate-pulse rounded-2xl border border-app-border bg-app-card"
+              className="h-[124px] animate-pulse rounded-lg border border-hairline bg-panel"
             />
           ))}
         </div>
       ) : error ? (
-        <div className="rounded-2xl border border-red-500/30 bg-red-500/8 px-6 py-10 text-center">
-          <p role="alert" className="text-[15px] text-red-300">
+        <div className="rounded-lg border border-fault bg-transparent px-6 py-10 text-center">
+          <p role="alert" className="text-body text-fault">
             {error}
           </p>
           <button
             type="button"
             onClick={refetch}
-            className="mt-4 rounded-full border border-app-gold px-6 py-2.5 text-[14px] font-bold text-app-gold"
+            className="mt-4 rounded-sm border border-edge px-6 py-2.5 text-body font-medium text-fg"
           >
             Try again
           </button>
         </div>
       ) : providers.length === 0 ? (
-        <div className="rounded-2xl border border-app-border bg-app-card px-6 py-12 text-center">
-          <p className="text-[15px] text-slate-300">
+        <div className="rounded-lg border border-hairline bg-panel px-6 py-12 text-center">
+          <p className="text-body text-fg-mid">
             No {draft.serviceName?.toLowerCase() ?? "providers"} available
-            {cityApplied ? ` in ${draft.city}` : ""} with these filters.
+            {locationApplied ? ` in ${draft.city}` : ""} with these filters.
           </p>
-          <p className="mt-2 text-[13.5px] text-slate-500">
-            {cityApplied
-              ? "Search every city instead, or change the filters."
+          <p className="mt-2 text-body-sm text-fg-faint">
+            {locationApplied
+              ? "Search everywhere instead, or change the filters."
               : "Try another sort, or turn off the hourly and ex-serviceman filters."}
           </p>
           <div className="mt-5 flex flex-wrap justify-center gap-3">
-            {cityApplied ? (
+            {locationApplied ? (
               <button
                 type="button"
-                onClick={() => setIgnoreCity(true)}
-                className="rounded-full bg-app-gold-gradient px-6 py-2.5 text-[14px] font-bold text-black"
+                onClick={() => setIgnoreLocation(true)}
+                className="rounded-sm bg-brand text-brand-ink px-6 py-2.5 text-body font-semibold"
               >
-                Search all cities
+                Search everywhere
               </button>
             ) : null}
             <button
               type="button"
               onClick={() => router.push("/book/service")}
-              className="rounded-full border border-app-gold px-6 py-2.5 text-[14px] font-bold text-app-gold"
+              className="rounded-sm border border-edge px-6 py-2.5 text-body font-medium text-fg"
             >
               Change service or city
             </button>
@@ -196,7 +208,7 @@ export default function ProviderStep() {
           ))}
 
           {data?.pagination && data.pagination.pages > 1 ? (
-            <p className="mt-1 text-center text-[12.5px] text-slate-600">
+            <p className="mt-1 text-center text-body-sm text-fg-faint">
               Showing {providers.length} of {data.pagination.total} providers
             </p>
           ) : null}
@@ -235,40 +247,40 @@ function ProviderCard({
   return (
     <div
       className={[
-        "rounded-2xl border transition-colors",
-        selected ? "border-app-gold bg-app-gold/6" : "border-app-border bg-app-card",
+        "rounded-lg border transition-colors",
+        selected ? "border-brand bg-panel-raised" : "border-hairline bg-panel",
       ].join(" ")}
     >
       <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
-        <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-app-gold-gradient text-[18px] font-extrabold text-black">
+        <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-panel-raised text-h3 font-semibold text-fg">
           {initialsOf(name)}
         </span>
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[16px] font-bold text-slate-100">{name}</span>
+            <span className="text-body font-semibold text-fg">{name}</span>
             {provider.isVerified ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-green-500/15 px-2 py-0.5 text-[11.5px] font-bold text-green-500">
+              <span className="inline-flex items-center gap-1 rounded-sm border border-live px-2 py-0.5 text-label font-medium text-live">
                 <CheckCircleFill size={12} />
                 Verified
               </span>
             ) : null}
             {provider.verificationTier && provider.verificationTier !== "none" ? (
-              <span className="rounded-full bg-app-gold/15 px-2 py-0.5 text-[11.5px] font-bold capitalize text-app-gold">
+              <span className="rounded-full bg-panel-raised px-2 py-0.5 text-label font-medium capitalize text-fg-mid">
                 {provider.verificationTier}
               </span>
             ) : null}
           </div>
 
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-slate-500">
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-body-sm text-fg-faint">
             {provider.averageRating ? (
-              <span className="flex items-center gap-1 text-app-gold">
+              <span className="flex items-center gap-1 text-fg">
                 <StarFill size={13} />
                 {provider.averageRating.toFixed(1)}{" "}
-                <span className="text-slate-500">({provider.totalRatings ?? 0})</span>
+                <span className="text-fg-faint">({provider.totalRatings ?? 0})</span>
               </span>
             ) : (
-              <span className="text-slate-600">No ratings yet</span>
+              <span className="text-fg-faint">No ratings yet</span>
             )}
             {provider.serviceCity ? <span>{provider.serviceCity}</span> : null}
             {provider.isHourlyAvailable ? <span>Hourly available</span> : null}
@@ -277,7 +289,7 @@ function ProviderCard({
         </div>
 
         <div className="flex shrink-0 flex-wrap items-center gap-3">
-          <span className="text-[15px] font-bold text-app-gold">
+          <span className="text-mono text-fg">
             {/* "From" — the discovery service returns the minimum across all of
                 this provider's priced categories, not the rate for the one
                 being searched. The exact figure comes from the price preview. */}
@@ -291,10 +303,10 @@ function ProviderCard({
             type="button"
             onClick={onSelect}
             className={[
-              "rounded-full px-5 py-2.5 text-[13.5px] font-bold transition-colors",
+              "rounded-sm px-5 py-2.5 text-body-sm font-semibold transition-colors",
               selected
-                ? "bg-app-gold text-black"
-                : "border border-app-gold/40 text-app-gold hover:bg-app-gold/10",
+                ? "bg-brand"
+                : "border border-edge text-fg hover:bg-panel-raised",
             ].join(" ")}
           >
             {selected ? "Selected" : "Select"}
@@ -302,12 +314,12 @@ function ProviderCard({
         </div>
       </div>
 
-      <div className="border-t border-white/6 px-5 py-3">
+      <div className="border-t border-hairline px-5 py-3">
         <button
           type="button"
           onClick={() => setOpen(!open)}
           aria-expanded={open}
-          className="text-[13px] font-semibold text-slate-400 hover:text-slate-200"
+          className="text-body-sm font-semibold text-fg-mid hover:text-fg"
         >
           {open ? "Hide details" : "View details"}
         </button>
@@ -350,12 +362,12 @@ function ProviderDetail({
   const badges = profile?.trustBadges ?? card.trustBadges ?? [];
 
   if (loading) {
-    return <div className="mt-4 h-24 animate-pulse rounded-xl bg-white/4" />;
+    return <div className="mt-4 h-24 animate-pulse rounded-lg bg-panel-raised" />;
   }
 
   if (error) {
     return (
-      <p role="alert" className="mt-4 text-[13px] text-red-300">
+      <p role="alert" className="mt-4 text-body-sm text-fault">
         {error}
       </p>
     );
@@ -366,11 +378,11 @@ function ProviderDetail({
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <div>
           <Label>About</Label>
-          <p className="text-[13.5px] leading-relaxed text-slate-400">
+          <p className="text-body-sm leading-relaxed text-fg-mid">
             {profile?.description || "This provider hasn't added a description yet."}
           </p>
 
-          <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-[13px] text-slate-500">
+          <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-body-sm text-fg-faint">
             {profile?.yearsExperience ? (
               <span>{profile.yearsExperience} years experience</span>
             ) : null}
@@ -385,7 +397,7 @@ function ProviderDetail({
 
           {/* Service record — only individuals carry these. */}
           {profile?.isExServiceman || profile?.isPoliceVeteran ? (
-            <p className="mt-3 text-[13px] text-slate-400">
+            <p className="mt-3 text-body-sm text-fg-mid">
               {profile.isPoliceVeteran ? "Police veteran" : "Ex-serviceman"}
               {profile.rankAtRetirement ? ` · ${profile.rankAtRetirement}` : ""}
               {profile.regiment ? ` · ${profile.regiment}` : ""}
@@ -401,7 +413,7 @@ function ProviderDetail({
               {(profile?.serviceCategories ?? card.serviceCategories ?? []).map((c) => (
                 <span
                   key={c}
-                  className="rounded-full bg-white/6 px-2.5 py-1 text-[12px] capitalize text-slate-300"
+                  className="rounded-full bg-panel-raised px-2.5 py-1 text-label capitalize text-fg-mid"
                 >
                   {c}
                 </span>
@@ -416,7 +428,7 @@ function ProviderDetail({
                 {badges.map((b) => (
                   <span
                     key={b}
-                    className="rounded-full bg-green-500/12 px-2.5 py-1 text-[12px] text-green-400"
+                    className="rounded-full bg-panel-raised px-2.5 py-1 text-label text-live"
                   >
                     {TRUST_BADGE_LABELS[b] ?? b.replace(/_/g, " ")}
                   </span>
@@ -428,7 +440,7 @@ function ProviderDetail({
           {profile?.specializations?.length ? (
             <div>
               <Label>Specialisations</Label>
-              <p className="text-[13.5px] text-slate-400">
+              <p className="text-body-sm text-fg-mid">
                 {profile.specializations.join(" · ")}
               </p>
             </div>
@@ -437,7 +449,7 @@ function ProviderDetail({
           {profile?.languages?.length ? (
             <div>
               <Label>Languages</Label>
-              <p className="text-[13.5px] text-slate-400">{profile.languages.join(" · ")}</p>
+              <p className="text-body-sm text-fg-mid">{profile.languages.join(" · ")}</p>
             </div>
           ) : null}
         </div>
@@ -452,12 +464,12 @@ function ProviderDetail({
             {profile.pricing.map((rate) => (
               <div
                 key={rate.category}
-                className="flex flex-wrap items-baseline justify-between gap-2 rounded-lg border border-white/6 bg-white/3 px-3 py-2"
+                className="flex flex-wrap items-baseline justify-between gap-2 rounded-lg border border-hairline bg-panel-raised px-3 py-2"
               >
-                <span className="text-[13px] font-semibold capitalize text-slate-200">
+                <span className="text-body-sm font-semibold capitalize text-fg">
                   {rate.category}
                 </span>
-                <span className="text-[13px] text-slate-400">
+                <span className="text-body-sm text-fg-mid">
                   {rate.dailyRate ? `${formatPaiseRounded(rate.dailyRate)}/day` : null}
                   {rate.hourlyEnabled && rate.hourlyRate
                     ? ` · ${formatPaiseRounded(rate.hourlyRate)}/hr`
@@ -482,7 +494,7 @@ function ProviderDetail({
       <div>
         <Label>Reviews {reviews.length ? `(${reviews.length})` : ""}</Label>
         {reviews.length === 0 ? (
-          <p className="text-[13px] text-slate-600">
+          <p className="text-body-sm text-fg-faint">
             No written reviews yet
             {profile?.rating?.count
               ? ` — this provider's ${profile.rating.average?.toFixed(1)} rating comes from ${profile.rating.count} scores left without a comment.`
@@ -491,29 +503,29 @@ function ProviderDetail({
         ) : (
           <div className="flex flex-col gap-2.5">
             {reviews.map((r) => (
-              <div key={r._id} className="rounded-lg border border-white/6 bg-white/3 px-3 py-2.5">
+              <div key={r._id} className="rounded-lg border border-hairline bg-panel-raised px-3 py-2.5">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="flex items-center gap-1 text-[12.5px] font-bold text-app-gold">
+                  <span className="flex items-center gap-1 text-body-sm font-medium text-fg">
                     <StarFill size={12} />
                     {r.rating.toFixed(1)}
                   </span>
-                  <span className="text-[12.5px] text-slate-400">
+                  <span className="text-body-sm text-fg-mid">
                     {r.fromUserId?.name ?? "Client"}
                   </span>
                   {r.createdAt ? (
-                    <span className="text-[12px] text-slate-600">
+                    <span className="text-label text-fg-faint">
                       {relativeTime(r.createdAt)}
                     </span>
                   ) : null}
                 </div>
                 {r.review ? (
-                  <p className="mt-1 text-[13px] leading-relaxed text-slate-400">
+                  <p className="mt-1 text-body-sm leading-relaxed text-fg-mid">
                     {r.review}
                   </p>
                 ) : null}
                 {r.response?.message ? (
-                  <p className="mt-2 border-l-2 border-app-gold/40 pl-3 text-[12.5px] leading-relaxed text-slate-500">
-                    <strong className="text-slate-400">Provider replied:</strong>{" "}
+                  <p className="mt-2 border-l-2 border-edge pl-3 text-body-sm leading-relaxed text-fg-faint">
+                    <strong className="text-fg-mid">Provider replied:</strong>{" "}
                     {r.response.message}
                   </p>
                 ) : null}
@@ -528,7 +540,7 @@ function ProviderDetail({
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[1px] text-slate-600">
+    <p className="mb-1.5 text-eyebrow font-semibold uppercase tracking-[1px] text-fg-faint">
       {children}
     </p>
   );

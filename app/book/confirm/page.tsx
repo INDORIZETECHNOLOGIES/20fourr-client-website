@@ -8,10 +8,12 @@ import { PriceSummary } from "../PriceSummary";
 import { CouponField } from "../CouponField";
 import { api } from "@/lib/api/client";
 import { errorMessage, isApiError } from "@/lib/api/errors";
-import { usePricePreview, endOfShift } from "@/lib/api/pricing";
+import { usePricePreview } from "@/hooks/usePricePreview";
+import { useV6Enabled } from "@/hooks/useV6Enabled";
+import { endOfShift, quoteTotalPaise, quotePlatformFeePaise } from "@/lib/api/pricing";
 import type { ApiBooking } from "@/lib/api/types";
 import { BOOKING_PURPOSES, isBookingPurpose } from "@/lib/booking-data";
-import { CANCELLATION_SUMMARY, NOTHING_CHARGED_YET, REFUND_DESTINATION } from "@/lib/cancellation-policy";
+import { CANCELLATION_SUMMARY, NOTHING_CHARGED_YET, refundDestination } from "@/lib/cancellation-policy";
 
 export default function ConfirmStep() {
   const { draft, update } = useBooking();
@@ -19,6 +21,7 @@ export default function ConfirmStep() {
 
   const purpose = BOOKING_PURPOSES.find((p) => p.id === draft.purposeId);
   const { data: price, loading, error } = usePricePreview(draft);
+  const v6Enabled = useV6Enabled();
   const [couponCode, setCouponCode] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -61,6 +64,14 @@ export default function ConfirmStep() {
           endTime: end.endTime,
           vehicleOption: draft.vehicleOption,
           address: draft.address.trim() || undefined,
+          deployment: {
+            addressLine: (draft.deployment.addressLine || draft.address).trim(),
+            city: (draft.deployment.city || draft.city || "").trim(),
+            stateName: draft.deployment.stateName,
+            pincode: draft.deployment.pincode || undefined,
+            latitude: null,
+            longitude: null,
+          },
           // Only send a purpose the API's enum actually accepts. A draft saved
           // in sessionStorage before the purpose list was corrected would
           // otherwise still carry a dead id and fail the whole submission.
@@ -71,7 +82,7 @@ export default function ConfirmStep() {
           // API has a dedicated field for it (max 500 chars).
           bookingPurposeDetail: draft.purposeNote.trim().slice(0, 500) || undefined,
           // Applied and re-validated server-side while the booking is priced.
-          ...(couponCode ? { couponCode } : {}),
+          ...(v6Enabled || !couponCode ? {} : { couponCode }),
           // All four are mandatory — the API returns SC_209 if any is missing.
           // They are sent from the draft, so each reflects a gate the user
           // actually passed rather than a hardcoded `true`.
@@ -106,20 +117,20 @@ export default function ConfirmStep() {
       confirmDisabled={submitting || loading || !price}
       error={
         submitError ? (
-          <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3.5">
-            <p role="alert" className="text-[14px] leading-relaxed text-red-300">
+          <div className="rounded-lg border border-fault bg-transparent px-4 py-3.5">
+            <p role="alert" className="text-body leading-relaxed text-fault">
               {submitError}
             </p>
             {providerRejected ? (
               <>
-                <p className="mt-2 text-[13px] leading-relaxed text-red-300/80">
+                <p className="mt-2 text-body-sm leading-relaxed text-fault/80">
                   This provider can&apos;t take the booking. Your other details are kept —
                   choose a different provider and come straight back.
                 </p>
                 <button
                   type="button"
                   onClick={() => router.push("/book/provider")}
-                  className="mt-3 rounded-full border border-app-gold px-5 py-2 text-[13.5px] font-bold text-app-gold transition-colors hover:bg-app-gold/10"
+                  className="mt-3 rounded-sm border border-edge px-5 py-2 text-body-sm font-medium text-fg transition-colors hover:bg-panel-raised"
                 >
                   Choose another provider
                 </button>
@@ -133,7 +144,7 @@ export default function ConfirmStep() {
       points={[
         {
           heading: "Cancellation refunds are tiered",
-          body: `${NOTHING_CHARGED_YET} Once paid, what you get back depends on how close to the start time you cancel. ${CANCELLATION_SUMMARY} ${REFUND_DESTINATION}`,
+          body: `${NOTHING_CHARGED_YET} Once paid, what you get back depends on how close to the start time you cancel. ${CANCELLATION_SUMMARY} ${refundDestination(v6Enabled ? "v6" : "v1")}`,
         },
         {
           heading: "Nothing is charged yet",
@@ -145,8 +156,8 @@ export default function ConfirmStep() {
         },
       ]}
     >
-      <div className="mt-6 rounded-xl border border-white/8 bg-black/25 p-5">
-        <h2 className="mb-4 font-display text-[15px] font-bold text-slate-100">
+      <div className="mt-6 rounded-lg border border-hairline bg-black/25 p-5">
+        <h2 className="mb-4 font-sans text-body font-semibold text-fg">
           Booking Summary
         </h2>
         <dl className="grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2">
@@ -169,21 +180,21 @@ export default function ConfirmStep() {
           <Row label="City" value={draft.city ?? "—"} />
         </dl>
 
-        <div className="mt-4 border-t border-white/8 pt-4">
-          <p className="mb-1 text-[11px] font-semibold uppercase tracking-[1px] text-slate-600">
+        <div className="mt-4 border-t border-hairline pt-4">
+          <p className="mb-1 text-eyebrow font-semibold uppercase tracking-[1px] text-fg-faint">
             Service address
           </p>
-          <p className="text-[14px] leading-relaxed text-slate-300">
+          <p className="text-body leading-relaxed text-fg-mid">
             {draft.address || "—"}
           </p>
         </div>
 
         {draft.purposeNote.trim() ? (
-          <div className="mt-4 border-t border-white/8 pt-4">
-            <p className="mb-1 text-[11px] font-semibold uppercase tracking-[1px] text-slate-600">
+          <div className="mt-4 border-t border-hairline pt-4">
+            <p className="mb-1 text-eyebrow font-semibold uppercase tracking-[1px] text-fg-faint">
               Notes for provider
             </p>
-            <p className="text-[14px] leading-relaxed text-slate-300">
+            <p className="text-body leading-relaxed text-fg-mid">
               {draft.purposeNote}
             </p>
           </div>
@@ -191,22 +202,24 @@ export default function ConfirmStep() {
 
         {/* The server's figure. This is the number the user is agreeing to, so
             it must be the same one the payment step charges. */}
-        <div className="mt-4 border-t border-white/8 pt-4">
+        <div className="mt-4 border-t border-hairline pt-4">
           <PriceSummary price={price} loading={loading} error={error} />
         </div>
 
-        <div className="mt-4 border-t border-white/8 pt-4">
-          <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-[1px] text-slate-600">
+        {!v6Enabled ? (
+        <div className="mt-4 border-t border-hairline pt-4">
+          <p className="mb-2.5 text-eyebrow font-semibold uppercase tracking-[1px] text-fg-faint">
             Coupon
           </p>
           <CouponField
-            totalPaise={price?.totalAmount ?? 0}
+            totalPaise={price ? quoteTotalPaise(price) : 0}
             serviceCategory={draft.serviceCategory}
-            platformRevenuePaise={price?.platformFee ?? 0}
+            platformRevenuePaise={price ? quotePlatformFeePaise(price) : 0}
             value={couponCode}
             onChange={(code) => setCouponCode(code)}
           />
         </div>
+        ) : null}
       </div>
     </ConsentGate>
   );
@@ -215,10 +228,10 @@ export default function ConfirmStep() {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-[11px] font-semibold uppercase tracking-[1px] text-slate-600">
+      <dt className="text-eyebrow font-semibold uppercase tracking-[1px] text-fg-faint">
         {label}
       </dt>
-      <dd className="mt-0.5 text-[14px] text-slate-200">{value}</dd>
+      <dd className="mt-0.5 text-body text-fg">{value}</dd>
     </div>
   );
 }

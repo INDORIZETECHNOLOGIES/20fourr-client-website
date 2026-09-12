@@ -48,11 +48,11 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   ).length;
 
   return (
-    <div className="flex h-full flex-col bg-app-sidebar">
+    <div className="flex h-full flex-col bg-panel">
       {/* Logo — the real wordmark rather than a generic shield glyph. It needs
           room to read, so it takes the full header width instead of sitting in
           a 38px tile, with the descriptor beneath it. */}
-      <div className="border-b border-white/5 px-5 pb-5 pt-6">
+      <div className="border-b border-hairline px-5 pb-5 pt-6">
         <Link
           href="/dashboard"
           className="flex flex-col items-start gap-2"
@@ -60,14 +60,14 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           aria-label="20fourr — Dashboard"
         >
           <Logo width={104} priority />
-          <span className="text-[11px] uppercase tracking-[1px] text-slate-500">
+          <span className="text-eyebrow uppercase tracking-[1px] text-fg-faint">
             Security Platform
           </span>
         </Link>
       </div>
 
       <div className="px-5 pb-2.5 pt-5">
-        <p className="text-[11px] font-semibold uppercase tracking-[1px] text-slate-500">
+        <p className="text-eyebrow font-semibold uppercase tracking-[1px] text-fg-faint">
           Main Menu
         </p>
       </div>
@@ -85,16 +85,16 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
               onClick={onNavigate}
               aria-current={active ? "page" : undefined}
               className={[
-                "flex items-center gap-3 rounded-[9px] border-l-2 px-3 py-3 text-[15px] transition-colors",
+                "flex items-center gap-3 rounded-sm border-l-2 px-3 py-3 text-body transition-colors",
                 active
-                  ? "border-l-app-gold bg-app-gold/9 font-semibold text-app-gold"
-                  : "border-l-transparent font-normal text-slate-400 hover:bg-white/4 hover:text-slate-200",
+                  ? "border-l-brand bg-panel-raised font-semibold text-brand"
+                  : "border-l-transparent font-normal text-fg-mid hover:bg-panel-raised hover:text-fg",
               ].join(" ")}
             >
               <Icon size={18} />
               {label}
               {"badge" in rest && ongoingCount > 0 ? (
-                <span className="ml-auto rounded-full bg-app-gold/15 px-2 py-0.5 text-[12px] font-bold text-app-gold">
+                <span className="ml-auto rounded-full bg-panel-raised px-2 py-0.5 text-label font-medium text-fg">
                   {ongoingCount}
                 </span>
               ) : null}
@@ -102,41 +102,42 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           );
         })}
 
-        <div className="mx-0.5 mb-2 mt-3 border-t border-white/4" />
+        <div className="mx-0.5 mb-2 mt-3 border-t border-hairline" />
         <div className="px-3 pb-2.5">
-          <p className="text-[11px] font-semibold uppercase tracking-[1px] text-slate-500">
+          <p className="text-eyebrow font-semibold uppercase tracking-[1px] text-fg-faint">
             Wallet
           </p>
         </div>
 
-        <button
-          type="button"
-          className="flex items-center gap-3 rounded-[9px] border-l-2 border-l-transparent px-3 py-3 text-left text-[15px] font-normal text-slate-400 transition-colors hover:bg-white/4 hover:text-slate-200"
+        <Link
+          href="/dashboard/profile/wallet"
+          onClick={onNavigate}
+          className="flex items-center gap-3 rounded-sm border-l-2 border-l-transparent px-3 py-3 text-left text-body font-normal text-fg-mid hover:bg-panel-raised hover:text-fg"
         >
           <CardIcon size={18} />
           Wallet
-          <span className="ml-auto text-[14px] font-bold text-app-gold">
+          <span className="ml-auto text-mono text-body tabular-nums text-fg">
             {wallet ? formatRupees(wallet.coinBalance + wallet.pointBalance) : "—"}
           </span>
-        </button>
+        </Link>
       </nav>
 
       {/* User */}
-      <div className="border-t border-white/5 p-3">
+      <div className="border-t border-hairline p-3">
         <button
           type="button"
-          className="flex w-full items-center gap-2.5 rounded-[10px] border border-white/5 bg-white/3 px-3 py-2.5 text-left transition-colors hover:bg-white/5"
+          className="flex w-full items-center gap-2.5 rounded-sm border border-hairline bg-panel-raised px-3 py-2.5 text-left transition-colors hover:bg-panel-raised"
         >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-app-gold-gradient text-[14px] font-extrabold text-black">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-panel-raised text-body font-semibold text-fg">
             {profile?.initial ?? "·"}
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-[14.5px] font-semibold text-slate-100">
+            <span className="block truncate text-body font-semibold text-fg">
               {profile?.name ?? "Loading…"}
             </span>
-            <span className="block text-[12.5px] text-slate-500">{profile?.role ?? "Client Account"}</span>
+            <span className="block text-body-sm text-fg-faint">{profile?.role ?? "Client Account"}</span>
           </span>
-          <span className="text-slate-500">
+          <span className="text-fg-faint">
             <DotsIcon size={15} />
           </span>
         </button>

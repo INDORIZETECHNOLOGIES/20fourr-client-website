@@ -13,6 +13,8 @@ import {
 import { useApiQuery } from "@/hooks/useApiQuery";
 import { adaptBooking } from "@/lib/api/adapters";
 import type { BookingListResponse } from "@/lib/api/types";
+import { quoteFromBooking } from "@/lib/api/pricing";
+import { QuoteBreakdown } from "@/app/book/PriceSummary";
 import {
   BOOKING_TABS,
   TAB_STATUSES,
@@ -34,15 +36,18 @@ export function BookingsList() {
     { query: { limit: 100 } },
   );
 
-  const all = (data?.bookings ?? []).map(adaptBooking);
-  const bookings = all.filter((b) => TAB_STATUSES[tab].includes(b.status as BookingStatus));
+  const all = (data?.bookings ?? []).map((api) => ({
+    api,
+    bk: adaptBooking(api),
+  }));
+  const bookings = all.filter(({ bk }) => TAB_STATUSES[tab].includes(bk.status as BookingStatus));
 
   return (
     <>
       <div
         role="tablist"
         aria-label="Booking status"
-        className="mb-[22px] flex w-fit max-w-full gap-1 overflow-x-auto rounded-[10px] bg-white/4 p-1"
+        className="mb-[22px] flex w-fit max-w-full gap-1 overflow-x-auto rounded-sm bg-panel-raised p-1"
       >
         {BOOKING_TABS.map(({ id, label }) => (
           <button
@@ -52,10 +57,10 @@ export function BookingsList() {
             aria-selected={tab === id}
             onClick={() => setTab(id)}
             className={[
-              "shrink-0 cursor-pointer rounded-[7px] px-5 py-2 text-[13px] font-semibold transition-all sm:px-[22px]",
+              "shrink-0 cursor-pointer rounded-sm px-5 py-2 text-body-sm font-medium transition-colors sm:px-[22px]",
               tab === id
-                ? "bg-app-gold/12 text-app-gold"
-                : "bg-transparent text-slate-500 hover:text-slate-400",
+                ? "bg-panel text-brand"
+                : "bg-transparent text-fg-faint hover:text-fg-mid",
             ].join(" ")}
           >
             {label}
@@ -68,34 +73,35 @@ export function BookingsList() {
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className="h-[86px] animate-pulse rounded-2xl border border-white/6 bg-app-card"
+              className="h-[86px] animate-pulse rounded-lg border border-hairline bg-panel"
             />
           ))}
         </div>
       ) : error ? (
         <Card className="px-6 py-14 text-center">
-          <p role="alert" className="text-sm text-red-300">
+          <p role="alert" className="text-body-sm text-fault">
             {error}
           </p>
           <button
             type="button"
             onClick={refetch}
-            className="mt-4 rounded-full border border-app-gold px-6 py-2.5 text-[13px] font-bold text-app-gold"
+            className="mt-4 rounded-sm border border-edge px-6 py-2.5 text-body-sm font-medium text-fg"
           >
             Try again
           </button>
         </Card>
       ) : bookings.length === 0 ? (
         <Card className="px-6 py-14 text-center">
-          <p className="text-sm text-slate-500">
+          <p className="text-body-sm text-fg-faint">
             No {BOOKING_TABS.find((t) => t.id === tab)?.label.toLowerCase()} bookings.
           </p>
         </Card>
       ) : (
         <div className="flex flex-col gap-2.5">
-          {bookings.map((bk) => {
+          {bookings.map(({ api, bk }) => {
             const service = SERVICE_CATALOGUE.find((s) => s.id === bk.category);
             const style = statusStyle(bk.status);
+            const quote = quoteFromBooking(api);
             // Dimming is for pushing a dead booking behind live ones. In the
             // Cancelled tab everything is dead, so dimming the whole list just
             // makes the page look broken.
@@ -107,12 +113,10 @@ export function BookingsList() {
               <ListRow
                 key={bk.id}
                 href={`/dashboard/bookings/${bk.id}`}
-                accent={style.color}
+                railClass={style.rail}
                 muted={terminal}
                 icon={<ServiceGlyph icon={service?.icon ?? "shield"} size={19} />}
-                iconClass={
-                  service ? `${service.iconBg} ${service.color}` : "bg-app-gold/12 text-app-gold"
-                }
+                iconClass="bg-panel-raised text-fg"
                 title={bk.service}
                 badge={<StatusPill status={bk.status} />}
                 primaryMeta={[
@@ -123,7 +127,13 @@ export function BookingsList() {
                   { icon: <PinIcon size={12} />, text: bk.location, flexible: true },
                   { icon: <UserIcon size={12} />, text: bk.guard },
                 ]}
-                amount={formatPaiseRounded(bk.amountPaise)}
+                amount={
+                  quote ? (
+                    <QuoteBreakdown quote={quote} compact />
+                  ) : (
+                    formatPaiseRounded(bk.amountPaise)
+                  )
+                }
                 reference={bk.ref ?? bk.id}
               />
             );

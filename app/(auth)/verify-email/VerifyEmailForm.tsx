@@ -86,15 +86,15 @@ export function VerifyEmailForm() {
         className="mb-7 self-start"
       /> */}
 
-      <div className="mt-2 flex h-[132px] w-[132px] items-center justify-center rounded-full border-[3px] border-gold bg-gold-soft text-gold">
+      <div className="mt-2 flex h-[132px] w-[132px] items-center justify-center rounded-full border border-edge bg-panel-raised text-fg">
         <MailCheckIcon size={52} />
       </div>
 
-      <h1 className="text-display-sm mt-7 text-center text-text">Verify Your Email</h1>
-      <p className="mt-4 max-w-[520px] text-center text-lg leading-relaxed text-text-muted sm:text-[19px]">
+      <h1 className="text-h2 mt-7 text-center text-fg">Verify your email</h1>
+      <p className="mt-4 max-w-[520px] text-center text-body leading-relaxed text-fg-mid">
         We sent a 6-digit code to{" "}
         {email ? (
-          <span className="font-semibold text-text-secondary">{email}</span>
+          <span className="font-semibold text-fg-mid">{email}</span>
         ) : (
           "your email address"
         )}
@@ -123,7 +123,7 @@ export function VerifyEmailForm() {
           <p
             id="email-otp-error"
             role="alert"
-            className="mt-5 text-center text-sm font-medium text-danger"
+            className="mt-5 text-center text-body-sm font-medium text-fault"
           >
             {error}
           </p>
@@ -136,8 +136,8 @@ export function VerifyEmailForm() {
           onClick={handleResend}
           disabled={!expired || resending}
           className={[
-            "mt-8 flex items-center gap-2.5 rounded-[24px] border border-gold/50 bg-gold-soft px-7 py-3.5",
-            "text-[17px] font-bold text-gold transition-opacity",
+            "mt-8 flex items-center gap-2.5 rounded-lg border border-edge bg-panel-raised px-7 py-3.5",
+            "text-h3 font-medium text-fg transition-opacity",
             expired && !resending
               ? "cursor-pointer hover:opacity-80"
               : "cursor-not-allowed opacity-60",
@@ -158,12 +158,11 @@ export function VerifyEmailForm() {
 
         <Button
           type="submit"
-          active={otp.complete}
           disabled={!otp.complete}
           loading={submitting}
           loadingLabel="Verifying…"
-          shape="pill"
-          className="mt-14 sm:w-[52%]"
+          size="lg"
+          className="mt-14 w-full sm:w-[52%]"
         >
           Verify Email
         </Button>

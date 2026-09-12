@@ -67,6 +67,16 @@ export type BookingDraft = {
   startTime: string;
   hours: number;
   address: string;
+  /**
+   * Structured deployment (spec 0004). GST place of supply uses this, not the
+   * free-text address. State is a GST name from the select, never guessed.
+   */
+  deployment: {
+    addressLine: string;
+    city: string;
+    stateName: string;
+    pincode: string;
+  };
   /** Matches the API's enum; drives the vehicle surcharge in the price preview. */
   vehicleOption: "none" | "vehicle" | "vehicleWithDriver";
   couponCode: string | null;
@@ -99,6 +109,7 @@ const EMPTY: BookingDraft = {
   startTime: "",
   hours: 8,
   address: "",
+  deployment: { addressLine: "", city: "", stateName: "", pincode: "" },
   vehicleOption: "none",
   couponCode: null,
   riskAccepted: false,
@@ -141,7 +152,14 @@ export function BookingProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem(STORAGE_KEY);
-      if (raw) setDraft({ ...EMPTY, ...JSON.parse(raw) });
+      if (raw) {
+        const parsed = JSON.parse(raw) as Partial<BookingDraft>;
+        setDraft({
+          ...EMPTY,
+          ...parsed,
+          deployment: { ...EMPTY.deployment, ...parsed.deployment },
+        });
+      }
     } catch {
       /* storage unavailable — start clean */
     }
@@ -174,7 +192,11 @@ export function BookingProvider({ children }: { children: ReactNode }) {
   const furthestStep = useMemo(() => {
     // Each gate blocks everything after it — this is what stops someone
     // deep-linking past a consent screen.
-    if (!draft.serviceCategory || !draft.city) return 0;
+    // Deployment state gates step 0, not the schedule step. Architecture v6.0
+    // §W.2-17 requires provider search to be filtered by the state the guards
+    // will actually work in, so it has to be known before the provider list is
+    // shown — and it is also what stops price-preview returning SC_1413 later.
+    if (!draft.serviceCategory || !draft.city || !draft.deployment.stateName) return 0;
     if (!draft.providerId) return 1;
     if (!draft.purposeId) return 2;
     if (!draft.date || !draft.startTime || !draft.address.trim()) return 3;

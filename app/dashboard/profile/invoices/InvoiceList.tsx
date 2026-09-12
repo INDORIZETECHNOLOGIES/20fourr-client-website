@@ -6,47 +6,57 @@ import { ListRow } from "@/components/dashboard/ListRow";
 import { CalendarIcon, InvoiceIcon } from "@/components/dashboard/icons";
 import { useApiQuery } from "@/hooks/useApiQuery";
 import { formatApiDate, serviceLabel } from "@/lib/api/adapters";
-import type { InvoiceListResponse } from "@/lib/api/types";
+import type { InvoiceListResponse, TaxDocument, TaxDocumentListResponse } from "@/lib/api/types";
 import { formatPaiseRounded } from "@/lib/money";
 
-/**
- * The API's invoice statuses are draft / issued / cancelled — a document
- * lifecycle, not a payment one. The earlier paid/due/refunded labels described
- * something the invoice record does not track.
- */
 const STATUS: Record<string, { label: string; cls: string }> = {
-  issued: { label: "Issued", cls: "bg-green-500/14 text-green-500" },
-  draft: { label: "Draft", cls: "bg-app-warning/14 text-app-warning" },
-  cancelled: { label: "Cancelled", cls: "bg-slate-500/14 text-slate-400" },
+  issued: { label: "Issued", cls: "border border-live text-live" },
+  draft: { label: "Draft", cls: "border border-attention text-attention" },
+  cancelled: { label: "Cancelled", cls: "border border-hairline text-fg-mid" },
 };
 
-export function InvoiceList() {
-  const { data, loading, error, refetch } = useApiQuery<InvoiceListResponse>("invoices", {
-    query: { limit: 50 },
-  });
+const DOC_LABEL: Record<string, string> = {
+  platform_fee_invoice: "Platform fee invoice",
+  service_tax_invoice: "Service tax invoice",
+  bill_of_supply: "Bill of supply",
+  platform_credit_note: "Platform credit note",
+  service_credit_note: "Service credit note",
+};
 
+function isSettlement(doc: TaxDocument) {
+  return doc.docType === "settlement_statement";
+}
+
+export function InvoiceList() {
+  const invoicesQ = useApiQuery<InvoiceListResponse>("invoices", { query: { limit: 50 } });
+  const docsQ = useApiQuery<TaxDocumentListResponse>("documents", { query: { limit: 50 } });
+
+  const loading = invoicesQ.loading || docsQ.loading;
   if (loading) {
     return (
       <Card className="overflow-hidden">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="border-b border-white/6 px-5 py-4 last:border-b-0">
-            <div className="h-[44px] animate-pulse rounded-lg bg-white/4" />
+          <div key={i} className="border-b border-hairline px-5 py-4 last:border-b-0">
+            <div className="h-[44px] animate-pulse rounded-lg bg-panel-raised" />
           </div>
         ))}
       </Card>
     );
   }
 
-  if (error) {
+  if (invoicesQ.error && docsQ.error) {
     return (
       <Card className="px-6 py-12 text-center">
-        <p role="alert" className="text-[14px] text-red-300">
-          {error}
+        <p role="alert" className="text-body text-fault">
+          {invoicesQ.error}
         </p>
         <button
           type="button"
-          onClick={refetch}
-          className="mt-4 rounded-full border border-app-gold px-6 py-2.5 text-[13px] font-bold text-app-gold"
+          onClick={() => {
+            invoicesQ.refetch();
+            docsQ.refetch();
+          }}
+          className="mt-4 rounded-sm border border-edge px-6 py-2.5 text-body-sm font-medium text-fg"
         >
           Try again
         </button>
@@ -54,53 +64,74 @@ export function InvoiceList() {
     );
   }
 
-  const invoices = data?.invoices ?? [];
+  const invoices = invoicesQ.data?.invoices ?? [];
+  const documents = (docsQ.data?.documents ?? []).filter((d) => !isSettlement(d));
 
-  if (invoices.length === 0) {
+  if (invoices.length === 0 && documents.length === 0) {
     return (
       <Card className="px-6 py-12 text-center">
-        <p className="text-[14px] text-slate-500">
-          No invoices yet. One is issued for every completed booking.
+        <p className="text-body text-fg-faint">
+          No documents yet. A platform fee invoice is issued at payment; the service document
+          is issued when the end-of-duty OTP is verified.
         </p>
       </Card>
     );
   }
 
-  const RAIL: Record<string, string> = {
-    issued: "#22c55e",
-    draft: "#f59e0b",
-    cancelled: "#94a3b8",
+  type Row = {
+    key: string;
+    href: string;
+    title: string;
+    status: string;
+    date?: string;
+    amount: number;
+    meta: string;
   };
 
-  const hasLive = invoices.some((i) => i.status !== "cancelled");
+  const rows: Row[] = [
+    ...documents.map((d) => ({
+      key: `d-${d._id}`,
+      href: `/dashboard/profile/invoices/${d._id}?source=document`,
+      title: d.documentNumber,
+      status: d.status ?? "issued",
+      date: d.issuedAt,
+      amount: d.totalPaise ?? 0,
+      meta: DOC_LABEL[d.docType] ?? d.docType,
+    })),
+    ...invoices.map((inv) => ({
+      key: `i-${inv._id}`,
+      href: `/dashboard/profile/invoices/${inv._id}`,
+      title: inv.invoiceNumber,
+      status: inv.status,
+      date: inv.issuedAt,
+      amount: inv.totalAmount ?? 0,
+      meta: serviceLabel(inv.serviceCategory),
+    })),
+  ].sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
 
   return (
     <div className="flex flex-col gap-2.5">
-      {invoices.map((inv) => {
-        const status = STATUS[inv.status] ?? {
-          label: inv.status,
-          cls: "bg-slate-500/14 text-slate-400",
+      {rows.map((row) => {
+        const status = STATUS[row.status] ?? {
+          label: row.status,
+          cls: "border border-hairline text-fg-mid",
         };
         return (
           <ListRow
-            key={inv._id}
-            href={`/dashboard/profile/invoices/${inv._id}`}
-            accent={RAIL[inv.status] ?? "#94a3b8"}
-            muted={hasLive && inv.status === "cancelled"}
+            key={row.key}
+            href={row.href}
+            railClass={row.status === "issued" ? "bg-live" : "bg-hairline"}
             icon={<InvoiceIcon size={18} />}
-            iconClass="bg-app-gold/12 text-app-gold"
-            title={inv.invoiceNumber}
+            iconClass="bg-panel-raised text-fg"
+            title={row.title}
             badge={
-              <span className={`rounded-full px-2.5 py-[3px] text-[11px] font-bold ${status.cls}`}>
+              <span className={`rounded-full px-2.5 py-[3px] text-eyebrow font-semibold ${status.cls}`}>
                 {status.label}
               </span>
             }
-            primaryMeta={[
-              { icon: <CalendarIcon size={12} />, text: formatApiDate(inv.issuedAt) },
-            ]}
-            secondaryMeta={[{ text: serviceLabel(inv.serviceCategory) }]}
-            amount={formatPaiseRounded(inv.totalAmount ?? 0)}
-            reference={inv.bookingRef}
+            primaryMeta={[{ icon: <CalendarIcon size={12} />, text: formatApiDate(row.date) }]}
+            secondaryMeta={[{ text: row.meta }]}
+            amount={formatPaiseRounded(row.amount)}
           />
         );
       })}

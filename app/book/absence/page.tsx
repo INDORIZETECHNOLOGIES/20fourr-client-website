@@ -35,7 +35,12 @@ export default function AbsenceStep() {
         },
         {
           heading: "The provider is penalised, not you",
-          body: "A confirmed absence carries a penalty against the provider and a refund or wallet credit to you, according to how much of the shift was lost.",
+          // "wallet credit" is the v1 destination and is wrong on v6, where the
+          // refund goes back to the payment method. This is a consent gate the
+          // client accepts, so it states the part that is true on both engines
+          // and leaves the destination to the cancellation copy, which is
+          // engine-aware (lib/cancellation-policy.ts refundDestination).
+          body: "A confirmed absence carries a penalty against the provider and a refund to you, according to how much of the shift was lost.",
         },
         {
           heading: "False reports carry consequences",

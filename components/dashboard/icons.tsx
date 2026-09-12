@@ -8,7 +8,7 @@ import type { ServiceIcon } from "@/lib/dashboard-data";
 
 type IconProps = SVGProps<SVGSVGElement> & { size?: number };
 
-function Stroke({ size = 15, children, ...props }: IconProps) {
+function Stroke({ size = 20, children, ...props }: IconProps) {
   return (
     <svg
       width={size}
@@ -16,7 +16,7 @@ function Stroke({ size = 15, children, ...props }: IconProps) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={2}
+      strokeWidth={1.5}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"

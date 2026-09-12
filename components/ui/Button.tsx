@@ -1,47 +1,52 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { SpinnerIcon } from "@/components/icons";
 
+const VARIANTS = {
+  primary:
+    "border-transparent bg-primary text-on-primary hover:opacity-90",
+  secondary:
+    "border-edge bg-transparent text-fg hover:bg-panel-raised",
+  ghost: "border-transparent bg-transparent text-fg hover:bg-panel-raised",
+  danger: "border-transparent bg-fault text-ground-ink hover:opacity-90",
+} as const;
+
+const SIZES = {
+  sm: "h-8 px-3 text-label",
+  md: "h-10 px-4 text-body",
+  lg: "h-12 px-5 text-body",
+} as const;
+
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   children: ReactNode;
   loading?: boolean;
-  /**
-   * `pill` is the 24px-radius verify button; `default` is the 16px-radius
-   * Sign In / Create Account button. Both from the source designs.
-   */
-  shape?: "default" | "pill";
-  /**
-   * When false the button renders in the designs' inert style (#1a2740 on
-   * #5b6b82) instead of the gold gradient. Used by the verify screens, where
-   * the button stays flat until all six digits are entered.
-   */
-  active?: boolean;
   loadingLabel?: string;
+  variant?: keyof typeof VARIANTS;
+  size?: keyof typeof SIZES;
 };
 
 export function Button({
   children,
   loading = false,
-  shape = "default",
-  active = true,
   loadingLabel = "Working…",
+  variant = "primary",
+  size = "md",
   className = "",
   disabled,
   ...props
 }: ButtonProps) {
-  const isInert = disabled || loading || !active;
+  const inert = disabled || loading;
 
   return (
     <button
       {...props}
-      disabled={disabled || loading}
+      disabled={inert}
       aria-busy={loading || undefined}
       className={[
-        "flex w-full items-center justify-center gap-2.5 border-none px-4 py-[18px]",
-        "text-[17px] font-bold transition-opacity duration-150",
-        shape === "pill" ? "rounded-[24px]" : "rounded-field",
-        isInert
-          ? "cursor-not-allowed bg-disabled-bg text-disabled-fg"
-          : "bg-gold-gradient text-on-gold cursor-pointer hover:opacity-90 active:opacity-80",
+        "inline-flex w-full items-center justify-center gap-2 rounded-sm border font-medium",
+        "transition-opacity duration-150 ease-out",
+        VARIANTS[variant],
+        SIZES[size],
+        inert ? "cursor-not-allowed opacity-45" : "cursor-pointer",
         className,
       ].join(" ")}
     >

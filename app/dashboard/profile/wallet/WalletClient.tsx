@@ -37,10 +37,10 @@ export function WalletClient() {
     return (
       <div className="flex flex-col gap-3.5">
         <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-          <div className="h-[132px] animate-pulse rounded-2xl bg-app-card" />
-          <div className="h-[132px] animate-pulse rounded-2xl bg-app-card" />
+          <div className="h-[132px] animate-pulse rounded-lg bg-panel" />
+          <div className="h-[132px] animate-pulse rounded-lg bg-panel" />
         </div>
-        <div className="h-[220px] animate-pulse rounded-2xl bg-app-card" />
+        <div className="h-[220px] animate-pulse rounded-lg bg-panel" />
       </div>
     );
   }
@@ -48,13 +48,13 @@ export function WalletClient() {
   if (error || !data) {
     return (
       <Card className="px-6 py-12 text-center">
-        <p role="alert" className="text-[14px] text-red-300">
+        <p role="alert" className="text-body text-fault">
           {error ?? "Couldn't load your wallet."}
         </p>
         <button
           type="button"
           onClick={refetch}
-          className="mt-4 rounded-full border border-app-gold px-6 py-2.5 text-[13px] font-bold text-app-gold"
+            className="mt-4 rounded-sm border border-edge px-6 py-2.5 text-body-sm font-medium text-fg"
         >
           Try again
         </button>
@@ -78,18 +78,18 @@ export function WalletClient() {
       <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
         <Card className="p-5">
           <div className="mb-3 flex items-center justify-between">
-            <span className="text-[12.5px] font-medium text-slate-500">SecureCoins</span>
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-app-gold/12 text-app-gold">
+            <span className="text-body-sm font-medium text-fg-faint">SecureCoins</span>
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-panel-raised text-fg">
               <WalletIcon size={16} />
             </span>
           </div>
-          <p className="font-display text-[30px] font-extrabold leading-none text-slate-100">
+          <p className="text-mono-lg tabular-nums leading-none text-fg">
             {formatRupees(data.coinBalance)}
           </p>
-          <p className="mt-2 text-[12px] text-slate-500">
+          <p className="mt-2 text-label text-fg-faint">
             Your own refunded money · no cap at checkout
           </p>
-          <p className="mt-1 text-[12px] text-slate-600">
+          <p className="mt-1 text-label text-fg-faint">
             {formatRupees(data.coinLifetimeEarned)} earned ·{" "}
             {formatRupees(data.coinLifetimeSpent)} spent
           </p>
@@ -97,20 +97,20 @@ export function WalletClient() {
 
         <Card className="p-5">
           <div className="mb-3 flex items-center justify-between">
-            <span className="text-[12.5px] font-medium text-slate-500">SecurePoints</span>
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-app-info/12 text-app-info">
+            <span className="text-body-sm font-medium text-fg-faint">SecurePoints</span>
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-panel-raised text-fg-mid">
               <StarFill size={16} />
             </span>
           </div>
-          <p className="font-display text-[30px] font-extrabold leading-none text-slate-100">
+          <p className="text-mono-lg tabular-nums leading-none text-fg">
             {formatRupees(data.pointBalance)}
           </p>
           {/* The API has no tier system — the real constraint on points is the
               per-booking usage cap, so that is what belongs here. */}
-          <p className="mt-2 text-[12px] text-slate-500">
+          <p className="mt-2 text-label text-fg-faint">
             Platform rewards · up to {data.pointUsageLimitPct}% of any booking total
           </p>
-          <p className="mt-1 text-[12px] text-slate-600">
+          <p className="mt-1 text-label text-fg-faint">
             {formatRupees(data.pointLifetimeEarned)} earned ·{" "}
             {formatRupees(data.pointLifetimeSpent)} spent
           </p>
@@ -118,19 +118,19 @@ export function WalletClient() {
       </div>
 
       {expiringPoints > 0 ? (
-        <p className="mt-3 rounded-xl border border-app-gold/30 bg-app-gold/8 px-4 py-3 text-[13.5px] text-app-gold">
+        <p className="mt-3 rounded-lg border border-edge bg-panel-raised px-4 py-3 text-body-sm text-attention">
           {formatRupees(expiringPoints)} in SecurePoints expires within 7 days.
         </p>
       ) : (
-        <p className="mt-3 text-[12.5px] text-slate-600">
+        <p className="mt-3 text-body-sm text-fg-faint">
           Coins and points expire {data.walletExpiryDays} days after they are credited.
         </p>
       )}
 
-      <SectionLabel>Transaction History</SectionLabel>
+      <SectionLabel>Transaction history</SectionLabel>
       {transactions.length === 0 ? (
         <Card className="px-6 py-12 text-center">
-          <p className="text-[14px] text-slate-500">No transactions yet.</p>
+          <p className="text-body text-fg-faint">No transactions yet.</p>
         </Card>
       ) : (
         <Card className="overflow-hidden">
@@ -141,15 +141,15 @@ export function WalletClient() {
                 key={t._id ?? i}
                 className={[
                   "flex items-center gap-4 px-5 py-4",
-                  i < transactions.length - 1 ? "border-b border-white/6" : "",
+                  i < transactions.length - 1 ? "border-b border-hairline" : "",
                   t.expired ? "opacity-50" : "",
                 ].join(" ")}
               >
                 <div className="min-w-0 flex-1">
-                  <p className="text-[14.5px] font-semibold text-slate-100">
+                  <p className="text-body font-semibold text-fg">
                     {reasonLabel(t.reason)}
                   </p>
-                  <p className="mt-0.5 truncate text-[12.5px] text-slate-500">
+                  <p className="mt-0.5 truncate text-body-sm text-fg-faint">
                     {t.currency === "coin" ? "SecureCoins" : "SecurePoints"}
                     {t.description ? ` · ${t.description}` : ""}
                     {t.createdAt ? ` · ${relativeTime(t.createdAt)}` : ""}
@@ -158,8 +158,8 @@ export function WalletClient() {
                 </div>
                 <p
                   className={[
-                    "shrink-0 text-[15px] font-bold",
-                    credit ? "text-green-500" : "text-slate-300",
+                    "shrink-0 text-body font-semibold",
+                    credit ? "text-live" : "text-fg-mid",
                   ].join(" ")}
                 >
                   {credit ? "+" : "−"}
@@ -175,8 +175,8 @@ export function WalletClient() {
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {EARN_METHODS.map((m) => (
           <Card key={m.title} className="p-5">
-            <p className="text-[14.5px] font-bold text-slate-100">{m.title}</p>
-            <p className="mt-1.5 text-[13px] leading-relaxed text-slate-500">{m.body}</p>
+            <p className="text-body font-semibold text-fg">{m.title}</p>
+            <p className="mt-1.5 text-body-sm leading-relaxed text-fg-faint">{m.body}</p>
           </Card>
         ))}
       </div>

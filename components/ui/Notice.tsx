@@ -1,34 +1,25 @@
 import type { ReactNode } from "react";
 import { InfoIcon } from "@/components/icons";
 
-/**
- * The gold left-bar info panel used on both verify screens
- * (#221a0d ground, 4px #e8a020 left border, #c9a765 text).
- */
 export function Notice({
   children,
-  tone = "gold",
+  tone = "info",
 }: {
   children: ReactNode;
-  tone?: "gold" | "danger";
+  tone?: "info" | "danger" | "gold";
 }) {
+  const danger = tone === "danger";
   return (
     <div
       className={[
-        "flex w-full items-start gap-3.5 rounded-notice border-l-4 px-[22px] py-[18px]",
-        tone === "danger"
-          ? "border-l-danger bg-danger/10 text-danger"
-          : "border-l-gold bg-notice-bg text-notice-fg",
+        "flex w-full items-start gap-3 rounded-lg border px-4 py-4",
+        danger ? "border-fault text-fault" : "border-hairline text-fg",
       ].join(" ")}
     >
-      <span
-        className={
-          tone === "danger" ? "mt-0.5 shrink-0 text-danger" : "mt-0.5 shrink-0 text-gold"
-        }
-      >
+      <span className={danger ? "mt-0.5 shrink-0 text-fault" : "mt-0.5 shrink-0 text-fg-mid"}>
         <InfoIcon size={20} />
       </span>
-      <p className="text-[15px] leading-relaxed sm:text-base">{children}</p>
+      <p className="text-body leading-relaxed">{children}</p>
     </div>
   );
 }

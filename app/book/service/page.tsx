@@ -8,12 +8,14 @@ import { ServiceGlyph } from "@/components/dashboard/icons";
 import { useApiQuery } from "@/hooks/useApiQuery";
 import { useSession } from "@/components/session/SessionProvider";
 import { SERVICE_CATALOGUE, isServiceCategory } from "@/lib/services";
+import { GST_STATES, matchGstStateName } from "@/lib/gst-states";
+import type { RatingRequiredResponse } from "@/lib/api/types";
 
 export default function ServiceStep() {
   const { draft, update, hydrated } = useBooking();
   const { profile } = useSession();
   const router = useRouter();
-  const ready = Boolean(draft.serviceCategory && draft.city);
+  const ready = Boolean(draft.serviceCategory && draft.city && draft.deployment.stateName);
 
   /**
    * Only cities that actually have bookable providers.
@@ -28,6 +30,9 @@ export default function ServiceStep() {
   const { data: cityData, loading: citiesLoading, error: citiesError, refetch } =
     useApiQuery<{ cities: string[] }>("client/service-cities");
   const cities = cityData?.cities;
+
+  const { data: rating } = useApiQuery<RatingRequiredResponse>("client/rating-required");
+  const ratingBlock = Boolean(rating?.ratingRequired && rating.pendingBookingIds?.[0]);
 
   // "Book Now" arrives with ?category=guard, and the catalogue's ex-serviceman
   // tile with ?exServiceman=true. Read from location rather than
@@ -81,19 +86,17 @@ export default function ServiceStep() {
                 })
               }
               className={[
-                "flex flex-col items-start rounded-2xl border p-5 text-left transition-colors",
+                "flex flex-col items-start rounded-lg border p-5 text-left transition-colors",
                 selected
-                  ? "border-app-gold bg-app-gold/6"
-                  : "border-app-border bg-app-card hover:border-app-gold/40",
+                  ? "border-brand bg-panel-raised"
+                  : "border-hairline bg-panel hover:border-edge",
               ].join(" ")}
             >
-              <span
-                className={`mb-3 flex h-11 w-11 items-center justify-center rounded-xl ${svc.iconBg} ${svc.color}`}
-              >
+              <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-sm border border-hairline text-fg">
                 <ServiceGlyph icon={svc.icon} size={20} />
               </span>
-              <span className="text-[15px] font-bold text-slate-100">{svc.name}</span>
-              <span className="mt-1 text-[12.5px] leading-relaxed text-slate-600">
+              <span className="text-body font-semibold text-fg">{svc.name}</span>
+              <span className="mt-1 text-body-sm leading-relaxed text-fg-faint">
                 {svc.desc}
               </span>
             </button>
@@ -103,50 +106,50 @@ export default function ServiceStep() {
 
       {/* An attribute filter, not a fifth category — it narrows whichever
           category is selected to providers with a verified certificate. */}
-      <label className="mt-4 flex cursor-pointer items-center gap-3 rounded-2xl border border-app-border bg-app-card px-5 py-4">
+      <label className="mt-4 flex cursor-pointer items-center gap-3 rounded-lg border border-hairline bg-panel px-5 py-4">
         <input
           type="checkbox"
           checked={draft.exServicemanOnly}
           onChange={(e) =>
             update({ exServicemanOnly: e.target.checked, providerId: null })
           }
-          className="h-[18px] w-[18px] shrink-0 accent-app-gold"
+          className="h-[18px] w-[18px] shrink-0 accent-brand"
         />
         <span className="min-w-0">
-          <span className="block text-[14.5px] font-semibold text-slate-200">
+          <span className="block text-body font-semibold text-fg">
             Ex-Serviceman only
           </span>
-          <span className="block text-[12.5px] text-slate-600">
+          <span className="block text-body-sm text-fg-faint">
             Restrict to providers with a verified ex-serviceman certificate.
           </span>
         </span>
       </label>
 
-      <h3 className="mb-3 mt-8 text-[12px] font-semibold uppercase tracking-[1.2px] text-slate-500">
+      <h3 className="mb-3 mt-8 text-label font-semibold uppercase tracking-[1.2px] text-fg-faint">
         City
       </h3>
 
       {citiesLoading ? (
         <div className="flex flex-wrap gap-2">
           {[0, 1, 2, 3].map((i) => (
-            <span key={i} className="h-10 w-28 animate-pulse rounded-full bg-white/6" />
+            <span key={i} className="h-10 w-28 animate-pulse rounded-full bg-panel-raised" />
           ))}
         </div>
       ) : citiesError ? (
-        <div className="rounded-2xl border border-red-500/30 bg-red-500/8 px-5 py-6 text-center">
-          <p role="alert" className="text-[14px] text-red-300">
+        <div className="rounded-lg border border-fault bg-transparent px-5 py-6 text-center">
+          <p role="alert" className="text-body text-fault">
             {citiesError}
           </p>
           <button
             type="button"
             onClick={refetch}
-            className="mt-3 rounded-full border border-app-gold px-5 py-2 text-[13px] font-bold text-app-gold"
+            className="mt-3 rounded-sm border border-edge px-5 py-2 text-body-sm font-medium text-fg"
           >
             Try again
           </button>
         </div>
       ) : (cities ?? []).length === 0 ? (
-        <p className="rounded-2xl border border-app-border bg-app-card px-5 py-6 text-center text-[14px] text-slate-500">
+        <p className="rounded-lg border border-hairline bg-panel px-5 py-6 text-center text-body text-fg-faint">
           No cities currently have bookable providers.
         </p>
       ) : (
@@ -160,10 +163,10 @@ export default function ServiceStep() {
                 aria-pressed={selected}
                 onClick={() => update({ city, providerId: null, providerName: null })}
                 className={[
-                  "rounded-full border px-5 py-2.5 text-[14px] font-semibold transition-colors",
+                  "rounded-sm border px-5 py-2.5 text-body font-semibold transition-colors",
                   selected
-                    ? "border-app-gold bg-app-gold/12 text-app-gold"
-                    : "border-app-border text-slate-300 hover:border-app-gold/40",
+                    ? "border-brand bg-panel-raised text-brand"
+                    : "border-hairline text-fg-mid hover:border-edge",
                 ].join(" ")}
               >
                 {city}
@@ -173,9 +176,55 @@ export default function ServiceStep() {
         </div>
       )}
 
+      <h3 className="mb-1 mt-8 text-label font-semibold uppercase tracking-[1.2px] text-fg-faint">
+        Deployment state
+      </h3>
+      <p className="mb-3 text-body-sm text-fg-faint">
+        The state the guards will actually work in. It decides which providers are licensed for
+        this job and which GST applies — it is not your billing address.
+      </p>
+      <select
+        aria-label="Deployment state"
+        value={draft.deployment.stateName}
+        onChange={(e) =>
+          update({
+            deployment: { ...draft.deployment, stateName: e.target.value },
+            // The chosen provider may not be licensed in the new state.
+            providerId: null,
+            providerName: null,
+          })
+        }
+        className="w-full max-w-[340px] rounded-sm border border-edge bg-panel-raised px-4 py-2.5 text-body text-fg"
+      >
+        <option value="">Select state</option>
+        {GST_STATES.map((st) => (
+          <option key={st.code} value={st.name}>
+            {st.name}
+          </option>
+        ))}
+      </select>
+
+      {ratingBlock ? (
+        <div className="mb-6 rounded-lg border border-attention px-4 py-3">
+          <p className="text-body text-fg">Rate a completed booking before starting a new one.</p>
+          <a
+            href={`/dashboard/bookings/${rating?.pendingBookingIds?.[0]}/rate`}
+            className="mt-2 inline-block text-body-sm text-fg-mid hover:underline"
+          >
+            Rate now
+          </a>
+        </div>
+      ) : null}
+
       <StepFooter
-        disabled={!ready}
-        hint={ready ? undefined : "Choose a service and a city to continue."}
+        disabled={!ready || ratingBlock}
+        hint={
+          ratingBlock
+            ? "Rate the completed booking first."
+            : ready
+              ? undefined
+              : "Choose a service, a city and the deployment state to continue."
+        }
         onContinue={() => router.push("/book/provider")}
       />
     </>

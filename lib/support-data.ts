@@ -6,6 +6,8 @@
  * copy that turns an enum value into something a client would recognise.
  */
 
+import { CANCELLATION_SUMMARY } from "@/lib/cancellation-policy";
+
 // ─── Tickets ────────────────────────────────────────────────────────────────
 
 /**
@@ -82,19 +84,19 @@ export function ticketCategoryLabel(type: string): string {
 }
 
 export const TICKET_PRIORITIES: { id: TicketPriority; label: string; cls: string }[] = [
-  { id: "low", label: "Low", cls: "bg-slate-500/14 text-slate-400" },
-  { id: "medium", label: "Medium", cls: "bg-app-info/14 text-app-info" },
-  { id: "high", label: "High", cls: "bg-app-warning/14 text-app-warning" },
-  { id: "urgent", label: "Urgent", cls: "bg-red-500/14 text-red-400" },
+  { id: "low", label: "Low", cls: "bg-slate-500/14 text-fg-mid" },
+  { id: "medium", label: "Medium", cls: "bg-panel-raised/14 text-fg-mid" },
+  { id: "high", label: "High", cls: "bg-transparent text-attention" },
+  { id: "urgent", label: "Urgent", cls: "bg-fault/14 text-fault" },
 ];
 
 export const TICKET_STATUS: Record<TicketStatus, { label: string; cls: string }> = {
-  open: { label: "Open", cls: "bg-app-info/14 text-app-info" },
-  in_review: { label: "In review", cls: "bg-app-info/14 text-app-info" },
-  waiting_on_customer: { label: "Awaiting you", cls: "bg-app-warning/14 text-app-warning" },
-  waiting_on_provider: { label: "Awaiting provider", cls: "bg-app-warning/14 text-app-warning" },
-  resolved: { label: "Resolved", cls: "bg-green-500/14 text-green-500" },
-  closed: { label: "Closed", cls: "bg-slate-500/14 text-slate-400" },
+  open: { label: "Open", cls: "bg-panel-raised/14 text-fg-mid" },
+  in_review: { label: "In review", cls: "bg-panel-raised/14 text-fg-mid" },
+  waiting_on_customer: { label: "Awaiting you", cls: "bg-transparent text-attention" },
+  waiting_on_provider: { label: "Awaiting provider", cls: "bg-transparent text-attention" },
+  resolved: { label: "Resolved", cls: "bg-live/14 text-live" },
+  closed: { label: "Closed", cls: "bg-slate-500/14 text-fg-mid" },
 };
 
 /** Never render an undefined chip if the API grows a seventh status. */
@@ -102,7 +104,7 @@ export function ticketStatusMeta(status: string) {
   return (
     TICKET_STATUS[status as TicketStatus] ?? {
       label: status.replace(/_/g, " "),
-      cls: "bg-slate-500/14 text-slate-400",
+      cls: "bg-slate-500/14 text-fg-mid",
     }
   );
 }
@@ -112,7 +114,7 @@ export function ticketPriorityMeta(priority: string) {
     TICKET_PRIORITIES.find((p) => p.id === priority) ?? {
       id: "low" as TicketPriority,
       label: priority,
-      cls: "bg-slate-500/14 text-slate-400",
+      cls: "bg-slate-500/14 text-fg-mid",
     }
   );
 }
@@ -134,11 +136,11 @@ export type AppNotification = {
 
 type NotificationMeta = { tint: string; label: string };
 
-const BOOKING: NotificationMeta = { tint: "bg-green-500/12 text-green-500", label: "Booking" };
-const PAYMENT: NotificationMeta = { tint: "bg-app-warning/12 text-app-warning", label: "Payment" };
-const ALERT: NotificationMeta = { tint: "bg-red-500/12 text-red-400", label: "Alert" };
-const ACCOUNT: NotificationMeta = { tint: "bg-app-info/12 text-app-info", label: "Account" };
-const SYSTEM: NotificationMeta = { tint: "bg-slate-500/12 text-slate-400", label: "System" };
+const BOOKING: NotificationMeta = { tint: "bg-panel-raised text-live", label: "Booking" };
+const PAYMENT: NotificationMeta = { tint: "bg-attention/12 text-attention", label: "Payment" };
+const ALERT: NotificationMeta = { tint: "bg-fault/12 text-fault", label: "Alert" };
+const ACCOUNT: NotificationMeta = { tint: "bg-panel-raised text-fg-mid", label: "Account" };
+const SYSTEM: NotificationMeta = { tint: "bg-slate-500/12 text-fg-mid", label: "System" };
 
 /**
  * The API's `type` enum runs to about thirty values across booking, payment,
@@ -149,24 +151,24 @@ const SYSTEM: NotificationMeta = { tint: "bg-slate-500/12 text-slate-400", label
 export const NOTIFICATION_META: Record<string, NotificationMeta> = {
   booking_request: BOOKING,
   booking_accepted: BOOKING,
-  booking_rejected: { tint: "bg-red-500/12 text-red-400", label: "Booking" },
+  booking_rejected: { tint: "bg-fault/12 text-fault", label: "Booking" },
   booking_completed: BOOKING,
-  booking_cancelled: { tint: "bg-red-500/12 text-red-400", label: "Booking" },
-  booking_reminder: { tint: "bg-app-info/12 text-app-info", label: "Reminder" },
+  booking_cancelled: { tint: "bg-fault/12 text-fault", label: "Booking" },
+  booking_reminder: { tint: "bg-panel-raised text-fg-mid", label: "Reminder" },
 
-  payment_success: { tint: "bg-green-500/12 text-green-500", label: "Payment" },
-  payment_failed: { tint: "bg-red-500/12 text-red-400", label: "Payment" },
+  payment_success: { tint: "bg-panel-raised text-live", label: "Payment" },
+  payment_failed: { tint: "bg-fault/12 text-fault", label: "Payment" },
 
   penalty: ALERT,
   absence_alert: ALERT,
-  rating_received: { tint: "bg-app-gold/12 text-app-gold", label: "Rating" },
+  rating_received: { tint: "bg-panel-raised text-fg", label: "Rating" },
 
   profile_update: ACCOUNT,
   account_warning: ALERT,
   account_blocked: ALERT,
   account_unblocked: ACCOUNT,
 
-  support_ticket: { tint: "bg-app-info/12 text-app-info", label: "Support" },
+  support_ticket: { tint: "bg-panel-raised text-fg-mid", label: "Support" },
 
   // Protection-detail ops — these are safety-critical, so they read as alerts.
   sos_alert: ALERT,
@@ -183,30 +185,26 @@ export function notificationMeta(kind: string): NotificationMeta {
 }
 
 /**
- * The client app's own FAQs, verbatim from
- * screens/client/support/SupportHomeScreen.js.
+ * The in-product FAQs.
  *
- * These were four invented questions with the answer "Answer copy pending" —
- * so the section looked finished and told the user nothing. Answers here are
- * the app's, which means the two surfaces state the same policy: notably the
- * 24-hour cancellation window and the 30/70 payment split, both of which a
- * client could otherwise be told two different things about.
+ * Payment and cancellation answers import the same source as the rest of the
+ * product (spec 0002). Do not restate refund tiers or invent a payout split.
  */
 export const FAQS: { q: string; a: string }[] = [
   {
     q: "How do I book a service?",
-    a: "Navigate to Home, select a category, find a provider, and follow the booking flow.",
+    a: "From Home, pick a category, choose a provider, and follow the booking steps.",
   },
   {
     q: "Can I cancel my booking?",
-    a: "Yes — up to 24 hours before the service starts without penalty.",
+    a: CANCELLATION_SUMMARY,
   },
   {
     q: "How are payments processed?",
-    a: "30% upfront (released at duty-start OTP) and 70% after completion within 2 business days.",
+    a: "You are charged once, in full, after the provider accepts the booking. There is no second client charge.",
   },
   {
     q: "What if I need to change dates?",
-    a: "Contact support within 48 hours of booking to request a change.",
+    a: "Cancel the booking under the published refund tiers and create a new one for the new date, or contact support.",
   },
 ];

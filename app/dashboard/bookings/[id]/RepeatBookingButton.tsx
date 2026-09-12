@@ -71,7 +71,7 @@ export function RepeatBookingButton({ booking }: { booking: ApiBooking }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-3 rounded-xl border border-app-border px-4 py-3 text-[14px] font-semibold text-slate-300 transition-colors hover:bg-white/5"
+        className="flex items-center gap-3 rounded-lg border border-hairline px-4 py-3 text-body font-semibold text-fg-mid transition-colors hover:bg-panel-raised"
       >
         <CalendarIcon size={16} />
         Repeat this booking
@@ -80,14 +80,14 @@ export function RepeatBookingButton({ booking }: { booking: ApiBooking }) {
   }
 
   return (
-    <div className="rounded-xl border border-app-border bg-app-card p-4">
-      <p className="text-[14px] font-semibold text-slate-200">Repeat this booking</p>
-      <p className="mt-1 text-[12.5px] leading-relaxed text-slate-500">
+    <div className="rounded-lg border border-hairline bg-panel p-4">
+      <p className="text-body font-semibold text-fg">Repeat this booking</p>
+      <p className="mt-1 text-body-sm leading-relaxed text-fg-faint">
         Same provider, service and times. Each occurrence is created as its own booking
         and still needs paying.
       </p>
 
-      <p className="mt-3 text-[12px] font-semibold uppercase tracking-[1px] text-slate-600">
+      <p className="mt-3 text-label font-semibold uppercase tracking-[1px] text-fg-faint">
         How often
       </p>
       <div className="mt-1.5 flex flex-wrap gap-2">
@@ -98,10 +98,10 @@ export function RepeatBookingButton({ booking }: { booking: ApiBooking }) {
             aria-pressed={frequency === f.id}
             onClick={() => setFrequency(f.id)}
             className={[
-              "rounded-full border px-4 py-1.5 text-[12.5px] font-semibold transition-colors",
+              "rounded-sm border px-4 py-1.5 text-body-sm font-semibold transition-colors",
               frequency === f.id
-                ? "border-app-gold bg-app-gold/12 text-app-gold"
-                : "border-app-border text-slate-400 hover:border-app-gold/40",
+                ? "border-brand bg-panel-raised text-brand"
+                : "border-hairline text-fg-mid hover:border-edge",
             ].join(" ")}
           >
             {f.label}
@@ -109,7 +109,7 @@ export function RepeatBookingButton({ booking }: { booking: ApiBooking }) {
         ))}
       </div>
 
-      <label htmlFor="series-end" className="mt-3 block text-[12px] text-slate-500">
+      <label htmlFor="series-end" className="mt-3 block text-label text-fg-faint">
         Stop after (optional)
       </label>
       <input
@@ -118,11 +118,11 @@ export function RepeatBookingButton({ booking }: { booking: ApiBooking }) {
         value={endDate}
         min={(booking.startDate ?? "").slice(0, 10)}
         onChange={(e) => setEndDate(e.target.value)}
-        className="mt-1 w-full rounded-lg border border-app-border bg-white/4 px-3 py-2 text-[13.5px] text-slate-100 outline-none focus:border-app-gold/60 [color-scheme:dark]"
+        className="mt-1 w-full rounded-lg border border-hairline bg-panel-raised px-3 py-2 text-body-sm text-fg outline-none focus:border-edge [color-scheme:dark]"
       />
 
       {error ? (
-        <p role="alert" className="mt-2 text-[12.5px] leading-relaxed text-red-400">
+        <p role="alert" className="mt-2 text-body-sm leading-relaxed text-fault">
           {error}
         </p>
       ) : null}
@@ -132,14 +132,14 @@ export function RepeatBookingButton({ booking }: { booking: ApiBooking }) {
           type="button"
           onClick={create}
           disabled={busy}
-          className="rounded-full bg-app-gold-gradient px-5 py-2 text-[13.5px] font-bold text-black disabled:opacity-60"
+          className="rounded-sm bg-brand text-brand-ink px-5 py-2 text-body-sm font-semibold disabled:opacity-60"
         >
           {busy ? "Creating…" : "Create schedule"}
         </button>
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="rounded-full border border-app-border px-5 py-2 text-[13.5px] font-semibold text-slate-300"
+          className="rounded-sm border border-hairline px-5 py-2 text-body-sm font-semibold text-fg-mid"
         >
           Cancel
         </button>

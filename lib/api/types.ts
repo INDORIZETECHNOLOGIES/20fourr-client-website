@@ -104,6 +104,109 @@ export type ApiProviderRef = {
 };
 
 /**
+ * v6 quote types. Source of truth: backend `src/billing/quote/types.ts`
+ * (spec 0002). Client surfaces must never render provider economics
+ * (`providerNetPaise`, TCS, TDS, `snapshot`, `platformRetainedPaise`).
+ * Client-visible fields are `lines[]` and `clientTotalPaise`.
+ */
+/**
+ * Source of truth: backend/src/billing/quote/types.ts. The earlier array form
+ * here (component/kind/rateBps) described a shape the backend never returns —
+ * `split` is a single object per GST line — so it was unreachable code
+ * asserting a contract that does not exist.
+ */
+export type GstSplit = {
+  intraState: boolean;
+  cgst: number;
+  sgst: number;
+  igst: number;
+  supplierStateCode?: string;
+  placeOfSupplyStateCode?: string;
+};
+
+export type QuoteLine = {
+  /** Stable identifier — match on this, never on the display label. */
+  key?: "service" | "serviceGst" | "platformFee" | "platformGst" | (string & {});
+  label: string;
+  sac?: string;
+  amountPaise: number;
+  ratePct?: number;
+  split?: GstSplit;
+};
+
+export type Quote = {
+  billingEngine?: "v6" | string;
+  currency?: string;
+  lines: QuoteLine[];
+  clientTotalPaise: number;
+  providerPreGstPaise?: number;
+  platformFeePaise?: number;
+  serviceGstPaise?: number;
+  platformGstPaise?: number;
+  /** Provider economics — parse, never render. */
+  providerPayableGrossPaise?: number;
+  tcsPaise?: number;
+  tdsPaise?: number;
+  providerNetPaise?: number;
+  platformRetainedPaise?: number;
+  snapshot?: unknown;
+};
+
+export type TaxDocumentType =
+  | "platform_fee_invoice"
+  | "service_tax_invoice"
+  | "bill_of_supply"
+  | "settlement_statement"
+  | "platform_credit_note"
+  | "service_credit_note"
+  | string;
+
+export type TaxDocumentParty = {
+  party?: string;
+  name?: string;
+  gstin?: string;
+  address?: string;
+};
+
+export type TaxDocumentLine = {
+  description?: string;
+  label?: string;
+  sac?: string;
+  amountPaise?: number;
+  quantity?: number;
+};
+
+export type TaxDocument = {
+  _id: string;
+  documentNumber: string;
+  series?: string;
+  docType: TaxDocumentType;
+  financialYear?: string;
+  bookingId?: string;
+  issuedAt?: string;
+  status?: string;
+  totalPaise?: number;
+  issuer?: { party?: string } & TaxDocumentParty;
+  recipient?: { party?: string } & TaxDocumentParty;
+  reversesDocumentId?: string | null;
+  lines?: TaxDocumentLine[];
+  lineItems?: TaxDocumentLine[];
+  taxLines?: {
+    label: string;
+    sac?: string;
+    rate?: number;
+    amount?: number;
+    amountPaise?: number;
+    split?: GstSplit;
+  }[];
+};
+
+export type TaxDocumentListResponse = {
+  documents: TaxDocument[];
+  pagination?: { page: number; limit: number; total: number; pages: number };
+};
+
+/**
  * A booking, as /client/bookings and /bookings/:id return it.
  *
  * Note `providerId.name` is masked to "Security Professional" by the API until
@@ -143,8 +246,25 @@ export type ApiBooking = {
     cancellationReason?: string | null;
     refundAmount?: number;
     refundStatus?: "pending" | "processed" | "failed" | null;
+    /**
+     * The release job's state machine (SecureConnect spec 0009). Finer than
+     * `refundStatus`, which stays for compatibility. `refundId`,
+     * `refundFailureReason`, `refundFailureCount` and `refundClaimedAt` exist
+     * on the server but are stripped from this read on purpose — they are
+     * operations detail, not something to show someone whose money is late.
+     */
+    refundState?: "pending" | "releasing" | "settled" | "failed" | "manual_review" | null;
+    refundInstructedAt?: string | null;
+    refundSettledAt?: string | null;
   } | null;
   createdAt?: string;
+  /**
+   * Stamped at creation and immutable. Absent on older v1 records.
+   * Source: spec 0002 / CLIENT_API_REFERENCE.md
+   */
+  billingEngine?: "v1" | "v6" | string;
+  /** Present on v6 bookings. Client-visible fields are lines[] and clientTotalPaise. */
+  quote?: Quote | null;
 };
 
 export type ApiPagination = { page: number; limit: number; total: number; pages: number };

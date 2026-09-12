@@ -6,8 +6,8 @@ import { api } from "@/lib/api/client";
 import { errorMessage } from "@/lib/api/errors";
 import {
   CANCELLATION_SUMMARY,
-  REFUND_DESTINATION,
   refundForCancellation,
+  refundDestination,
 } from "@/lib/cancellation-policy";
 import { formatPaiseRounded } from "@/lib/money";
 
@@ -27,6 +27,7 @@ export function CancelBookingButton({
   totalPaise,
   dutyStartsAt,
   paid,
+  engine = "v1",
 }: {
   bookingId: string;
   onCancelled: () => void;
@@ -36,6 +37,7 @@ export function CancelBookingButton({
   dutyStartsAt?: Date | null;
   /** Before payment nothing was taken, so there is nothing to refund. */
   paid?: boolean;
+  engine?: "v1" | "v6";
 }) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
@@ -66,7 +68,7 @@ export function CancelBookingButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-3 rounded-xl border border-red-500/35 px-4 py-3 text-[14px] font-semibold text-red-400 transition-colors hover:bg-red-500/10"
+        className="flex items-center gap-3 rounded-lg border border-fault px-4 py-3 text-body font-semibold text-fault transition-colors hover:bg-panel-raised"
       >
         <ShieldFill size={16} />
         Cancel booking
@@ -75,19 +77,19 @@ export function CancelBookingButton({
   }
 
   return (
-    <div className="rounded-xl border border-red-500/35 bg-red-500/6 p-4">
-      <p className="text-[14px] font-semibold text-red-300">Cancel this booking?</p>
+    <div className="rounded-lg border border-fault bg-fault/6 p-4">
+      <p className="text-body font-semibold text-fault">Cancel this booking?</p>
       {paid && totalPaise ? (
-        <div className="mt-2 rounded-lg border border-white/8 bg-black/20 px-3 py-2.5">
-          <p className="text-[13px] text-slate-300">
+        <div className="mt-2 rounded-lg border border-hairline bg-panel-raised px-3 py-2.5">
+          <p className="text-body-sm text-fg-mid">
             Cancelling now refunds{" "}
-            <strong className="text-app-gold">
+            <strong className="text-fg">
               {formatPaiseRounded(estimate.refundPaise)}
             </strong>{" "}
             ({estimate.percent}% of {formatPaiseRounded(totalPaise)}).
           </p>
           {estimate.hoursRemaining !== null ? (
-            <p className="mt-0.5 text-[11.5px] text-slate-600">
+            <p className="mt-0.5 text-label text-fg-faint">
               {Math.floor(estimate.hoursRemaining)}h until duty starts · figure confirmed
               by the server on cancel.
             </p>
@@ -95,13 +97,13 @@ export function CancelBookingButton({
         </div>
       ) : null}
 
-      <p className="mt-2 text-[12.5px] leading-relaxed text-slate-400">
+      <p className="mt-2 text-body-sm leading-relaxed text-fg-mid">
         {paid
-          ? `${CANCELLATION_SUMMARY} ${REFUND_DESTINATION}`
+          ? `${CANCELLATION_SUMMARY} ${refundDestination(engine)}`
           : "Nothing has been charged for this booking, so there is nothing to refund."}
       </p>
 
-      <label htmlFor="cancel-reason" className="mt-3 block text-[12px] text-slate-500">
+      <label htmlFor="cancel-reason" className="mt-3 block text-label text-fg-faint">
         Reason (optional)
       </label>
       <textarea
@@ -110,11 +112,11 @@ export function CancelBookingButton({
         value={reason}
         onChange={(e) => setReason(e.target.value)}
         placeholder="Plans changed, booked in error…"
-        className="mt-1 w-full rounded-lg border border-app-border bg-white/4 px-3 py-2 text-[13.5px] text-slate-100 outline-none placeholder:text-slate-600 focus:border-app-gold/60"
+        className="mt-1 w-full rounded-lg border border-hairline bg-panel-raised px-3 py-2 text-body-sm text-fg outline-none placeholder:text-fg-faint focus:border-edge"
       />
 
       {error ? (
-        <p role="alert" className="mt-2 text-[13px] text-red-300">
+        <p role="alert" className="mt-2 text-body-sm text-fault">
           {error}
         </p>
       ) : null}
@@ -124,7 +126,7 @@ export function CancelBookingButton({
           type="button"
           onClick={submit}
           disabled={busy}
-          className="flex-1 rounded-full bg-red-500/90 px-4 py-2 text-[13.5px] font-bold text-white disabled:opacity-60"
+          className="flex-1 rounded-sm bg-fault px-4 py-2 text-body-sm font-semibold text-ground-ink disabled:opacity-60"
         >
           {busy ? "Cancelling…" : "Yes, cancel"}
         </button>
@@ -132,7 +134,7 @@ export function CancelBookingButton({
           type="button"
           onClick={() => setOpen(false)}
           disabled={busy}
-          className="flex-1 rounded-full border border-app-border px-4 py-2 text-[13.5px] font-semibold text-slate-300 disabled:opacity-60"
+          className="flex-1 rounded-sm border border-hairline px-4 py-2 text-body-sm font-semibold text-fg-mid disabled:opacity-60"
         >
           Keep it
         </button>

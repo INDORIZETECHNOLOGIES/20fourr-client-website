@@ -141,7 +141,7 @@ export function SignupForm() {
       <form
         noValidate
         onSubmit={handleSubmit}
-        className="w-full rounded-card border border-border-soft bg-surface px-6 pb-9 pt-8 sm:px-9"
+        className="w-full rounded-lg border border-hairline bg-panel px-6 pb-9 pt-8 sm:px-9"
       >
         {formError ? (
           <div className="mb-5">
@@ -274,16 +274,16 @@ export function SignupForm() {
               }}
               className="mt-0.5 h-[18px] w-[18px] shrink-0 accent-gold"
             />
-            <span className="text-[14px] leading-relaxed text-text-secondary">
+            <span className="text-body leading-relaxed text-fg-mid">
               I agree to the{" "}
-              <Link href="/terms" className="font-semibold text-gold hover:underline">
+              <Link href="/terms" className="font-semibold text-fg underline-offset-2 hover:underline">
                 Terms of Service
               </Link>{" "}
               and consent to 20fourr processing my personal data as described there.
             </span>
           </label>
           {errors.termsAccepted ? (
-            <p id="signup-terms-error" role="alert" className="mt-2 text-[13px] text-danger">
+            <p id="signup-terms-error" role="alert" className="mt-2 text-body-sm text-fault">
               {errors.termsAccepted}
             </p>
           ) : null}
@@ -300,12 +300,12 @@ export function SignupForm() {
       </form>
 
       <div className="mt-7 flex items-center justify-center gap-2.5 text-center">
-        <span className="shrink-0 text-gold">
+        <span className="shrink-0 text-fg">
           <SignInIcon />
         </span>
-        <span className="text-[15px] text-text-secondary">
+        <span className="text-body text-fg-mid">
           Already have an account?{" "}
-          <Link href="/login" className="font-bold text-gold hover:underline">
+          <Link href="/login" className="font-semibold text-fg underline-offset-2 hover:underline">
             Sign In
           </Link>
         </span>

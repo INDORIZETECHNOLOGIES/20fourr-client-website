@@ -16,20 +16,26 @@ import { SERVICE_CATALOGUE } from "@/lib/services";
 /**
  * Recurring series — list and manage.
  *
- * Uses `/recurring`, the implementation the client app calls. The parallel
- * `/client/recurring-bookings` route exists but has no pause, resume or
- * skip-next, so it cannot back this screen.
+ * Reads and pauses through `/recurring` (the only route with a status PATCH),
+ * but cancels through `DELETE /client/recurring-bookings/:seriesId` — the two
+ * are different handlers over the same collection and only the DELETE cancels
+ * the occurrences. `PATCH /recurring/:id/status` does NOT cascade: every
+ * occurrence was created upfront and stays live and payable regardless of the
+ * series status, which is why pausing carries the warning it does below.
+ *
+ * There is no skip-one-occurrence endpoint anywhere in the API. Skipping a
+ * single date means cancelling that individual booking.
  *
  * Series are created from an existing booking ("Repeat this booking"), not
  * from a blank form: the provider, category and times are already settled
  * there, so the only new decisions are frequency and when to stop.
  */
 
-const STATUS_META: Record<string, { label: string; cls: string; accent: string }> = {
-  active: { label: "Active", cls: "bg-green-500/14 text-green-500", accent: "#22c55e" },
-  paused: { label: "Paused", cls: "bg-app-warning/14 text-app-warning", accent: "#f59e0b" },
-  cancelled: { label: "Cancelled", cls: "bg-red-500/14 text-red-400", accent: "#ef4444" },
-  completed: { label: "Completed", cls: "bg-slate-500/14 text-slate-400", accent: "#94a3b8" },
+const STATUS_META: Record<string, { label: string; cls: string; rail: string }> = {
+  active: { label: "Active", cls: "border border-live text-live", rail: "bg-live" },
+  paused: { label: "Paused", cls: "border border-attention text-attention", rail: "bg-attention" },
+  cancelled: { label: "Cancelled", cls: "border border-fault text-fault", rail: "bg-fault" },
+  completed: { label: "Completed", cls: "border border-hairline text-fg-mid", rail: "bg-hairline" },
 };
 
 export function RecurringList() {
@@ -39,13 +45,15 @@ export function RecurringList() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [confirmCancel, setConfirmCancel] = useState<string | null>(null);
+  const [cancelReport, setCancelReport] = useState<string | null>(null);
 
-  async function act(id: string, run: () => Promise<unknown>) {
+  async function act(id: string, run: () => Promise<unknown>, successNote?: string) {
     setBusyId(id);
     setActionError(null);
     try {
       await run();
       setConfirmCancel(null);
+      if (successNote) setCancelReport(successNote);
       refetch();
     } catch (cause) {
       setActionError(errorMessage(cause));
@@ -59,8 +67,17 @@ export function RecurringList() {
       api(`recurring/${id}/status`, { method: "PATCH", body: { status } }),
     );
 
-  const skipNext = (id: string) =>
-    act(id, () => api(`recurring/${id}/skip-next`, { method: "POST" }));
+  const cancelSeries = (id: string) =>
+    act(id, async () => {
+      const result = await api<{ message?: string; bookingsCancelled?: number }>(
+        `client/recurring-bookings/${id}`,
+        { method: "DELETE" },
+      );
+      const n = result.bookingsCancelled ?? 0;
+      setCancelReport(
+        `Cancelled ${n} still-pending occurrence${n === 1 ? "" : "s"}. Paid and in-progress bookings in the series were not cancelled.`,
+      );
+    });
 
   const series = data?.recurringBookings ?? [];
 
@@ -71,10 +88,16 @@ export function RecurringList() {
       backHref="/dashboard/bookings"
       backLabel="Bookings"
     >
+      {cancelReport ? (
+        <p className="mb-4 rounded-lg border border-hairline px-4 py-3 text-body text-fg-mid">
+          {cancelReport}
+        </p>
+      ) : null}
+
       {actionError ? (
         <p
           role="alert"
-          className="mb-4 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-[14px] text-red-300"
+          className="mb-4 rounded-lg border border-fault bg-transparent px-4 py-3 text-body text-fault"
         >
           {actionError}
         </p>
@@ -83,33 +106,33 @@ export function RecurringList() {
       {loading ? (
         <div className="flex flex-col gap-2.5">
           {[0, 1].map((i) => (
-            <div key={i} className="h-[92px] animate-pulse rounded-2xl bg-app-card" />
+            <div key={i} className="h-[92px] animate-pulse rounded-lg bg-panel" />
           ))}
         </div>
       ) : error ? (
         <Card className="px-6 py-12 text-center">
-          <p role="alert" className="text-[14px] text-red-300">
+          <p role="alert" className="text-body text-fault">
             {error}
           </p>
           <button
             type="button"
             onClick={refetch}
-            className="mt-4 rounded-full border border-app-gold px-6 py-2.5 text-[13px] font-bold text-app-gold"
+            className="mt-4 rounded-sm border border-edge px-6 py-2.5 text-body-sm font-medium text-fg"
           >
             Try again
           </button>
         </Card>
       ) : series.length === 0 ? (
         <Card className="px-6 py-12 text-center">
-          <p className="text-[15px] text-slate-300">No recurring schedules yet.</p>
-          <p className="mx-auto mt-2 max-w-[440px] text-[13.5px] leading-relaxed text-slate-500">
-            Open any booking and choose <strong className="text-slate-300">Repeat this
+          <p className="text-body text-fg-mid">No recurring schedules yet.</p>
+          <p className="mx-auto mt-2 max-w-[440px] text-body-sm leading-relaxed text-fg-faint">
+            Open any booking and choose <strong className="text-fg-mid">Repeat this
             booking</strong> to turn it into a schedule — the provider, service and times
             carry over.
           </p>
           <Link
             href="/dashboard/bookings"
-            className="mt-5 inline-block rounded-full border border-app-gold px-6 py-2.5 text-[14px] font-bold text-app-gold"
+            className="mt-5 inline-block rounded-sm border border-edge px-6 py-2.5 text-body font-medium text-fg"
           >
             Go to bookings
           </Link>
@@ -124,10 +147,9 @@ export function RecurringList() {
               confirmingCancel={confirmCancel === s._id}
               onPause={() => setStatus(s._id, "paused")}
               onResume={() => setStatus(s._id, "active")}
-              onSkip={() => skipNext(s._id)}
               onAskCancel={() => setConfirmCancel(s._id)}
               onDismissCancel={() => setConfirmCancel(null)}
-              onCancel={() => setStatus(s._id, "cancelled")}
+              onCancel={() => cancelSeries(s._id)}
             />
           ))}
         </div>
@@ -142,7 +164,6 @@ function SeriesRow({
   confirmingCancel,
   onPause,
   onResume,
-  onSkip,
   onAskCancel,
   onDismissCancel,
   onCancel,
@@ -152,15 +173,14 @@ function SeriesRow({
   confirmingCancel: boolean;
   onPause: () => void;
   onResume: () => void;
-  onSkip: () => void;
   onAskCancel: () => void;
   onDismissCancel: () => void;
   onCancel: () => void;
 }) {
   const meta = STATUS_META[series.status] ?? {
     label: series.status,
-    cls: "bg-slate-500/14 text-slate-400",
-    accent: "#94a3b8",
+    cls: "border border-hairline text-fg-mid",
+    rail: "bg-hairline",
   };
   const service = SERVICE_CATALOGUE.find((c) => c.id === series.serviceCategory);
   const provider =
@@ -171,15 +191,13 @@ function SeriesRow({
   return (
     <div>
       <ListRow
-        accent={meta.accent}
+        railClass={meta.rail}
         muted={terminal}
         icon={<ServiceGlyph icon={service?.icon ?? "shield"} size={19} />}
-        iconClass={
-          service ? `${service.iconBg} ${service.color}` : "bg-app-gold/12 text-app-gold"
-        }
+        iconClass="bg-panel-raised text-fg"
         title={serviceLabel(series.serviceCategory)}
         badge={
-          <span className={`rounded-full px-2.5 py-[3px] text-[11px] font-bold ${meta.cls}`}>
+          <span className={`rounded-full px-2.5 py-[3px] text-eyebrow font-semibold ${meta.cls}`}>
             {meta.label}
           </span>
         }
@@ -200,21 +218,21 @@ function SeriesRow({
         <div className="mt-1.5 flex flex-wrap gap-2 px-1">
           {confirmingCancel ? (
             <>
-              <span className="py-2 text-[13px] text-slate-400">
-                Cancel the whole series? Bookings already created stay.
+              <span className="py-2 text-body-sm text-fg-mid">
+                This cancels still-pending occurrences only. Paid and in-progress bookings stay.
               </span>
               <button
                 type="button"
                 onClick={onCancel}
                 disabled={busy}
-                className="rounded-full bg-red-500/90 px-4 py-1.5 text-[12.5px] font-bold text-white disabled:opacity-50"
+                className="rounded-sm bg-fault px-4 py-1.5 text-body-sm font-semibold text-ground-ink disabled:opacity-50"
               >
                 {busy ? "Cancelling…" : "Yes, cancel series"}
               </button>
               <button
                 type="button"
                 onClick={onDismissCancel}
-                className="rounded-full border border-app-border px-4 py-1.5 text-[12.5px] font-semibold text-slate-300"
+                className="rounded-sm border border-hairline px-4 py-1.5 text-body-sm font-semibold text-fg-mid"
               >
                 Keep it
               </button>
@@ -223,8 +241,14 @@ function SeriesRow({
             <>
               {series.status === "active" ? (
                 <>
-                  <SmallAction busy={busy} onClick={onSkip} label="Skip next" />
                   <SmallAction busy={busy} onClick={onPause} label="Pause" />
+                  {/* PATCH /recurring/:id/status does not cascade — every
+                      occurrence was created upfront and stays payable. Saying
+                      so here is the difference between a paused schedule and a
+                      client who thinks they stopped being charged. */}
+                  <span className="py-2 text-body-sm text-fg-faint">
+                    Pausing stops new occurrences only — bookings already created stay live.
+                  </span>
                 </>
               ) : (
                 <SmallAction busy={busy} onClick={onResume} label="Resume" />
@@ -255,10 +279,10 @@ function SmallAction({
       onClick={onClick}
       disabled={busy}
       className={[
-        "rounded-full border px-4 py-1.5 text-[12.5px] font-semibold transition-colors disabled:opacity-50",
+        "rounded-sm border px-4 py-1.5 text-body-sm font-semibold transition-colors disabled:opacity-50",
         tone === "danger"
-          ? "border-red-500/30 text-red-400 hover:bg-red-500/10"
-          : "border-app-border text-slate-300 hover:bg-white/5",
+          ? "border-fault text-fault hover:bg-panel-raised"
+          : "border-hairline text-fg-mid hover:bg-panel-raised",
       ].join(" ")}
     >
       {label}

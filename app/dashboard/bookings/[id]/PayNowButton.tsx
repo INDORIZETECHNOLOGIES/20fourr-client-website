@@ -41,10 +41,12 @@ type OrderResponse = {
 export function PayNowButton({
   bookingId,
   amountPaise,
+  billingEngine,
   onPaid,
 }: {
   bookingId: string;
   amountPaise: number;
+  billingEngine?: string | null;
   onPaid: () => void;
 }) {
   const [busy, setBusy] = useState(false);
@@ -52,7 +54,9 @@ export function PayNowButton({
   const [useCoins, setUseCoins] = useState(false);
   const [usePoints, setUsePoints] = useState(false);
 
-  const { data: wallet } = useApiQuery<ApiWallet>("wallet");
+  const { data: wallet } = useApiQuery<ApiWallet>("wallet", {
+    enabled: billingEngine !== "v6",
+  });
 
   /**
    * Balances are whole rupees; `create-order` wants paise. Points are also
@@ -69,10 +73,12 @@ export function PayNowButton({
     pointsCapPaise,
   );
 
-  const coinsToUse = useCoins ? Math.min(coinsAvailablePaise, amountPaise) : 0;
-  const pointsToUse = usePoints
-    ? Math.min(pointsAvailablePaise, Math.max(0, amountPaise - coinsToUse))
-    : 0;
+  const v6 = billingEngine === "v6";
+  const coinsToUse = !v6 && useCoins ? Math.min(coinsAvailablePaise, amountPaise) : 0;
+  const pointsToUse =
+    !v6 && usePoints
+      ? Math.min(pointsAvailablePaise, Math.max(0, amountPaise - coinsToUse))
+      : 0;
   const estimatedDue = Math.max(0, amountPaise - coinsToUse - pointsToUse);
 
   async function pay() {
@@ -85,8 +91,8 @@ export function PayNowButton({
         // `amountToPayNow` on the response is the real remainder.
         body: {
           bookingId,
-          ...(coinsToUse > 0 ? { coinsToUse } : {}),
-          ...(pointsToUse > 0 ? { pointsToUse } : {}),
+          ...(!v6 && coinsToUse > 0 ? { coinsToUse } : {}),
+          ...(!v6 && pointsToUse > 0 ? { pointsToUse } : {}),
         },
       });
 
@@ -145,13 +151,13 @@ export function PayNowButton({
     }
   }
 
-  const hasWallet = coinsAvailablePaise > 0 || pointsAvailablePaise > 0;
+  const hasWallet = !v6 && (coinsAvailablePaise > 0 || pointsAvailablePaise > 0);
 
   return (
     <div className="flex flex-col gap-2">
       {hasWallet ? (
-        <div className="rounded-xl border border-app-border bg-app-card p-4">
-          <p className="text-[12px] font-semibold uppercase tracking-[1px] text-slate-600">
+        <div className="rounded-lg border border-hairline bg-panel p-4">
+          <p className="text-label font-semibold uppercase tracking-[1px] text-fg-faint">
             Use your wallet
           </p>
 
@@ -161,13 +167,13 @@ export function PayNowButton({
                 type="checkbox"
                 checked={useCoins}
                 onChange={(e) => setUseCoins(e.target.checked)}
-                className="mt-0.5 h-[17px] w-[17px] shrink-0 accent-app-gold"
+                className="mt-0.5 h-[17px] w-[17px] shrink-0 accent-brand"
               />
               <span className="min-w-0">
-                <span className="block text-[13.5px] font-semibold text-slate-200">
+                <span className="block text-body-sm font-semibold text-fg">
                   SecureCoins — {formatRupees(wallet?.coinBalance ?? 0)}
                 </span>
-                <span className="block text-[12px] text-slate-500">
+                <span className="block text-label text-fg-faint">
                   Your own refunded money. No cap.
                 </span>
               </span>
@@ -180,13 +186,13 @@ export function PayNowButton({
                 type="checkbox"
                 checked={usePoints}
                 onChange={(e) => setUsePoints(e.target.checked)}
-                className="mt-0.5 h-[17px] w-[17px] shrink-0 accent-app-gold"
+                className="mt-0.5 h-[17px] w-[17px] shrink-0 accent-brand"
               />
               <span className="min-w-0">
-                <span className="block text-[13.5px] font-semibold text-slate-200">
+                <span className="block text-body-sm font-semibold text-fg">
                   SecurePoints — up to {formatPaise(pointsAvailablePaise, { decimals: 0 })}
                 </span>
-                <span className="block text-[12px] text-slate-500">
+                <span className="block text-label text-fg-faint">
                   Capped at {wallet?.pointUsageLimitPct ?? 20}% of this booking.
                 </span>
               </span>
@@ -194,9 +200,9 @@ export function PayNowButton({
           ) : null}
 
           {coinsToUse + pointsToUse > 0 ? (
-            <p className="mt-3 border-t border-white/8 pt-2.5 text-[13px] text-slate-300">
+            <p className="mt-3 border-t border-hairline pt-2.5 text-body-sm text-fg-mid">
               Wallet covers {formatPaise(coinsToUse + pointsToUse)} — you&apos;ll pay{" "}
-              <strong className="text-app-gold">{formatPaiseRounded(estimatedDue)}</strong>{" "}
+              <strong className="text-fg">{formatPaiseRounded(estimatedDue)}</strong>{" "}
               by card.
             </p>
           ) : null}
@@ -207,12 +213,12 @@ export function PayNowButton({
         type="button"
         onClick={pay}
         disabled={busy}
-        className="rounded-full bg-app-gold-gradient px-6 py-3 text-center text-[14.5px] font-bold text-black transition-transform hover:-translate-y-px disabled:translate-y-0 disabled:opacity-60"
+        className="rounded-sm bg-brand text-brand-ink px-6 py-3 text-center text-body font-semibold transition-opacity   disabled:opacity-60"
       >
         {busy ? "Opening payment…" : `Pay ${formatPaiseRounded(estimatedDue)}`}
       </button>
       {error ? (
-        <p role="alert" className="text-[13px] leading-relaxed text-red-300">
+        <p role="alert" className="text-body-sm leading-relaxed text-fault">
           {error}
         </p>
       ) : null}

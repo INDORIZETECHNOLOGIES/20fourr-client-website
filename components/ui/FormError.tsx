@@ -7,12 +7,12 @@ export function FormError({ message }: { message: string | null }) {
   return (
     <div
       role="alert"
-      className="flex items-start gap-3 rounded-notice border border-danger/40 border-l-4 border-l-danger bg-danger/10 px-[18px] py-3.5"
+      className="flex items-start gap-3 rounded-lg border border-fault border-l-4 border-l-fault bg-transparent px-4 py-3.5"
     >
-      <span className="mt-0.5 shrink-0 text-danger">
+      <span className="mt-0.5 shrink-0 text-fault">
         <InfoIcon />
       </span>
-      <p className="text-[15px] font-medium text-danger">{message}</p>
+      <p className="text-body font-medium text-fault">{message}</p>
     </div>
   );
 }

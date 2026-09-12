@@ -5,7 +5,9 @@ export const metadata: Metadata = { title: "Invoice" };
 
 export default async function InvoiceDetailPage({
   params,
+  searchParams,
 }: PageProps<"/dashboard/profile/invoices/[id]">) {
   const { id } = await params;
-  return <InvoiceDetail id={id} />;
+  const q = await searchParams;
+  return <InvoiceDetail id={id} source={q.source === "document" ? "document" : "invoice"} />;
 }

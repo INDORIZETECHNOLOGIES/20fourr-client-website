@@ -19,12 +19,10 @@ export default function SignupPage() {
         <PsaraBadge className="mb-7" />
         <BrandMark />
 
-        <h1 className="text-sm font-bold tracking-[2px] text-gold">
-          20FOURR &middot; SECURITY PROVIDER
-        </h1>
-        <p className="text-display-md mt-3 text-text">Create Account</p>
-        <p className="mt-4 max-w-[400px] text-lg text-text-muted sm:text-[19px]">
-          Sign up and get started in minutes
+        <h1 className="mt-5 text-eyebrow text-fg">20fourr</h1>
+        <p className="text-h1 mt-3 text-fg">Create an account</p>
+        <p className="mt-4 max-w-[400px] text-body text-fg-mid">
+          Book licensed guards, with an OTP at both ends of the shift and a GST document after.
         </p>
 
         <TrustLine className="mt-10 lg:mt-12" />

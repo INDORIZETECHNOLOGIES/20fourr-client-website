@@ -32,9 +32,9 @@ export type RowMeta = {
 
 export function ListRow({
   href,
-  accent,
+  railClass = "bg-hairline",
   icon,
-  iconClass = "bg-app-gold/12 text-app-gold",
+  iconClass = "bg-panel-raised text-fg",
   title,
   badge,
   primaryMeta = [],
@@ -45,8 +45,8 @@ export function ListRow({
   trailing,
 }: {
   href?: string;
-  /** Status colour for the left rail. Falls back to a neutral edge. */
-  accent?: string;
+  /** Status colour for the left rail. Falls back to a hairline. */
+  railClass?: string;
   icon: ReactNode;
   iconClass?: string;
   title: ReactNode;
@@ -64,19 +64,18 @@ export function ListRow({
       {/* Status rail */}
       <span
         aria-hidden
-        className="absolute inset-y-0 left-0 w-[3px] rounded-l-2xl"
-        style={{ background: accent ?? "rgba(148,163,184,0.25)" }}
+        className={`absolute inset-y-0 left-0 w-[3px] rounded-l-lg ${railClass}`}
       />
 
       <span
-        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${iconClass}`}
+        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${iconClass}`}
       >
         {icon}
       </span>
 
       <span className="min-w-0 flex-1">
         <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-          <span className="text-[15px] font-bold leading-tight text-slate-100">{title}</span>
+          <span className="text-body font-semibold leading-tight text-fg">{title}</span>
           {badge}
         </span>
 
@@ -100,12 +99,12 @@ export function ListRow({
       {amount || reference ? (
         <span className="flex shrink-0 flex-col items-start gap-0.5 sm:items-end">
           {amount ? (
-            <span className="font-display text-[18px] font-extrabold leading-none text-slate-100">
+            <span className="w-full min-w-[160px] text-mono text-fg sm:w-auto">
               {amount}
             </span>
           ) : null}
           {reference ? (
-            <span className="font-mono text-[11px] tabular-nums text-slate-600">
+            <span className="font-mono text-eyebrow tabular-nums text-fg-faint">
               {reference}
             </span>
           ) : null}
@@ -115,7 +114,7 @@ export function ListRow({
       {trailing}
 
       {href ? (
-        <span className="hidden shrink-0 text-slate-700 transition-colors group-hover:text-app-gold sm:block">
+        <span className="hidden shrink-0 text-fg-faint transition-colors group-hover:text-fg sm:block">
           <ChevronRightIcon size={16} />
         </span>
       ) : null}
@@ -123,10 +122,10 @@ export function ListRow({
   );
 
   const className = [
-    "group relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-white/6 bg-app-card py-4 pl-5 pr-5 transition-all",
+    "group relative flex flex-col gap-3 overflow-hidden rounded-lg border border-hairline bg-panel py-4 pl-5 pr-5 transition-all",
     "sm:flex-row sm:items-center sm:gap-4 sm:pl-6",
     muted ? "opacity-60 hover:opacity-90" : "",
-    href ? "cursor-pointer hover:border-white/12 hover:bg-white/[0.035]" : "",
+    href ? "cursor-pointer hover:border-hairline hover:bg-panel-raised" : "",
   ].join(" ");
 
   if (href) {
@@ -152,15 +151,15 @@ function MetaItem({
     <>
       {/* A dot separator rather than more icons — at this size a row of tiny
           glyphs reads as noise and none of them are individually legible. */}
-      {showDot ? <span className="text-slate-700">·</span> : null}
+      {showDot ? <span className="text-fg-faint">·</span> : null}
       <span
         className={[
           "flex min-w-0 items-center gap-1.5",
           meta.flexible ? "max-w-full truncate" : "shrink-0",
-          tone === "primary" ? "text-[13px] text-slate-400" : "text-[12.5px] text-slate-600",
+          tone === "primary" ? "text-body-sm text-fg-mid" : "text-body-sm text-fg-faint",
         ].join(" ")}
       >
-        {meta.icon ? <span className="shrink-0 text-slate-600">{meta.icon}</span> : null}
+        {meta.icon ? <span className="shrink-0 text-fg-faint">{meta.icon}</span> : null}
         <span className="truncate">{meta.text}</span>
       </span>
     </>

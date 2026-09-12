@@ -46,25 +46,37 @@ export type Booking = {
   awaitingRating?: boolean;
 };
 
-/** Semantic colors, matching production's warning / success / error tokens. */
-const WARNING = { bg: "rgba(245,158,11,0.14)", color: "#f59e0b" };
-const SUCCESS = { bg: "rgba(34,197,94,0.14)", color: "#22c55e" };
-const ERROR = { bg: "rgba(239,68,68,0.14)", color: "#ef4444" };
+const ATTENTION = {
+  className: "border-attention text-attention bg-transparent",
+  rail: "bg-attention",
+};
+const LIVE = {
+  className: "border-live text-live bg-transparent",
+  rail: "bg-live",
+};
+const FAULT = {
+  className: "border-fault text-fault bg-transparent",
+  rail: "bg-fault",
+};
+const NEUTRAL = {
+  className: "border-hairline text-fg-mid bg-transparent",
+  rail: "bg-hairline",
+};
 
 export const STATUS_STYLES: Record<
   BookingStatus,
-  { label: string; bg: string; color: string }
+  { label: string; className: string; rail: string }
 > = {
-  pending: { label: "Pending", ...WARNING },
-  provider_accepted: { label: "Accepted", ...WARNING },
-  payment_pending: { label: "Pay Now", ...WARNING },
-  payment_done: { label: "Paid", ...SUCCESS },
-  duty_started: { label: "Live", ...SUCCESS },
-  duty_ended: { label: "Ended", ...WARNING },
-  disputed: { label: "Disputed", ...ERROR },
-  completed: { label: "Done", ...SUCCESS },
-  cancelled: { label: "Cancelled", ...ERROR },
-  provider_rejected: { label: "Rejected", ...ERROR },
+  pending: { label: "Pending", ...ATTENTION },
+  provider_accepted: { label: "Accepted", ...ATTENTION },
+  payment_pending: { label: "Pay now", ...ATTENTION },
+  payment_done: { label: "Paid", ...LIVE },
+  duty_started: { label: "Live", ...LIVE },
+  duty_ended: { label: "Ended", ...ATTENTION },
+  disputed: { label: "Disputed", ...FAULT },
+  completed: { label: "Done", ...NEUTRAL },
+  cancelled: { label: "Cancelled", ...FAULT },
+  provider_rejected: { label: "Rejected", ...FAULT },
 };
 
 /**
@@ -76,8 +88,8 @@ export function statusStyle(status: string) {
   return (
     STATUS_STYLES[status as BookingStatus] ?? {
       label: status.replace(/_/g, " "),
-      bg: "rgba(148,163,184,0.14)",
-      color: "#94a3b8",
+      className: "border-hairline text-fg-mid bg-transparent",
+      rail: "bg-hairline",
     }
   );
 }
@@ -254,9 +266,9 @@ export const SERVICES: Service[] = [
     fromRatePaise: 25000,
     bookings: 142,
     icon: "shield",
-    color: "text-app-gold",
-    iconBg: "bg-app-gold/12",
-    hover: "hover:border-app-gold/20",
+    color: "text-brand",
+    iconBg: "bg-panel-raised",
+    hover: "hover:border-brand/20",
   },
   {
     name: "Bouncer",
@@ -264,9 +276,9 @@ export const SERVICES: Service[] = [
     fromRatePaise: 40000,
     bookings: 89,
     icon: "crowd",
-    color: "text-app-gold",
-    iconBg: "bg-app-gold/12",
-    hover: "hover:border-app-gold/20",
+    color: "text-brand",
+    iconBg: "bg-panel-raised",
+    hover: "hover:border-brand/20",
   },
   {
     name: "Gunman",
@@ -274,9 +286,9 @@ export const SERVICES: Service[] = [
     fromRatePaise: 90000,
     bookings: 34,
     icon: "pistol",
-    color: "text-red-500",
-    iconBg: "bg-red-500/12",
-    hover: "hover:border-red-500/20",
+    color: "text-fault",
+    iconBg: "bg-fault/12",
+    hover: "hover:border-fault/20",
   },
   {
     name: "Event Security",
@@ -284,8 +296,8 @@ export const SERVICES: Service[] = [
     fromRatePaise: 120000,
     bookings: 67,
     icon: "ticket",
-    color: "text-app-info",
-    iconBg: "bg-app-info/12",
+    color: "text-fg-mid",
+    iconBg: "bg-panel-raised",
     hover: "hover:border-app-info/20",
   },
   {
@@ -294,8 +306,8 @@ export const SERVICES: Service[] = [
     fromRatePaise: 70000,
     bookings: 53,
     icon: "police",
-    color: "text-blue-500",
-    iconBg: "bg-blue-500/12",
+    color: "text-fg-mid",
+    iconBg: "bg-panel-raised",
     hover: "hover:border-blue-500/20",
   },
   {
@@ -304,8 +316,8 @@ export const SERVICES: Service[] = [
     fromRatePaise: 45000,
     bookings: 53,
     icon: "medal",
-    color: "text-green-500",
-    iconBg: "bg-green-500/12",
+    color: "text-live",
+    iconBg: "bg-panel-raised",
     hover: "hover:border-green-500/20",
   },
   {
@@ -314,8 +326,8 @@ export const SERVICES: Service[] = [
     fromRatePaise: 85000,
     bookings: 28,
     icon: "guard",
-    color: "text-green-500",
-    iconBg: "bg-green-500/12",
+    color: "text-live",
+    iconBg: "bg-panel-raised",
     hover: "hover:border-green-500/20",
   },
   {
@@ -324,8 +336,8 @@ export const SERVICES: Service[] = [
     fromRatePaise: 50000,
     bookings: 53,
     icon: "building",
-    color: "text-violet-400",
-    iconBg: "bg-violet-400/12",
+    color: "text-fg-mid",
+    iconBg: "bg-panel-raised",
     hover: "hover:border-violet-400/20",
   }
 ];
@@ -402,7 +414,7 @@ export const CURRENT_USER = {
 
   initial: "S",
   role: "Client Account",
-  /** No photo on file — the hero falls back to the initial on a gold gradient. */
+  /** No photo on file — the hero falls back to the initial on a brand fill. */
   avatarUrl: null as string | null,
   verified: true,
   walletBalancePaise: 240000,

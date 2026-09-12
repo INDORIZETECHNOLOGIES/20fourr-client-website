@@ -28,35 +28,35 @@ export default function BookingSuccessPage() {
 
   return (
     <div className="mx-auto max-w-[620px] text-center">
-      <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-500/12 text-green-500">
+      <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-panel-raised text-live">
         <CheckCircleFill size={40} />
       </div>
 
-      <h1 className="mt-6 font-display text-[26px] font-extrabold tracking-[-0.5px] text-slate-100">
+      <h1 className="mt-6 font-sans text-h2 font-semibold tracking-[-0.5px] text-fg">
         Request sent
       </h1>
-      <p className="mt-2.5 text-[15px] leading-relaxed text-slate-500">
+      <p className="mt-2.5 text-body leading-relaxed text-fg-faint">
         Your booking request is with the provider. You&apos;ll be notified as soon as
         they accept.
       </p>
 
       <div className="mt-7 text-left">
         <Notice>
-          <strong className="text-slate-100">Nothing has been charged.</strong> Payment
+          <strong className="text-fg">Nothing has been charged.</strong> Payment
           opens once the provider accepts — the booking will show{" "}
-          <span className="font-semibold text-app-gold">Pay Now</span> and you can settle
+          <span className="font-medium text-fg">Pay now</span> and you can settle
           it from Bookings. If nobody accepts, you are not charged at all.
         </Notice>
       </div>
 
-      <div className="mt-6 rounded-2xl border border-app-border bg-app-card p-5 text-left">
-        <p className="flex items-center gap-2 text-[13px] font-semibold text-slate-300">
-          <span className="text-app-gold">
+      <div className="mt-6 rounded-lg border border-hairline bg-panel p-5 text-left">
+        <p className="flex items-center gap-2 text-body-sm font-semibold text-fg-mid">
+          <span className="text-fg">
             <ShieldFill size={15} />
           </span>
           What happens next
         </p>
-        <ol className="mt-3 flex list-decimal flex-col gap-2 pl-5 text-[13.5px] leading-relaxed text-slate-500">
+        <ol className="mt-3 flex list-decimal flex-col gap-2 pl-5 text-body-sm leading-relaxed text-fg-faint">
           <li>The provider reviews and accepts the request.</li>
           <li>You pay, and the booking is confirmed.</li>
           <li>
@@ -69,13 +69,13 @@ export default function BookingSuccessPage() {
       <div className="mt-8 flex flex-wrap justify-center gap-3">
         <Link
           href={bookingId ? `/dashboard/bookings/${bookingId}` : "/dashboard/bookings"}
-          className="rounded-full bg-app-gold-gradient px-7 py-3 text-[14.5px] font-bold text-black transition-transform hover:-translate-y-px"
+          className="rounded-sm bg-brand text-brand-ink px-7 py-3 text-body font-semibold"
         >
           View booking
         </Link>
         <Link
           href="/dashboard"
-          className="rounded-full border border-app-border px-7 py-3 text-[14.5px] font-semibold text-slate-300 transition-colors hover:bg-white/5"
+          className="rounded-sm border border-hairline px-7 py-3 text-body font-semibold text-fg-mid transition-colors hover:bg-panel-raised"
         >
           Back to dashboard
         </Link>

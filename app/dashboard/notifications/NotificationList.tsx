@@ -76,8 +76,8 @@ export function NotificationList() {
     return (
       <Card className="overflow-hidden">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="border-b border-white/6 px-5 py-4 last:border-b-0">
-            <div className="h-[52px] animate-pulse rounded-lg bg-white/4" />
+          <div key={i} className="border-b border-hairline px-5 py-4 last:border-b-0">
+            <div className="h-[52px] animate-pulse rounded-lg bg-panel-raised" />
           </div>
         ))}
       </Card>
@@ -87,13 +87,13 @@ export function NotificationList() {
   if (error) {
     return (
       <Card className="px-6 py-14 text-center">
-        <p role="alert" className="text-[14px] text-red-300">
+        <p role="alert" className="text-body text-fault">
           {error}
         </p>
         <button
           type="button"
           onClick={refetch}
-          className="mt-4 rounded-full border border-app-gold px-6 py-2.5 text-[13px] font-bold text-app-gold"
+          className="mt-4 rounded-sm border border-edge px-6 py-2.5 text-body-sm font-medium text-fg"
         >
           Try again
         </button>
@@ -104,7 +104,7 @@ export function NotificationList() {
   return (
     <>
       <div className="mb-4 flex items-center justify-between gap-4">
-        <p className="text-[13.5px] text-slate-500">
+        <p className="text-body-sm text-fg-faint">
           {unread > 0 ? `${unread} unread` : "All caught up"}
         </p>
         {unread > 0 ? (
@@ -112,7 +112,7 @@ export function NotificationList() {
             type="button"
             onClick={markAllRead}
             disabled={busy}
-            className="text-[13.5px] font-semibold text-app-gold hover:underline disabled:opacity-50"
+            className="text-body-sm font-semibold text-fg underline-offset-2 hover:underline disabled:opacity-50"
           >
             Mark all read
           </button>
@@ -122,7 +122,7 @@ export function NotificationList() {
       {actionError ? (
         <p
           role="alert"
-          className="mb-4 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-[14px] text-red-300"
+          className="mb-4 rounded-lg border border-fault bg-transparent px-4 py-3 text-body text-fault"
         >
           {actionError}
         </p>
@@ -130,10 +130,10 @@ export function NotificationList() {
 
       {items.length === 0 ? (
         <Card className="px-6 py-14 text-center">
-          <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white/6 text-slate-500">
+          <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-panel-raised text-fg-faint">
             <BellIcon size={20} />
           </span>
-          <p className="text-[14px] text-slate-500">Nothing here yet.</p>
+          <p className="text-body text-fg-faint">Nothing here yet.</p>
         </Card>
       ) : (
         <Card className="overflow-hidden">
@@ -149,21 +149,21 @@ export function NotificationList() {
 
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-[14.5px] font-semibold text-slate-100">
+                    <span className="text-body font-semibold text-fg">
                       {n.title}
                     </span>
                     {!n.read ? (
-                      <span className="h-2 w-2 shrink-0 rounded-full bg-app-gold" />
+                      <span className="h-2 w-2 shrink-0 rounded-full bg-brand" />
                     ) : null}
                   </div>
-                  <p className="mt-1 text-[13px] leading-relaxed text-slate-500">{n.body}</p>
-                  <p className="mt-1.5 text-[12px] text-slate-600">
+                  <p className="mt-1 text-body-sm leading-relaxed text-fg-faint">{n.body}</p>
+                  <p className="mt-1.5 text-label text-fg-faint">
                     {meta.label} · {n.at}
                   </p>
                 </div>
 
                 {n.href ? (
-                  <span className="mt-1 shrink-0 text-slate-500 group-hover:text-slate-300">
+                  <span className="mt-1 shrink-0 text-fg-faint group-hover:text-fg-mid">
                     <ChevronRightIcon size={16} />
                   </span>
                 ) : null}
@@ -175,9 +175,9 @@ export function NotificationList() {
                 key={n.id}
                 className={[
                   "group flex items-start gap-2 px-5 py-4 transition-colors",
-                  n.href ? "hover:bg-white/3" : "",
-                  i < items.length - 1 ? "border-b border-white/6" : "",
-                  n.read ? "" : "bg-app-gold/4",
+                  n.href ? "hover:bg-panel-raised" : "",
+                  i < items.length - 1 ? "border-b border-hairline" : "",
+                  n.read ? "" : "bg-panel-raised",
                 ].join(" ")}
               >
                 {n.href ? (
@@ -199,7 +199,7 @@ export function NotificationList() {
                   onClick={() => remove(n.id)}
                   disabled={busy}
                   aria-label={`Delete notification: ${n.title}`}
-                  className="mt-0.5 shrink-0 rounded-full p-2 text-slate-600 opacity-0 transition-opacity hover:bg-white/6 hover:text-red-400 focus-visible:opacity-100 group-hover:opacity-100 disabled:opacity-30"
+                  className="mt-0.5 shrink-0 rounded-full p-2 text-fg-faint opacity-0 transition-opacity hover:bg-panel-raised hover:text-fault focus-visible:opacity-100 group-hover:opacity-100 disabled:opacity-30"
                 >
                   <TrashIcon size={15} />
                 </button>

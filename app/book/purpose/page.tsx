@@ -26,14 +26,14 @@ export default function PurposeStep() {
               onClick={() => update({ purposeId: p.id })}
               aria-pressed={selected}
               className={[
-                "rounded-2xl border p-4 text-left transition-colors",
+                "rounded-lg border p-4 text-left transition-colors",
                 selected
-                  ? "border-app-gold bg-app-gold/8"
-                  : "border-app-border bg-app-card hover:border-app-gold/30",
+                  ? "border-brand bg-panel-raised"
+                  : "border-hairline bg-panel hover:border-edge",
               ].join(" ")}
             >
-              <span className="block text-[15px] font-bold text-slate-100">{p.label}</span>
-              <span className="mt-1 block text-[12.5px] leading-relaxed text-slate-500">
+              <span className="block text-body font-semibold text-fg">{p.label}</span>
+              <span className="mt-1 block text-body-sm leading-relaxed text-fg-faint">
                 {p.desc}
               </span>
             </button>
@@ -45,9 +45,9 @@ export default function PurposeStep() {
         <div className="mt-6">
           <label
             htmlFor="purpose-note"
-            className="mb-2 block text-[13.5px] font-semibold text-slate-300"
+            className="mb-2 block text-body-sm font-semibold text-fg-mid"
           >
-            Anything the provider should know? <span className="text-slate-600">(optional)</span>
+            Anything the provider should know? <span className="text-fg-faint">(optional)</span>
           </label>
           <textarea
             id="purpose-note"
@@ -55,7 +55,7 @@ export default function PurposeStep() {
             value={draft.purposeNote}
             onChange={(e) => update({ purposeNote: e.target.value })}
             placeholder="e.g. Two entry gates, night shift, formal dress code"
-            className="w-full rounded-2xl border border-app-border bg-white/4 px-4 py-3.5 text-[14.5px] text-slate-100 outline-none transition-colors placeholder:text-slate-600 focus:border-app-gold/60"
+            className="w-full rounded-lg border border-hairline bg-panel-raised px-4 py-3.5 text-body text-fg outline-none transition-colors placeholder:text-fg-faint focus:border-edge"
           />
         </div>
       ) : null}

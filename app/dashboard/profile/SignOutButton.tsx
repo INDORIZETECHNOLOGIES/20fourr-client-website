@@ -22,10 +22,10 @@ export function SignOutButton() {
       type="button"
       onClick={handleSignOut}
       disabled={busy}
-      className="flex w-full items-center justify-center gap-2.5 rounded-2xl border border-app-gold px-6 py-4 text-[16px] font-bold text-app-gold transition-colors hover:bg-app-gold/10 disabled:opacity-60"
+      className="flex w-full items-center justify-center gap-2.5 rounded-lg border border-fault px-6 py-4 text-body font-medium text-fault transition-colors hover:bg-panel-raised disabled:opacity-60"
     >
       <SignOutIcon size={19} />
-      {busy ? "Signing out…" : "Sign Out"}
+      {busy ? "Signing out…" : "Sign out"}
     </button>
   );
 }

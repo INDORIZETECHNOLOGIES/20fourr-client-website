@@ -171,12 +171,12 @@ export function EditProfileForm() {
     return (
       <div className="flex flex-col gap-4">
         {profileError ? (
-          <p role="alert" className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-[14px] text-red-300">
+          <p role="alert" className="rounded-lg border border-fault bg-transparent px-4 py-3 text-body text-fault">
             {profileError}
           </p>
         ) : null}
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="h-[190px] animate-pulse rounded-2xl border border-white/6 bg-app-card" />
+          <div key={i} className="h-[190px] animate-pulse rounded-lg border border-hairline bg-panel" />
         ))}
       </div>
     );
@@ -186,7 +186,7 @@ export function EditProfileForm() {
     <form onSubmit={submit} noValidate className="flex flex-col gap-4">
       {saved ? <Notice>Profile updated.</Notice> : null}
       {formError ? (
-        <p role="alert" className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-[14px] text-red-300">
+        <p role="alert" className="rounded-lg border border-fault bg-transparent px-4 py-3 text-body text-fault">
           {formError}
         </p>
       ) : null}
@@ -236,7 +236,7 @@ export function EditProfileForm() {
             onChange={(x) => set("phone", normalizePhone(x))}
           />
         </div>
-        <p className="mt-3 text-[12.5px] text-slate-600">
+        <p className="mt-3 text-body-sm text-fg-faint">
           Changing your phone number will require re-verification by OTP.
         </p>
       </Section>
@@ -269,7 +269,7 @@ export function EditProfileForm() {
 
       {/* ── Business & GST ── */}
       <Section title="Business & GST">
-        <p className="mb-4 text-[13px] leading-relaxed text-slate-500">
+        <p className="mb-4 text-body-sm leading-relaxed text-fg-faint">
           Choose &ldquo;Registered Business&rdquo; only if you have a GSTIN. This
           determines GST treatment — reverse charge applies for registered
           businesses.
@@ -298,10 +298,10 @@ export function EditProfileForm() {
                 setSaved(false);
               }}
               className={[
-                "rounded-full border px-5 py-2.5 text-[14px] font-semibold transition-colors",
+                "rounded-sm border px-5 py-2.5 text-body font-semibold transition-colors",
                 v.clientType === opt.id
-                  ? "border-app-gold bg-app-gold/12 text-app-gold"
-                  : "border-app-border text-slate-300 hover:border-app-gold/40",
+                  ? "border-brand bg-panel-raised text-brand"
+                  : "border-hairline text-fg-mid hover:border-edge",
               ].join(" ")}
             >
               {opt.label}
@@ -327,11 +327,11 @@ export function EditProfileForm() {
 
       {/* ── Booking preferences ── */}
       <Section title="Booking Preferences">
-        <p className="mb-4 text-[13px] text-slate-500">
+        <p className="mb-4 text-body-sm text-fg-faint">
           Set defaults to speed up future bookings.
         </p>
 
-        <p className="mb-2.5 text-[13px] font-medium text-slate-400">Preferred service</p>
+        <p className="mb-2.5 text-body-sm font-medium text-fg-mid">Preferred service</p>
         <div className="flex flex-wrap gap-2">
           {CATEGORY_OPTIONS.map((opt) => (
             <button
@@ -340,10 +340,10 @@ export function EditProfileForm() {
               aria-pressed={v.preferredServiceCategory === opt.id}
               onClick={() => set("preferredServiceCategory", opt.id)}
               className={[
-                "rounded-full border px-4 py-2 text-[13.5px] font-semibold transition-colors",
+                "rounded-sm border px-4 py-2 text-body-sm font-semibold transition-colors",
                 v.preferredServiceCategory === opt.id
-                  ? "border-app-gold bg-app-gold/12 text-app-gold"
-                  : "border-app-border text-slate-300 hover:border-app-gold/40",
+                  ? "border-brand bg-panel-raised text-brand"
+                  : "border-hairline text-fg-mid hover:border-edge",
               ].join(" ")}
             >
               {opt.label}
@@ -378,13 +378,13 @@ export function EditProfileForm() {
         <button
           type="submit"
           disabled={saving}
-          className="rounded-full bg-app-gold-gradient px-7 py-3 text-[14.5px] font-bold text-black transition-transform hover:-translate-y-px disabled:opacity-60"
+          className="rounded-sm bg-brand text-brand-ink px-7 py-3 text-body font-semibold transition-opacity  disabled:opacity-60"
         >
           {saving ? "Saving…" : "Save Changes"}
         </button>
         <Link
           href="/dashboard/profile"
-          className="rounded-full border border-app-border px-7 py-3 text-[14.5px] font-semibold text-slate-300 transition-colors hover:bg-white/5"
+          className="rounded-sm border border-hairline px-7 py-3 text-body font-semibold text-fg-mid transition-colors hover:bg-panel-raised"
         >
           Cancel
         </Link>
@@ -396,7 +396,7 @@ export function EditProfileForm() {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <Card className="p-6">
-      <h3 className="mb-4 font-display text-[15px] font-bold text-slate-100">{title}</h3>
+      <h3 className="mb-4 font-sans text-body font-semibold text-fg">{title}</h3>
       {children}
     </Card>
   );
@@ -434,15 +434,15 @@ function Field({
   hint?: string;
 }) {
   const cls = [
-    "w-full rounded-xl border bg-white/4 px-4 py-3 text-[14.5px] text-slate-100 outline-none transition-colors placeholder:text-slate-600",
+    "w-full rounded-lg border bg-panel-raised px-4 py-3 text-body text-fg outline-none transition-colors placeholder:text-fg-faint",
     mono ? "font-mono tracking-wider" : "",
-    readOnly ? "cursor-not-allowed text-slate-400" : "",
-    error ? "border-red-500" : "border-app-border focus:border-app-gold/60",
+    readOnly ? "cursor-not-allowed text-fg-mid" : "",
+    error ? "border-fault" : "border-hairline focus:border-edge",
   ].join(" ");
 
   return (
     <div>
-      <label htmlFor={id} className="mb-2 block text-[13px] font-medium text-slate-400">
+      <label htmlFor={id} className="mb-2 block text-body-sm font-medium text-fg-mid">
         {label}
       </label>
       {rows ? (
@@ -477,18 +477,18 @@ function Field({
 
       <div className="mt-1.5 flex justify-between gap-3">
         {error ? (
-          <p id={`${id}-error`} role="alert" className="text-[12.5px] text-red-400">
+          <p id={`${id}-error`} role="alert" className="text-body-sm text-fault">
             {error}
           </p>
         ) : hint ? (
-          <p id={`${id}-hint`} className="text-[12.5px] text-slate-600">
+          <p id={`${id}-hint`} className="text-body-sm text-fg-faint">
             {hint}
           </p>
         ) : (
           <span />
         )}
         {counter && maxLength ? (
-          <span className="shrink-0 text-[12px] text-slate-600">
+          <span className="shrink-0 text-label text-fg-faint">
             {value.length}/{maxLength}
           </span>
         ) : null}
@@ -513,13 +513,13 @@ function Toggle({
   return (
     <div
       className={[
-        "flex items-center justify-between gap-4 border-b border-white/6 py-3 last:border-b-0",
+        "flex items-center justify-between gap-4 border-b border-hairline py-3 last:border-b-0",
         disabled ? "opacity-50" : "",
       ].join(" ")}
     >
       <div className="min-w-0">
-        <p className="text-[14.5px] text-slate-200">{label}</p>
-        {hint ? <p className="mt-0.5 text-[12px] text-slate-600">{hint}</p> : null}
+        <p className="text-body text-fg">{label}</p>
+        {hint ? <p className="mt-0.5 text-label text-fg-faint">{hint}</p> : null}
       </div>
       <button
         type="button"
@@ -531,12 +531,12 @@ function Toggle({
         className={[
           "relative h-6 w-11 shrink-0 rounded-full transition-colors",
           disabled ? "cursor-not-allowed" : "cursor-pointer",
-          checked ? "bg-app-gold" : "bg-app-border",
+          checked ? "bg-brand" : "bg-edge",
         ].join(" ")}
       >
         <span
           className={[
-            "absolute top-0.5 h-5 w-5 rounded-full bg-app-card transition-transform",
+            "absolute top-0.5 h-5 w-5 rounded-full bg-panel transition-transform",
             checked ? "translate-x-[22px]" : "translate-x-0.5",
           ].join(" ")}
         />

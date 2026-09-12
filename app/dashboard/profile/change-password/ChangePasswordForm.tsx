@@ -90,7 +90,7 @@ export function ChangePasswordForm() {
         </Notice>
         <Link
           href="/login"
-          className="mt-5 inline-block rounded-full bg-app-gold-gradient px-7 py-2.5 text-[14px] font-bold text-black"
+          className="mt-5 inline-block rounded-sm bg-brand text-brand-ink px-7 py-2.5 text-body font-semibold"
         >
           Sign in again
         </Link>
@@ -101,18 +101,18 @@ export function ChangePasswordForm() {
   if (stage === "request") {
     return (
       <Card className="p-6">
-        <p className="text-[14.5px] leading-relaxed text-slate-300">
+        <p className="text-body leading-relaxed text-fg-mid">
           To change your password we&apos;ll email a 6-digit code to your registered
           address. You&apos;ll enter it along with your new password.
         </p>
-        <p className="mt-2 text-[13px] leading-relaxed text-slate-500">
+        <p className="mt-2 text-body-sm leading-relaxed text-fg-faint">
           Changing your password signs you out everywhere, including this browser.
         </p>
 
         {formError ? (
           <p
             role="alert"
-            className="mt-4 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-[14px] text-red-300"
+            className="mt-4 rounded-lg border border-fault bg-transparent px-4 py-3 text-body text-fault"
           >
             {formError}
           </p>
@@ -122,7 +122,7 @@ export function ChangePasswordForm() {
           type="button"
           onClick={sendCode}
           disabled={busy}
-          className="mt-5 rounded-full bg-app-gold-gradient px-7 py-3 text-[14.5px] font-bold text-black transition-transform hover:-translate-y-px disabled:translate-y-0 disabled:opacity-60"
+          className="mt-5 rounded-sm bg-brand text-brand-ink px-7 py-3 text-body font-semibold transition-opacity   disabled:opacity-60"
         >
           {busy ? "Sending…" : "Email me a code"}
         </button>
@@ -134,7 +134,7 @@ export function ChangePasswordForm() {
     <Card className="p-6">
       <form onSubmit={submit} noValidate className="flex flex-col gap-4">
         <div>
-          <p className="mb-3 text-[13px] font-medium text-slate-400">
+          <p className="mb-3 text-body-sm font-medium text-fg-mid">
             Enter the 6-digit code we emailed you
           </p>
           <OtpInput
@@ -145,7 +145,7 @@ export function ChangePasswordForm() {
             describedBy={errors.code ? "code-error" : undefined}
           />
           {errors.code ? (
-            <p id="code-error" role="alert" className="mt-2 text-[12.5px] text-red-400">
+            <p id="code-error" role="alert" className="mt-2 text-body-sm text-fault">
               {errors.code}
             </p>
           ) : null}
@@ -153,7 +153,7 @@ export function ChangePasswordForm() {
             type="button"
             onClick={sendCode}
             disabled={!expired || busy}
-            className="mt-3 text-[13px] font-semibold text-app-gold disabled:text-slate-600"
+            className="mt-3 text-body-sm font-medium text-fg disabled:text-fg-faint"
           >
             <span aria-live="polite">
               {expired ? "Resend code" : `Resend in ${seconds}s`}
@@ -190,7 +190,7 @@ export function ChangePasswordForm() {
         {formError ? (
           <p
             role="alert"
-            className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-[14px] text-red-300"
+            className="rounded-lg border border-fault bg-transparent px-4 py-3 text-body text-fault"
           >
             {formError}
           </p>
@@ -199,7 +199,7 @@ export function ChangePasswordForm() {
         <button
           type="submit"
           disabled={busy}
-          className="mt-2 self-start rounded-full bg-app-gold-gradient px-7 py-3 text-[14.5px] font-bold text-black transition-transform hover:-translate-y-px disabled:translate-y-0 disabled:opacity-60"
+          className="mt-2 self-start rounded-sm bg-brand text-brand-ink px-7 py-3 text-body font-semibold transition-opacity   disabled:opacity-60"
         >
           {busy ? "Updating…" : "Update Password"}
         </button>
@@ -225,7 +225,7 @@ function PwField({
 }) {
   return (
     <div>
-      <label htmlFor={id} className="mb-2 block text-[13px] font-medium text-slate-400">
+      <label htmlFor={id} className="mb-2 block text-body-sm font-medium text-fg-mid">
         {label}
       </label>
       <input
@@ -237,12 +237,12 @@ function PwField({
         aria-describedby={error ? `${id}-error` : undefined}
         onChange={(e) => onChange(e.target.value)}
         className={[
-          "w-full rounded-xl border bg-white/4 px-4 py-3 text-[14.5px] text-slate-100 outline-none transition-colors",
-          error ? "border-red-500" : "border-app-border focus:border-app-gold/60",
+          "w-full rounded-lg border bg-panel-raised px-4 py-3 text-body text-fg outline-none transition-colors",
+          error ? "border-fault" : "border-hairline focus:border-edge",
         ].join(" ")}
       />
       {error ? (
-        <p id={`${id}-error`} role="alert" className="mt-1.5 text-[12.5px] text-red-400">
+        <p id={`${id}-error`} role="alert" className="mt-1.5 text-body-sm text-fault">
           {error}
         </p>
       ) : null}

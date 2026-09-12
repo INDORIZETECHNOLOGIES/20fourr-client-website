@@ -2,46 +2,37 @@
 
 import Link from "next/link";
 import { createContext, useContext, useMemo, type ReactNode } from "react";
-import { Card, StatusPill } from "@/components/dashboard/primitives";
-import {
-  ActivityIcon,
-  CalendarIcon,
-  ChevronRightIcon,
-  ChevronUpIcon,
-  ServiceGlyph,
-  ShieldIcon,
-  StarFill,
-} from "@/components/dashboard/icons";
+import { StatusPill } from "@/components/dashboard/primitives";
+import { ChevronRightIcon, ServiceGlyph } from "@/components/dashboard/icons";
 import { useSession } from "@/components/session/SessionProvider";
 import { useApiQuery } from "@/hooks/useApiQuery";
 import { adaptBooking } from "@/lib/api/adapters";
 import type { BookingListResponse, ProviderSearchResponse } from "@/lib/api/types";
+import { quoteFromBooking } from "@/lib/api/pricing";
+import { QuoteBreakdown } from "@/app/book/PriceSummary";
 import { ONGOING_STATUSES, type BookingStatus } from "@/lib/dashboard-data";
 import { SERVICE_CATALOGUE } from "@/lib/services";
 import { formatPaiseRounded } from "@/lib/money";
 
-/** Greeting by local clock — the design hardcoded "Good Afternoon". */
-function partOfDay(): string {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good Morning";
-  if (hour < 17) return "Good Afternoon";
-  return "Good Evening";
-}
-
 export function Greeting() {
   const { profile } = useSession();
+  const { nextBooking } = useOverview();
 
   return (
     <>
-      <p className="mb-1.5 text-xs uppercase tracking-[0.5px] text-slate-500">
-        {partOfDay()}
-      </p>
-      <h2 className="mb-2 font-display text-[22px] font-extrabold tracking-[-0.5px] text-slate-100 sm:text-[26px]">
-        Welcome back{profile?.name ? `, ${profile.name}` : ""} 👋
-      </h2>
-      <p className="max-w-[380px] text-[13.5px] leading-relaxed text-slate-600">
-        Your 24/7 security command center. Protect what matters most.
-      </p>
+      <h2 className="text-h2 text-fg">{profile?.name ?? "Account"}</h2>
+      {nextBooking ? (
+        <p className="mt-2 max-w-prose text-body text-fg-mid">
+          Next booking {nextBooking.date} with {nextBooking.guard || nextBooking.service}.
+        </p>
+      ) : (
+        <p className="mt-2 max-w-prose text-body text-fg-mid">
+          No upcoming bookings.{" "}
+          <Link href="/book" className="font-medium text-fg underline">
+            Book a guard
+          </Link>
+        </p>
+      )}
     </>
   );
 }
@@ -89,85 +80,90 @@ function buildOverview(
   loading: boolean,
   error: string | null,
 ) {
-  const bookings = (data?.bookings ?? []).map(adaptBooking);
+  const source = data?.bookings ?? [];
+  const bookings = source.map(adaptBooking);
   const count = (statuses: BookingStatus[]) =>
     bookings.filter((b) => statuses.includes(b.status)).length;
+
+  const nextBooking = bookings.find((b) => UPCOMING_STATUSES.includes(b.status)) ?? null;
 
   const stats = [
     {
       label: "Upcoming",
       value: count(UPCOMING_STATUSES),
-      Icon: CalendarIcon,
-      tint: "bg-app-info/12 text-app-info",
-      footer: (
-        <span className="flex items-center gap-1 text-slate-600">
-          <ChevronUpIcon />
-          Awaiting duty start
-        </span>
-      ),
+      live: false,
     },
     {
-      label: "Active",
+      label: "On duty",
       value: count(["duty_started"]),
-      Icon: ShieldIcon,
-      tint: "bg-green-500/12 text-green-500",
-      footer: (
-        <span className="flex items-center gap-1.5 text-green-500">
-          <span className="animate-pulse-dot inline-block h-1.5 w-1.5 rounded-full bg-green-500" />
-          Live right now
-        </span>
-      ),
+      live: true,
     },
     {
       label: "Ongoing",
       value: count(ONGOING_STATUSES),
-      Icon: StarFill,
-      tint: "bg-app-gold/12 text-app-gold",
-      footer: <span className="text-app-gold">In flight</span>,
+      live: false,
     },
     {
-      label: "Total Bookings",
+      label: "All bookings",
       value: data?.pagination?.total ?? bookings.length,
-      Icon: ActivityIcon,
-      tint: "bg-violet-400/12 text-violet-400",
-      footer: <span className="text-slate-600">Lifetime bookings</span>,
+      live: false,
     },
   ];
 
-  return { stats, bookings: bookings.slice(0, 4), loading, error };
+  return {
+    stats,
+    bookings: bookings.slice(0, 4),
+    recentSource: source.slice(0, 4),
+    nextBooking,
+    loading,
+    error,
+  };
 }
 
 export function StatTiles() {
   const { stats, loading } = useOverview();
 
   return (
-    <div className="mb-[22px] grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-4">
-      {stats.map(({ label, value, Icon, tint, footer }) => (
-        <Card key={label} className="px-5 py-[18px]">
-          <div className="mb-3.5 flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-600">{label}</span>
-            <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${tint}`}>
-              <Icon size={14} />
-            </span>
-          </div>
-          <p className="mb-1.5 font-display text-[30px] font-extrabold leading-none text-slate-100">
+    <div className="mb-6 grid grid-cols-2 border-y border-hairline xl:grid-cols-4">
+      {stats.map(({ label, value, live }, i) => (
+        <div
+          key={label}
+          className={[
+            "px-4 py-5",
+            i < stats.length - 1 ? "xl:border-r xl:border-hairline" : "",
+            i % 2 === 0 ? "border-r border-hairline xl:border-r" : "",
+            i < 2 ? "border-b border-hairline xl:border-b-0" : "",
+          ].join(" ")}
+        >
+          <p className="text-label text-fg-faint">{label}</p>
+          <p
+            className={[
+              "mt-2 text-mono-lg",
+              live && value > 0 ? "text-live" : "text-fg",
+            ].join(" ")}
+          >
             {loading ? <Skeleton /> : value}
           </p>
-          <div className="text-[11.5px]">{footer}</div>
-        </Card>
+          {live && !loading && value > 0 ? (
+            <p className="mt-1 flex items-center gap-1.5 text-body-sm text-live">
+              <span className="animate-pulse-dot inline-block h-1.5 w-1.5 rounded-full bg-live" />
+              On duty
+            </p>
+          ) : null}
+        </div>
       ))}
     </div>
   );
 }
 
 export function RecentBookings() {
-  const { bookings, loading, error } = useOverview();
+  const { bookings, recentSource, loading, error } = useOverview();
 
   if (loading) {
     return (
       <div className="flex flex-col gap-[3px]">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="h-[52px] animate-pulse rounded-[9px] bg-white/4" />
+          <div key={i} className="h-[52px] animate-pulse rounded-sm bg-panel-raised" />
         ))}
       </div>
     );
@@ -175,7 +171,7 @@ export function RecentBookings() {
 
   if (error) {
     return (
-      <p role="alert" className="px-3 py-6 text-center text-[13px] text-red-300">
+      <p role="alert" className="px-3 py-6 text-center text-body-sm text-fault">
         {error}
       </p>
     );
@@ -183,10 +179,10 @@ export function RecentBookings() {
 
   if (bookings.length === 0) {
     return (
-      <p className="px-3 py-8 text-center text-[13px] text-slate-600">
+      <p className="px-3 py-8 text-center text-body-sm text-fg-faint">
         No bookings yet.{" "}
-        <Link href="/book" className="font-semibold text-app-gold hover:underline">
-          Book your first service
+        <Link href="/book" className="font-medium text-fg underline">
+          Book a service
         </Link>
         .
       </p>
@@ -195,32 +191,42 @@ export function RecentBookings() {
 
   return (
     <div className="flex flex-col gap-[3px]">
-      {bookings.map((bk) => (
+      {bookings.map((bk, i) => {
+        const src = recentSource[i];
+        const quote = src ? quoteFromBooking(src) : null;
+        return (
         <Link
           key={bk.id}
           href={`/dashboard/bookings/${bk.id}`}
-          className="grid grid-cols-[1fr_auto_auto] items-center gap-2 rounded-[9px] px-3 py-2.5 transition-colors hover:bg-white/3"
+          className="grid grid-cols-[1fr_auto_auto] items-start gap-2 rounded-sm px-3 py-2.5 transition-colors hover:bg-panel-raised"
         >
           <span className="min-w-0">
-            <span className="block truncate text-[13px] font-semibold text-slate-200">
+            <span className="block truncate text-body-sm font-semibold text-fg">
               {bk.service}
             </span>
-            <span className="mt-0.5 block text-[11.5px] text-slate-700">
+            <span className="mt-0.5 block text-label text-fg-faint">
               {bk.date} · {bk.time}
             </span>
           </span>
           <StatusPill status={bk.status} className="min-w-[75px] text-center" />
-          <span className="min-w-[55px] text-right text-[13px] font-bold text-slate-100">
-            {formatPaiseRounded(bk.amountPaise)}
+          <span className="min-w-[140px] text-right text-fg">
+            {quote ? (
+              <QuoteBreakdown quote={quote} compact />
+            ) : (
+              <span className="text-mono text-body-sm tabular-nums">
+                {formatPaiseRounded(bk.amountPaise)}
+              </span>
+            )}
           </span>
         </Link>
-      ))}
+        );
+      })}
     </div>
   );
 }
 
 function Skeleton(): ReactNode {
-  return <span className="inline-block h-[30px] w-10 animate-pulse rounded bg-white/8" />;
+  return <span className="inline-block h-[30px] w-10 animate-pulse rounded bg-panel-raised" />;
 }
 
 /**
@@ -257,23 +263,21 @@ function ServiceShortlistRow({ service }: { service: (typeof SERVICE_CATALOGUE)[
   return (
     <Link
       href={`/book/service?category=${service.id}`}
-      className={`flex items-center gap-3 rounded-[11px] border border-transparent bg-white/3 px-3.5 py-3 transition-all ${service.hover} hover:bg-white/5`}
+      className="flex items-center gap-3 rounded-sm border-b border-hairline px-1 py-3 last:border-b-0 hover:bg-panel-raised"
     >
-      <span
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] ${service.iconBg} ${service.color}`}
-      >
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm border border-hairline text-fg">
         <ServiceGlyph icon={service.icon} size={18} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-[13.5px] font-semibold text-slate-100">
+        <span className="block text-body-sm font-semibold text-fg">
           {service.name}
         </span>
-        <span className="mt-0.5 block text-[11.5px] text-slate-600">
+        <span className="mt-0.5 block text-label text-fg-faint">
           {loading ? "Checking availability…" : rate ? `From ${rate} · ` : ""}
           {loading ? "" : `${total} available`}
         </span>
       </span>
-      <span className="shrink-0 text-slate-700">
+      <span className="shrink-0 text-fg-faint">
         <ChevronRightIcon />
       </span>
     </Link>

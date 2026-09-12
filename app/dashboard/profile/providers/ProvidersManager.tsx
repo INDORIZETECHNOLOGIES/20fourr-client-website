@@ -56,7 +56,7 @@ export function ProvidersManager() {
     return (
       <div className="flex flex-col gap-3">
         {[0, 1].map((i) => (
-          <div key={i} className="h-[76px] animate-pulse rounded-2xl bg-app-card" />
+          <div key={i} className="h-[76px] animate-pulse rounded-lg bg-panel" />
         ))}
       </div>
     );
@@ -65,13 +65,13 @@ export function ProvidersManager() {
   if (error) {
     return (
       <Card className="px-6 py-12 text-center">
-        <p role="alert" className="text-[14px] text-red-300">
+        <p role="alert" className="text-body text-fault">
           {error}
         </p>
         <button
           type="button"
           onClick={refetch}
-          className="mt-4 rounded-full border border-app-gold px-6 py-2.5 text-[13px] font-bold text-app-gold"
+          className="mt-4 rounded-sm border border-edge px-6 py-2.5 text-body-sm font-medium text-fg"
         >
           Try again
         </button>
@@ -87,7 +87,7 @@ export function ProvidersManager() {
       {actionError ? (
         <p
           role="alert"
-          className="mb-4 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-[14px] text-red-300"
+          className="mb-4 rounded-lg border border-fault bg-transparent px-4 py-3 text-body text-fault"
         >
           {actionError}
         </p>
@@ -155,12 +155,12 @@ function Group({
 }) {
   return (
     <>
-      <h3 className="mb-3 mt-8 text-[12px] font-semibold uppercase tracking-[1.2px] text-slate-500 first:mt-0">
+      <h3 className="mb-3 mt-8 text-label font-semibold uppercase tracking-[1.2px] text-fg-faint first:mt-0">
         {label}
       </h3>
       {children.length === 0 ? (
         <Card className="px-6 py-10 text-center">
-          <p className="mx-auto max-w-[420px] text-[14px] leading-relaxed text-slate-500">
+          <p className="mx-auto max-w-[420px] text-body leading-relaxed text-fg-faint">
             {empty}
           </p>
         </Card>
@@ -189,13 +189,13 @@ function Row({
         busy ? "pointer-events-none opacity-50" : "",
       ].join(" ")}
     >
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-app-gold-gradient text-[15px] font-extrabold text-black">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-panel-raised text-body font-semibold text-fg">
         {initialOf(name)}
       </span>
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[15px] font-semibold text-slate-100">{name}</p>
-        <p className="mt-0.5 flex items-center gap-1.5 text-[12.5px] text-slate-600">
+        <p className="truncate text-body font-semibold text-fg">{name}</p>
+        <p className="mt-0.5 flex items-center gap-1.5 text-body-sm text-fg-faint">
           <UserIcon size={12} />
           Provider
         </p>
@@ -208,10 +208,10 @@ function Row({
             type="button"
             onClick={a.onClick}
             className={[
-              "rounded-full border px-4 py-2 text-[13px] font-semibold transition-colors",
+              "rounded-sm border px-4 py-2 text-body-sm font-semibold transition-colors",
               a.tone === "danger"
-                ? "border-red-500/35 text-red-400 hover:bg-red-500/10"
-                : "border-app-border text-slate-300 hover:bg-white/5",
+                ? "border-fault text-fault hover:bg-panel-raised"
+                : "border-hairline text-fg-mid hover:bg-panel-raised",
             ].join(" ")}
           >
             {a.label}

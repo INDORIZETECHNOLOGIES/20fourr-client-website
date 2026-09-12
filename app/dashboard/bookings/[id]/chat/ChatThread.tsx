@@ -201,7 +201,7 @@ export function ChatThread({ bookingId }: { bookingId: string }) {
   if (bookingLoading) {
     return (
       <SubPage title="Chat" backHref={`/dashboard/bookings/${bookingId}`} backLabel="Booking" width={720}>
-        <div className="h-[420px] animate-pulse rounded-2xl bg-app-card" />
+        <div className="h-[420px] animate-pulse rounded-lg bg-panel" />
       </SubPage>
     );
   }
@@ -210,7 +210,7 @@ export function ChatThread({ bookingId }: { bookingId: string }) {
     return (
       <SubPage title="Chat" backHref="/dashboard/bookings" backLabel="Bookings" width={720}>
         <Card className="px-6 py-12 text-center">
-          <p role="alert" className="text-[15px] text-red-300">
+          <p role="alert" className="text-body text-fault">
             This booking could not be found.
           </p>
         </Card>
@@ -228,16 +228,16 @@ export function ChatThread({ bookingId }: { bookingId: string }) {
         width={720}
       >
         <Card className="px-6 py-12 text-center">
-          <p className="text-[15px] text-slate-300">
+          <p className="text-body text-fg-mid">
             Chat opens once the booking is paid.
           </p>
-          <p className="mx-auto mt-2 max-w-[420px] text-[13.5px] leading-relaxed text-slate-500">
+          <p className="mx-auto mt-2 max-w-[420px] text-body-sm leading-relaxed text-fg-faint">
             Provider contact is released after payment — until then, use Support if you
             need to ask something about this booking.
           </p>
           <Link
             href="/dashboard/support/new"
-            className="mt-5 inline-block rounded-full border border-app-gold px-6 py-2.5 text-[14px] font-bold text-app-gold"
+            className="mt-5 inline-block rounded-sm border border-edge px-6 py-2.5 text-body font-medium text-fg"
           >
             Contact support
           </Link>
@@ -257,16 +257,16 @@ export function ChatThread({ bookingId }: { bookingId: string }) {
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <span
           className={[
-            "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-semibold",
+            "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-label font-semibold",
             socket.connected
-              ? "bg-green-500/12 text-green-500"
-              : "bg-white/6 text-slate-500",
+              ? "bg-panel-raised text-live"
+              : "bg-panel-raised text-fg-faint",
           ].join(" ")}
         >
           <span
             className={[
               "inline-block h-1.5 w-1.5 rounded-full",
-              socket.connected ? "animate-pulse-dot bg-green-500" : "bg-slate-600",
+              socket.connected ? "animate-pulse-dot bg-live" : "bg-hairline",
             ].join(" ")}
           />
           {socket.connected ? "Live" : "Reconnecting — messages still refresh"}
@@ -276,7 +276,7 @@ export function ChatThread({ bookingId }: { bookingId: string }) {
       {loadError ? (
         <p
           role="alert"
-          className="mb-4 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-[14px] text-red-300"
+          className="mb-4 rounded-lg border border-fault bg-transparent px-4 py-3 text-body text-fault"
         >
           {loadError}
         </p>
@@ -291,11 +291,11 @@ export function ChatThread({ bookingId }: { bookingId: string }) {
           {!loaded ? (
             <div className="flex flex-col gap-3">
               {[0, 1, 2].map((i) => (
-                <div key={i} className="h-14 animate-pulse rounded-2xl bg-white/4" />
+                <div key={i} className="h-14 animate-pulse rounded-lg bg-panel-raised" />
               ))}
             </div>
           ) : messages.length === 0 ? (
-            <p className="m-auto max-w-[380px] text-center text-[13.5px] leading-relaxed text-slate-500">
+            <p className="m-auto max-w-[380px] text-center text-body-sm leading-relaxed text-fg-faint">
               No messages yet. Say hello, confirm the site address, or share anything the
               guard should know before arriving.
             </p>
@@ -303,14 +303,14 @@ export function ChatThread({ bookingId }: { bookingId: string }) {
             messages.map((m) => <Bubble key={m._id} message={m} clientId={clientId} />)
           )}
           {socket.peerTyping ? (
-            <p className="text-[12.5px] italic text-slate-500">Typing…</p>
+            <p className="text-body-sm italic text-fg-faint">Typing…</p>
           ) : null}
           <div ref={bottomRef} />
         </div>
 
-        <div className="border-t border-white/8 p-4">
+        <div className="border-t border-hairline p-4">
           {sendError ? (
-            <p role="alert" className="mb-2 text-[13px] text-red-300">
+            <p role="alert" className="mb-2 text-body-sm text-fault">
               {sendError}
             </p>
           ) : null}
@@ -336,23 +336,23 @@ export function ChatThread({ bookingId }: { bookingId: string }) {
                   void send();
                 }
               }}
-              className="max-h-32 min-h-[46px] flex-1 resize-none rounded-xl border border-app-border bg-white/4 px-4 py-3 text-[14.5px] text-slate-100 outline-none transition-colors placeholder:text-slate-600 focus:border-app-gold/60"
+              className="max-h-32 min-h-[46px] flex-1 resize-none rounded-lg border border-hairline bg-panel-raised px-4 py-3 text-body text-fg outline-none transition-colors placeholder:text-fg-faint focus:border-edge"
             />
             <button
               type="button"
               onClick={send}
               disabled={!draft.trim() || sending}
               className={[
-                "h-[46px] shrink-0 rounded-full px-6 text-[14px] font-bold transition-colors",
+                "h-[46px] shrink-0 rounded-sm px-6 text-body font-semibold transition-colors",
                 draft.trim() && !sending
-                  ? "bg-app-gold-gradient text-black"
-                  : "cursor-not-allowed bg-app-disabled text-slate-500",
+                  ? "bg-brand text-brand-ink"
+                  : "cursor-not-allowed bg-panel-raised text-fg-faint",
               ].join(" ")}
             >
               {sending ? "Sending…" : "Send"}
             </button>
           </div>
-          <p className="mt-2 text-[11.5px] text-slate-600">
+          <p className="mt-2 text-label text-fg-faint">
             {draft.length}/{MAX_LENGTH} · Messages are retained with the booking record.
             Never share OTPs here.
           </p>
@@ -378,7 +378,7 @@ function Bubble({
   // System messages are the platform talking, not either party.
   if (message.messageType === "system") {
     return (
-      <p className="mx-auto max-w-[80%] rounded-full bg-white/5 px-4 py-1.5 text-center text-[12px] text-slate-500">
+      <p className="mx-auto max-w-[80%] rounded-full bg-panel-raised px-4 py-1.5 text-center text-label text-fg-faint">
         {message.content}
       </p>
     );
@@ -390,14 +390,14 @@ function Bubble({
     <div className={["flex", mine ? "justify-end" : "justify-start"].join(" ")}>
       <div
         className={[
-          "max-w-[78%] rounded-2xl px-4 py-3",
+          "max-w-[78%] rounded-lg px-4 py-3",
           mine
-            ? "rounded-br-md bg-app-gold/12 text-slate-100"
-            : "rounded-bl-md border border-app-border bg-app-card text-slate-200",
+            ? "rounded-br-md bg-panel-raised text-fg"
+            : "rounded-bl-md border border-hairline bg-panel text-fg",
         ].join(" ")}
       >
         {!mine ? (
-          <p className="mb-1 text-[11.5px] font-bold text-slate-400">
+          <p className="mb-1 text-label font-semibold text-fg-mid">
             {senderName(message)}
           </p>
         ) : null}
@@ -407,17 +407,17 @@ function Bubble({
             href={message.fileUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="mb-1.5 block text-[13.5px] font-semibold text-app-gold underline"
+            className="mb-1.5 block text-body-sm font-medium text-fg underline"
           >
             {message.fileName ?? "Attachment"}
           </a>
         ) : null}
 
-        <p className="whitespace-pre-wrap text-[14px] leading-relaxed">{message.content}</p>
+        <p className="whitespace-pre-wrap text-body leading-relaxed">{message.content}</p>
 
-        <p className="mt-1.5 flex items-center justify-end gap-1.5 text-[11px] text-slate-600">
+        <p className="mt-1.5 flex items-center justify-end gap-1.5 text-eyebrow text-fg-faint">
           {messageTime(message.createdAt)}
-          {mine && message.isRead ? <span className="text-app-info">Read</span> : null}
+          {mine && message.isRead ? <span className="text-fg-mid">Read</span> : null}
         </p>
       </div>
     </div>

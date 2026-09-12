@@ -129,7 +129,7 @@ export function CreateTicketForm() {
         {uploadWarning ? (
           <p
             role="alert"
-            className="mt-4 rounded-xl border border-app-warning/40 bg-app-warning/10 px-4 py-3 text-[13.5px] text-app-warning"
+            className="mt-4 rounded-lg border border-attention bg-transparent px-4 py-3 text-body-sm text-attention"
           >
             {uploadWarning}
           </p>
@@ -137,13 +137,13 @@ export function CreateTicketForm() {
         <div className="mt-5 flex flex-wrap gap-3">
           <Link
             href={`/dashboard/support/${created.id}`}
-            className="rounded-full bg-app-gold-gradient px-7 py-2.5 text-[14px] font-bold text-black"
+            className="rounded-sm bg-brand text-brand-ink px-7 py-2.5 text-body font-semibold"
           >
             View ticket
           </Link>
           <Link
             href="/dashboard/support"
-            className="rounded-full border border-app-border px-7 py-2.5 text-[14px] font-semibold text-slate-300 hover:bg-white/5"
+            className="rounded-sm border border-hairline px-7 py-2.5 text-body font-semibold text-fg-mid hover:bg-panel-raised"
           >
             Back to Support
           </Link>
@@ -158,7 +158,7 @@ export function CreateTicketForm() {
         {formError ? (
           <p
             role="alert"
-            className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-[14px] text-red-300"
+            className="rounded-lg border border-fault bg-transparent px-4 py-3 text-body text-fault"
           >
             {formError}
           </p>
@@ -178,10 +178,10 @@ export function CreateTicketForm() {
                   setErrors((e) => ({ ...e, type: undefined }));
                 }}
                 className={[
-                  "rounded-full border px-4 py-2 text-[13.5px] font-semibold transition-colors",
+                  "rounded-sm border px-4 py-2 text-body-sm font-semibold transition-colors",
                   type === c.id
-                    ? "border-app-gold bg-app-gold/12 text-app-gold"
-                    : "border-app-border text-slate-300 hover:border-app-gold/40",
+                    ? "border-brand bg-panel-raised text-brand"
+                    : "border-hairline text-fg-mid hover:border-edge",
                 ].join(" ")}
               >
                 {c.label}
@@ -189,7 +189,7 @@ export function CreateTicketForm() {
             ))}
           </div>
           {type ? (
-            <p className="mt-2 text-[12.5px] text-slate-600">
+            <p className="mt-2 text-body-sm text-fg-faint">
               {TICKET_CATEGORIES.find((c) => c.id === type)?.hint}
             </p>
           ) : null}
@@ -206,9 +206,9 @@ export function CreateTicketForm() {
                 aria-pressed={priority === p.id}
                 onClick={() => setPriority(p.id)}
                 className={[
-                  "rounded-full px-4 py-2 text-[13px] font-bold transition-opacity",
+                  "rounded-sm px-4 py-2 text-body-sm font-semibold transition-opacity",
                   p.cls,
-                  priority === p.id ? "ring-2 ring-app-gold/60" : "opacity-60 hover:opacity-100",
+                  priority === p.id ? "ring-2 ring-brand" : "opacity-60 hover:opacity-100",
                 ].join(" ")}
               >
                 {p.label}
@@ -223,7 +223,7 @@ export function CreateTicketForm() {
             id="booking"
             value={bookingId}
             onChange={(e) => setBookingId(e.target.value)}
-            className="w-full rounded-xl border border-app-border bg-white/4 px-4 py-3 text-[14.5px] text-slate-100 outline-none focus:border-app-gold/60"
+            className="w-full rounded-lg border border-hairline bg-panel-raised px-4 py-3 text-body text-fg outline-none focus:border-edge"
           >
             <option value="">Not about a specific booking</option>
             {bookings.map((b) => (
@@ -268,7 +268,7 @@ export function CreateTicketForm() {
           />
           <div className="mt-1.5 flex justify-between gap-3">
             <ErrorText id="body" msg={errors.body} />
-            <span className="shrink-0 text-[12px] text-slate-600">
+            <span className="shrink-0 text-label text-fg-faint">
               {body.length}/{BODY_MAX}
             </span>
           </div>
@@ -282,15 +282,15 @@ export function CreateTicketForm() {
             multiple
             accept="image/*,video/*,.pdf"
             onChange={(e) => setFiles(Array.from(e.target.files ?? []).slice(0, MAX_FILES))}
-            className="w-full rounded-xl border border-dashed border-app-border bg-white/2 px-4 py-3 text-[13.5px] text-slate-400 file:mr-3 file:rounded-full file:border-0 file:bg-app-gold/15 file:px-4 file:py-1.5 file:text-[13px] file:font-bold file:text-app-gold"
+            className="w-full rounded-lg border border-dashed border-hairline bg-panel-raised px-4 py-3 text-body-sm text-fg-mid file:mr-3 file:rounded-sm file:border-0 file:bg-panel-raised file:px-4 file:py-1.5 file:text-body-sm file:font-semibold file:text-fg"
           />
           {files.length > 0 ? (
-            <p className="mt-2 text-[12.5px] text-slate-500">
+            <p className="mt-2 text-body-sm text-fg-faint">
               {files.length} file{files.length > 1 ? "s" : ""} selected:{" "}
               {files.map((f) => f.name).join(", ")}
             </p>
           ) : (
-            <p className="mt-2 text-[12px] text-slate-600">
+            <p className="mt-2 text-label text-fg-faint">
               Up to {MAX_FILES} files. Uploaded after the ticket is created.
             </p>
           )}
@@ -299,7 +299,7 @@ export function CreateTicketForm() {
         <button
           type="submit"
           disabled={saving}
-          className="mt-1 self-start rounded-full bg-app-gold-gradient px-8 py-3 text-[14.5px] font-bold text-black transition-transform hover:-translate-y-px disabled:translate-y-0 disabled:opacity-60"
+          className="mt-1 self-start rounded-sm bg-brand text-brand-ink px-8 py-3 text-body font-semibold transition-opacity   disabled:opacity-60"
         >
           {saving ? "Submitting…" : "Submit ticket"}
         </button>
@@ -310,13 +310,13 @@ export function CreateTicketForm() {
 
 const inputCls = (err?: string) =>
   [
-    "w-full rounded-xl border bg-white/4 px-4 py-3 text-[14.5px] text-slate-100 outline-none transition-colors placeholder:text-slate-600",
-    err ? "border-red-500" : "border-app-border focus:border-app-gold/60",
+    "w-full rounded-lg border bg-panel-raised px-4 py-3 text-body text-fg outline-none transition-colors placeholder:text-fg-faint",
+    err ? "border-fault" : "border-hairline focus:border-edge",
   ].join(" ");
 
 function FieldLabel({ htmlFor, children }: { htmlFor: string; children: React.ReactNode }) {
   return (
-    <label htmlFor={htmlFor} className="mb-2 block text-[13px] font-medium text-slate-400">
+    <label htmlFor={htmlFor} className="mb-2 block text-body-sm font-medium text-fg-mid">
       {children}
     </label>
   );
@@ -325,7 +325,7 @@ function FieldLabel({ htmlFor, children }: { htmlFor: string; children: React.Re
 function ErrorText({ id, msg }: { id: string; msg?: string }) {
   if (!msg) return null;
   return (
-    <p id={`${id}-error`} role="alert" className="mt-1.5 text-[12.5px] text-red-400">
+    <p id={`${id}-error`} role="alert" className="mt-1.5 text-body-sm text-fault">
       {msg}
     </p>
   );

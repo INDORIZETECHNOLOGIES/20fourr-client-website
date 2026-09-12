@@ -4,12 +4,12 @@ import { ShieldIcon } from "@/components/icons";
 export function PsaraBadge({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`inline-flex items-center gap-2 rounded-pill border border-border bg-surface px-[18px] py-2 ${className}`}
+      className={`inline-flex items-center gap-2 rounded-pill border border-edge bg-panel px-[18px] py-2 ${className}`}
     >
-      <span className="text-gold">
+      <span className="text-fg">
         <ShieldIcon size={14} />
       </span>
-      <span className="text-[13px] text-text-secondary">20fourr Licensed Platform</span>
+      <span className="text-body-sm text-fg-mid">20fourr Licensed Platform</span>
     </div>
   );
 }

@@ -34,14 +34,14 @@ type Result = {
 
 const PAGES: { title: string; subtitle: string; href: string; keywords: string }[] = [
   { title: "Book a service", subtitle: "Start a new booking", href: "/book", keywords: "book new booking hire guard" },
-  { title: "My Bookings", subtitle: "Ongoing, completed and cancelled", href: "/dashboard/bookings", keywords: "bookings orders history" },
-  { title: "My Wallet", subtitle: "SecureCoins and SecurePoints", href: "/dashboard/profile/wallet", keywords: "wallet coins points balance money refund" },
-  { title: "My Invoices", subtitle: "GST invoices", href: "/dashboard/profile/invoices", keywords: "invoice invoices gst bill billing receipt tax" },
-  { title: "Saved Addresses", subtitle: "Where your guards are sent", href: "/dashboard/profile/addresses", keywords: "address addresses location site" },
+  { title: "Bookings", subtitle: "Ongoing, completed and cancelled", href: "/dashboard/bookings", keywords: "bookings orders history" },
+  { title: "Wallet", subtitle: "SecureCoins and SecurePoints", href: "/dashboard/profile/wallet", keywords: "wallet coins points balance money refund" },
+  { title: "Invoices", subtitle: "GST invoices", href: "/dashboard/profile/invoices", keywords: "invoice invoices gst bill billing receipt tax" },
+  { title: "Saved addresses", subtitle: "Where your guards are sent", href: "/dashboard/profile/addresses", keywords: "address addresses location site" },
   { title: "Support", subtitle: "Tickets and help", href: "/dashboard/support", keywords: "support help ticket complaint issue problem" },
   { title: "Notifications", subtitle: "Booking and payment alerts", href: "/dashboard/notifications", keywords: "notifications alerts updates" },
-  { title: "Edit Profile", subtitle: "Details, GST and preferences", href: "/dashboard/profile/edit", keywords: "profile account details gstin gst business preferences" },
-  { title: "Change Password", subtitle: "Update your password", href: "/dashboard/profile/change-password", keywords: "password security change login" },
+  { title: "Edit profile", subtitle: "Details, GST and preferences", href: "/dashboard/profile/edit", keywords: "profile account details gstin gst business preferences" },
+  { title: "Change password", subtitle: "Update your password", href: "/dashboard/profile/change-password", keywords: "password security change login" },
 ];
 
 export function SearchBox() {
@@ -74,7 +74,7 @@ export function SearchBox() {
           subtitle: "Book this service",
           href: `/book/service?category=${s.id}`,
           icon: <ServiceGlyph icon={s.icon} size={16} />,
-          iconClass: `${s.iconBg} ${s.color}`,
+          iconClass: "bg-panel-raised text-fg",
         });
       }
     }
@@ -91,8 +91,8 @@ export function SearchBox() {
         subtitle: `${b.ref ?? ""} · ${b.date} · ${style.label}`,
         href: `/dashboard/bookings/${b.id}`,
         icon: <ServiceGlyph icon={svc?.icon ?? "shield"} size={16} />,
-        iconClass: svc ? `${svc.iconBg} ${svc.color}` : "bg-app-gold/12 text-app-gold",
-        accent: style.color,
+        iconClass: "bg-panel-raised text-fg",
+        accent: style.rail,
       });
       if (out.length > 12) break;
     }
@@ -106,7 +106,7 @@ export function SearchBox() {
           subtitle: p.subtitle,
           href: p.href,
           icon: <SearchIcon size={15} />,
-          iconClass: "bg-white/6 text-slate-400",
+          iconClass: "bg-panel-raised text-fg-mid",
         });
       }
     }
@@ -173,8 +173,8 @@ export function SearchBox() {
 
   return (
     <div ref={boxRef} className="relative hidden md:block">
-      <div className="flex w-64 items-center gap-2.5 rounded-[10px] border border-white/7 bg-white/4 px-3.5 py-2.5 focus-within:border-app-gold/40">
-        <span className="shrink-0 text-slate-500">
+      <div className="flex w-64 items-center gap-2.5 rounded-sm border border-hairline bg-panel-raised px-3.5 py-2.5 focus-within:border-edge">
+        <span className="shrink-0 text-fg-faint">
           <SearchIcon size={15} />
         </span>
         <input
@@ -193,10 +193,10 @@ export function SearchBox() {
           }}
           onFocus={() => setOpen(true)}
           onKeyDown={onKeyDown}
-          className="w-full min-w-0 border-none bg-transparent text-[14px] text-slate-300 outline-none placeholder:text-slate-500 [&::-webkit-search-cancel-button]:appearance-none"
+          className="w-full min-w-0 border-none bg-transparent text-body text-fg-mid outline-none placeholder:text-fg-faint [&::-webkit-search-cancel-button]:appearance-none"
         />
         {!query ? (
-          <kbd className="shrink-0 rounded border border-white/10 px-1.5 py-0.5 text-[10px] text-slate-600">
+          <kbd className="shrink-0 rounded border border-hairline px-1.5 py-0.5 text-eyebrow text-fg-faint">
             /
           </kbd>
         ) : null}
@@ -206,10 +206,10 @@ export function SearchBox() {
         <div
           id="topbar-search-results"
           role="listbox"
-          className="absolute right-0 top-[calc(100%+8px)] z-50 max-h-[min(70vh,460px)] w-[380px] overflow-y-auto rounded-2xl border border-white/10 bg-[#0e1a2c] p-1.5 shadow-2xl"
+          className="absolute right-0 top-[calc(100%+8px)] z-50 max-h-[min(70vh,460px)] w-[380px] overflow-y-auto rounded-lg border border-hairline bg-panel p-1.5 shadow-lg"
         >
           {results.length === 0 ? (
-            <p className="px-3 py-6 text-center text-[13.5px] text-slate-500">
+            <p className="px-3 py-6 text-center text-body-sm text-fg-faint">
               Nothing matches “{query.trim()}”.
             </p>
           ) : (
@@ -219,7 +219,7 @@ export function SearchBox() {
               return (
                 <div key={r.id}>
                   {newGroup ? (
-                    <p className="px-3 pb-1 pt-2.5 text-[10.5px] font-semibold uppercase tracking-[1px] text-slate-600">
+                    <p className="px-3 pb-1 pt-2.5 text-eyebrow font-semibold uppercase tracking-[1px] text-fg-faint">
                       {r.group}
                     </p>
                   ) : null}
@@ -230,15 +230,14 @@ export function SearchBox() {
                     onMouseEnter={() => setActive(i)}
                     onClick={() => go(r)}
                     className={[
-                      "relative flex w-full items-center gap-3 overflow-hidden rounded-xl px-3 py-2.5 text-left transition-colors",
-                      i === active ? "bg-white/8" : "hover:bg-white/5",
+                      "relative flex w-full items-center gap-3 overflow-hidden rounded-lg px-3 py-2.5 text-left transition-colors",
+                      i === active ? "bg-panel-raised" : "hover:bg-panel-raised",
                     ].join(" ")}
                   >
                     {r.accent ? (
                       <span
                         aria-hidden
-                        className="absolute inset-y-1.5 left-0 w-[2px] rounded-r"
-                        style={{ background: r.accent }}
+                        className={`absolute inset-y-1.5 left-0 w-[2px] rounded-r ${r.accent}`}
                       />
                     ) : null}
                     <span
@@ -247,11 +246,11 @@ export function SearchBox() {
                       {r.icon}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[13.5px] font-semibold text-slate-100">
+                      <span className="block truncate text-body-sm font-semibold text-fg">
                         {r.title}
                       </span>
                       {r.subtitle ? (
-                        <span className="mt-0.5 block truncate text-[12px] text-slate-500">
+                        <span className="mt-0.5 block truncate text-label text-fg-faint">
                           {r.subtitle}
                         </span>
                       ) : null}

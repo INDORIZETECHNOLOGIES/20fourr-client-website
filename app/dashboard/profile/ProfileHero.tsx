@@ -1,6 +1,7 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import Link from "next/link";
 import {
   BriefcaseIcon,
   CalendarIcon,
@@ -9,79 +10,68 @@ import {
   PinFill,
 } from "@/components/dashboard/icons";
 import { useSession } from "@/components/session/SessionProvider";
+import { useApiQuery } from "@/hooks/useApiQuery";
+import type { BookingListResponse } from "@/lib/api/types";
 
-/**
- * The app's gradient header: warm gold falling off into blue, with the identity
- * block centred over it.
- *
- * A client component because the identity comes from the session — it is spread
- * across the User document (name, email, phone, avatar) and the ClientProfile
- * (city, booking count), which SessionProvider has already merged.
- */
 export function ProfileHero() {
   const { profile, loading } = useSession();
+  const [photoFailed, setPhotoFailed] = useState(false);
+  const { data: bookings } = useApiQuery<BookingListResponse>("client/bookings", {
+    query: { limit: 1 },
+  });
+
+  useEffect(() => {
+    setPhotoFailed(false);
+  }, [profile?.avatarUrl]);
+
+  const bookingCount = bookings?.pagination?.total ?? profile?.totalBookings ?? 0;
+  const showPhoto = Boolean(profile?.avatarUrl) && !photoFailed;
 
   return (
-    <div
-      className="relative overflow-hidden rounded-2xl px-6 pb-8 pt-9 text-center sm:px-8"
-      style={{
-        backgroundColor: "#1b3f86",
-        backgroundImage: [
-          "radial-gradient(circle at 6% 8%, rgba(232,160,32,0.95) 0%, rgba(232,160,32,0) 46%)",
-          "radial-gradient(circle at 82% 34%, rgba(59,130,246,0.7) 0%, rgba(59,130,246,0) 55%)",
-          "radial-gradient(circle at 62% 108%, rgba(8,18,48,0.92) 0%, rgba(8,18,48,0) 62%)",
-          "linear-gradient(118deg, #b9821f 0%, #2c5cb6 44%, #16357a 100%)",
-        ].join(", "),
-      }}
-    >
-      <div className="relative mx-auto mb-4 h-[112px] w-[112px]">
-        <div className="h-full w-full rounded-full bg-gradient-to-br from-app-gold to-app-info p-[3px]">
-          <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-app-card text-[38px] font-extrabold text-app-gold">
-            {profile?.avatarUrl ? (
-              // A presigned S3 URL that rotates, so next/image's optimiser would
-              // cache a link that stops resolving. Plain <img> is correct here.
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={profile.avatarUrl}
-                alt={profile.fullName}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              (profile?.initial ?? "·")
-            )}
-          </div>
+    <div className="rounded-lg border border-hairline bg-panel px-6 py-8 text-center sm:px-8">
+      <div className="relative mx-auto mb-4 h-24 w-24">
+        <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border border-hairline bg-panel-raised text-h2 text-fg">
+          {showPhoto ? (
+            // A presigned S3 URL that rotates, so next/image's optimiser would
+            // cache a link that stops resolving. Plain <img> is correct here.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={profile!.avatarUrl!}
+              alt=""
+              onError={() => setPhotoFailed(true)}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            (profile?.initial ?? "·")
+          )}
         </div>
-
-        <button
-          type="button"
+        <Link
+          href="/dashboard/profile/edit"
           aria-label="Change profile photo"
-          className="absolute bottom-0.5 right-0.5 flex h-9 w-9 items-center justify-center rounded-full border-[3px] border-[#16357a] bg-app-gold-gradient text-black transition-transform hover:scale-105"
+          className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border border-hairline bg-panel text-fg"
         >
           <CameraIcon size={16} />
-        </button>
+        </Link>
       </div>
 
-      <h2 className="font-display text-[26px] font-extrabold tracking-[-0.4px] text-white">
+      <h2 className="text-h2 text-fg">
         {profile?.fullName || (loading ? "…" : "Your account")}
       </h2>
-      <p className="mt-1.5 break-words text-[15px] text-white/70">{profile?.email ?? ""}</p>
-      <p className="text-[15px] text-white/70">{profile?.phone ?? ""}</p>
+      <p className="mt-1.5 break-words text-body text-fg-mid">{profile?.email ?? ""}</p>
+      <p className="text-body text-fg-mid">{profile?.phone ?? ""}</p>
 
       {profile?.verified ? (
-        <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-green-500/20 px-4 py-2 text-[14px] font-bold text-green-400 ring-1 ring-inset ring-green-400/30">
-          <CheckCircleFill size={17} />
+        <p className="mt-4 inline-flex items-center gap-2 rounded-sm border border-live px-3 py-1.5 text-body-sm text-live">
+          <CheckCircleFill size={16} />
           Verified
         </p>
       ) : null}
 
-      <div className="mt-5 flex flex-wrap justify-center gap-2.5">
-        <Chip icon={<BriefcaseIcon size={15} />}>
-          {profile?.totalBookings ?? 0} Bookings
-        </Chip>
+      <div className="mt-5 flex flex-wrap justify-center gap-2">
+        <Chip icon={<BriefcaseIcon size={15} />}>{bookingCount} bookings</Chip>
         {profile?.memberSince ? (
           <Chip icon={<CalendarIcon size={15} />}>Member since {profile.memberSince}</Chip>
         ) : null}
-        {/* Only shown once a city is on file — an empty pin chip reads as a bug. */}
         {profile?.city ? <Chip icon={<PinFill size={15} />}>{profile.city}</Chip> : null}
       </div>
     </div>
@@ -90,7 +80,7 @@ export function ProfileHero() {
 
 function Chip({ icon, children }: { icon: ReactNode; children: ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3.5 py-2 text-[13.5px] font-semibold text-white ring-1 ring-inset ring-white/15">
+    <span className="inline-flex items-center gap-2 rounded-sm border border-hairline px-3 py-2 text-body-sm text-fg">
       {icon}
       {children}
     </span>
