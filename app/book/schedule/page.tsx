@@ -7,11 +7,13 @@ import { StepFooter, StepHeading } from "../BookingShell";
 import { PriceSummary } from "../PriceSummary";
 import { PinFill } from "@/components/dashboard/icons";
 import { useApiQuery } from "@/hooks/useApiQuery";
-import { usePricePreview, endOfShift } from "@/lib/api/pricing";
+import { usePricePreview } from "@/hooks/usePricePreview";
+import { endOfShift } from "@/lib/api/pricing";
 import { adaptAddress } from "@/lib/api/adapters";
 import type { ApiSavedAddress, ProviderAvailability } from "@/lib/api/types";
 import { DURATION_PRESETS } from "@/lib/booking-data";
 import { formatAddress } from "@/lib/dashboard-data";
+import { matchGstStateName } from "@/lib/gst-states";
 
 export default function ScheduleStep() {
   const { draft, update } = useBooking();
@@ -43,6 +45,9 @@ export default function ScheduleStep() {
   // Priced by the server against this provider's own rates.
   const { data: price, loading: priceLoading, error: priceError } = usePricePreview(draft);
   const end = endOfShift(draft.date, draft.startTime, draft.hours);
+  const priceMessage = !draft.deployment.stateName
+    ? "Go back to Service and pick the deployment state to see the price."
+    : priceError;
 
   // Can't book in the past.
   const today = new Date().toISOString().slice(0, 10);
@@ -60,8 +65,16 @@ export default function ScheduleStep() {
         ? `This provider's shortest shift is ${draft.providerMinimumHours} hours.`
         : "",
     address: !draft.address.trim() ? "Service address is required." : "",
+    pincode: draft.deployment.pincode && !/^\d{6}$/.test(draft.deployment.pincode)
+      ? "Pincode is six digits."
+      : "",
   };
-  const valid = !errors.date && !errors.startTime && !errors.address && !errors.hours;
+  const valid =
+    !errors.date &&
+    !errors.startTime &&
+    !errors.address &&
+    !errors.hours &&
+    !errors.pincode;
 
   return (
     <>
@@ -82,7 +95,7 @@ export default function ScheduleStep() {
                   className={inputCls}
                 />
                 {blocked.length > 0 && !blockedOn ? (
-                  <p className="mt-1.5 text-[12px] text-slate-500">
+                  <p className="mt-1.5 text-label text-fg-faint">
                     Unavailable:{" "}
                     {blocked
                       .slice(0, 4)
@@ -105,7 +118,7 @@ export default function ScheduleStep() {
                   className={inputCls}
                 />
                 {workingHours?.startTime ? (
-                  <p className="mt-1.5 text-[12px] text-slate-500">
+                  <p className="mt-1.5 text-label text-fg-faint">
                     Usually works {workingHours.startTime}–{workingHours.endTime}. Outside
                     that is still allowed, but likelier to be declined.
                   </p>
@@ -124,17 +137,17 @@ export default function ScheduleStep() {
                   onClick={() => update({ hours: h })}
                   aria-pressed={draft.hours === h}
                   className={[
-                    "rounded-full border px-5 py-2.5 text-[14px] font-semibold transition-colors",
+                    "rounded-sm border px-5 py-2.5 text-body font-semibold transition-colors",
                     draft.hours === h
-                      ? "border-app-gold bg-app-gold/12 text-app-gold"
-                      : "border-app-border text-slate-300 hover:border-app-gold/40",
+                      ? "border-brand bg-panel-raised text-brand"
+                      : "border-hairline text-fg-mid hover:border-edge",
                   ].join(" ")}
                 >
                   {h}h
                 </button>
               ))}
-              <label className="flex items-center gap-2 rounded-full border border-app-border px-4 py-2.5">
-                <span className="text-[13px] text-slate-500">Custom</span>
+              <label className="flex items-center gap-2 rounded-full border border-hairline px-4 py-2.5">
+                <span className="text-body-sm text-fg-faint">Custom</span>
                 <input
                   type="number"
                   min={1}
@@ -144,16 +157,16 @@ export default function ScheduleStep() {
                     update({ hours: Math.min(24, Math.max(1, Number(e.target.value) || 1)) })
                   }
                   aria-label="Custom duration in hours"
-                  className="w-14 bg-transparent text-[14px] font-semibold text-slate-100 outline-none"
+                  className="w-14 bg-transparent text-body font-semibold text-fg outline-none"
                 />
               </label>
             </div>
             {errors.hours ? (
-              <p role="alert" className="mt-2 text-[12.5px] text-red-300">
+              <p role="alert" className="mt-2 text-body-sm text-fault">
                 {errors.hours}
               </p>
             ) : draft.providerMinimumHours ? (
-              <p className="mt-2 text-[12px] text-slate-500">
+              <p className="mt-2 text-label text-fg-faint">
                 Minimum {draft.providerMinimumHours}h with this provider.
               </p>
             ) : null}
@@ -167,10 +180,21 @@ export default function ScheduleStep() {
                   <button
                     key={a.id}
                     type="button"
-                    onClick={() => update({ address: `${a.label} — ${formatAddress(a)}` })}
-                    className="flex items-center gap-2 rounded-full border border-app-border px-4 py-2 text-[13px] text-slate-300 transition-colors hover:border-app-gold/40"
+                    onClick={() =>
+                      update({
+                        address: formatAddress(a) || a.label,
+                        city: a.city ?? draft.city,
+                        deployment: {
+                          addressLine: a.street ?? a.label,
+                          city: a.city ?? draft.city ?? "",
+                          stateName: matchGstStateName(a.state),
+                          pincode: a.pincode ?? "",
+                        },
+                      })
+                    }
+                    className="flex items-center gap-2 rounded-sm border border-hairline px-4 py-2 text-body-sm text-fg-mid transition-colors hover:border-edge"
                   >
-                    <span className="text-app-gold">
+                    <span className="text-fg-faint">
                       <PinFill size={13} />
                     </span>
                     {a.label}
@@ -183,11 +207,44 @@ export default function ScheduleStep() {
                 id="address"
                 rows={2}
                 value={draft.address}
-                onChange={(e) => update({ address: e.target.value })}
-                placeholder="Building, street, area, city, pincode"
+                onChange={(e) =>
+                  update({
+                    address: e.target.value,
+                    deployment: { ...draft.deployment, addressLine: e.target.value },
+                  })
+                }
+                placeholder="Building, street, area"
                 className={inputCls}
               />
             </Field>
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Field id="deploy-city" label="City">
+                <input
+                  id="deploy-city"
+                  value={draft.deployment.city || draft.city || ""}
+                  onChange={(e) =>
+                    update({
+                      deployment: { ...draft.deployment, city: e.target.value },
+                    })
+                  }
+                  className={inputCls}
+                />
+              </Field>
+              <Field id="pincode" label="Pincode" error={touched ? errors.pincode : ""}>
+                <input
+                  id="pincode"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={draft.deployment.pincode}
+                  onChange={(e) =>
+                    update({
+                      deployment: { ...draft.deployment, pincode: e.target.value.replace(/\D/g, "") },
+                    })
+                  }
+                  className={inputCls}
+                />
+              </Field>
+            </div>
           </section>
 
           <section>
@@ -206,17 +263,17 @@ export default function ScheduleStep() {
                   onClick={() => update({ vehicleOption: v.id })}
                   aria-pressed={draft.vehicleOption === v.id}
                   className={[
-                    "rounded-full border px-5 py-2.5 text-[14px] font-semibold transition-colors",
+                    "rounded-sm border px-5 py-2.5 text-body font-semibold transition-colors",
                     draft.vehicleOption === v.id
-                      ? "border-app-gold bg-app-gold/12 text-app-gold"
-                      : "border-app-border text-slate-300 hover:border-app-gold/40",
+                      ? "border-brand bg-panel-raised text-brand"
+                      : "border-hairline text-fg-mid hover:border-edge",
                   ].join(" ")}
                 >
                   {v.label}
                 </button>
               ))}
             </div>
-            <p className="mt-2.5 text-[13px] text-slate-500">
+            <p className="mt-2.5 text-body-sm text-fg-faint">
               Adds the provider&apos;s vehicle charge to the total. Only offered by
               providers who run one.
             </p>
@@ -228,7 +285,7 @@ export default function ScheduleStep() {
               via /recurring, so it is offered from a real booking instead. */}
           <section>
             <SectionLabel>Repeating this booking</SectionLabel>
-            <p className="text-[13.5px] leading-relaxed text-slate-500">
+            <p className="text-body-sm leading-relaxed text-fg-faint">
               Book this once first. Once it exists you can turn it into a weekly,
               fortnightly or monthly schedule from the booking itself — the provider and
               times carry over.
@@ -238,18 +295,18 @@ export default function ScheduleStep() {
         </div>
 
         {/* Live price — from the server, never computed here */}
-        <aside className="h-fit rounded-2xl border border-app-border bg-app-card p-5 lg:sticky lg:top-[130px]">
-          <h2 className="mb-4 font-display text-[15px] font-bold text-slate-100">
+        <aside className="h-fit rounded-lg border border-hairline bg-panel p-5 lg:sticky lg:top-[130px]">
+          <h2 className="mb-4 font-sans text-body font-semibold text-fg">
             Price Breakdown
           </h2>
-          <PriceSummary price={price} loading={priceLoading} error={priceError} />
+          <PriceSummary price={price} loading={priceLoading} error={priceMessage} />
           {end ? (
-            <p className="mt-3 text-[12px] text-slate-500">
+            <p className="mt-3 text-label text-fg-faint">
               Ends {end.endDate === draft.date ? "" : `${end.endDate} at `}
               {end.endTime}
             </p>
           ) : null}
-          <p className="mt-3 text-[12px] leading-relaxed text-slate-600">
+          <p className="mt-3 text-label leading-relaxed text-fg-faint">
             Charged after the provider accepts. Cancellation charges may apply.
           </p>
         </aside>
@@ -268,11 +325,11 @@ export default function ScheduleStep() {
 }
 
 const inputCls =
-  "w-full rounded-2xl border border-app-border bg-white/4 px-4 py-3 text-[14.5px] text-slate-100 outline-none transition-colors placeholder:text-slate-600 focus:border-app-gold/60 [color-scheme:dark]";
+  "w-full rounded-lg border border-hairline bg-panel-raised px-4 py-3 text-body text-fg outline-none transition-colors placeholder:text-fg-faint focus:border-edge [color-scheme:dark]";
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="mb-3 text-[12px] font-semibold uppercase tracking-[1.2px] text-slate-500">
+    <h2 className="mb-3 text-label font-semibold uppercase tracking-[1.2px] text-fg-faint">
       {children}
     </h2>
   );
@@ -291,12 +348,12 @@ function Field({
 }) {
   return (
     <div>
-      <label htmlFor={id} className="mb-2 block text-[13px] font-medium text-slate-400">
+      <label htmlFor={id} className="mb-2 block text-body-sm font-medium text-fg-mid">
         {label}
       </label>
       {children}
       {error ? (
-        <p role="alert" className="mt-1.5 text-[12.5px] text-red-400">
+        <p role="alert" className="mt-1.5 text-body-sm text-fault">
           {error}
         </p>
       ) : null}

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api/client";
-import { errorMessage } from "@/lib/api/errors";
+import { errorCode, errorMessage, isApiError } from "@/lib/api/errors";
 
 type QueryOptions = {
   /** Query string parameters. Changing these re-runs the request. */
@@ -16,6 +16,7 @@ export type QueryResult<T> = {
   loading: boolean;
   /** Human-readable message, already unwrapped from ApiError. */
   error: string | null;
+  errorCode: string | null;
   refetch: () => void;
 };
 
@@ -34,6 +35,7 @@ export function useApiQuery<T>(path: string | null, options: QueryOptions = {}):
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(Boolean(path) && enabled);
   const [error, setError] = useState<string | null>(null);
+  const [errCode, setErrCode] = useState<string | null>(null);
   const [nonce, setNonce] = useState(0);
 
   // Serialised so a fresh object literal each render doesn't loop the effect.
@@ -53,6 +55,7 @@ export function useApiQuery<T>(path: string | null, options: QueryOptions = {}):
 
     setLoading(true);
     setError(null);
+    setErrCode(null);
 
     api<T>(path, { query: JSON.parse(queryKey), signal: controller.signal })
       .then((result) => {
@@ -64,6 +67,7 @@ export function useApiQuery<T>(path: string | null, options: QueryOptions = {}):
       .catch((cause: unknown) => {
         if (controller.signal.aborted) return;
         setError(errorMessage(cause));
+        setErrCode(isApiError(cause) ? cause.code : errorCode(cause));
         setLoading(false);
       });
 
@@ -72,5 +76,5 @@ export function useApiQuery<T>(path: string | null, options: QueryOptions = {}):
 
   const refetch = useCallback(() => setNonce((n) => n + 1), []);
 
-  return { data, loading, error, refetch };
+  return { data, loading, error, errorCode: errCode, refetch };
 }

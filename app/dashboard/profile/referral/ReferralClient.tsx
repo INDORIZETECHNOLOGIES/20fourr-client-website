@@ -59,12 +59,12 @@ export function ReferralClient() {
   return (
     <>
       {codeLoading ? (
-        <div className="h-[120px] animate-pulse rounded-2xl bg-app-card" />
+        <div className="h-[120px] animate-pulse rounded-lg bg-panel" />
       ) : code?.referralCode ? (
         <ShareCode code={code.referralCode} shareLink={code.shareLink} />
       ) : (
         <Card className="px-6 py-8 text-center">
-          <p className="text-[14px] text-slate-500">
+          <p className="text-body text-fg-faint">
             No referral code has been issued for your account yet.
           </p>
         </Card>
@@ -75,7 +75,6 @@ export function ReferralClient() {
         <Stat
           label="Earned"
           value={statsLoading ? null : formatRupees(stats?.totalEarned ?? 0)}
-          gold
         />
         <Stat
           label="Completed bookings"
@@ -84,29 +83,29 @@ export function ReferralClient() {
       </div>
 
       {error ? (
-        <p role="alert" className="mt-3 text-[13.5px] text-red-300">
+        <p role="alert" className="mt-3 text-body-sm text-fault">
           {error}
         </p>
       ) : null}
 
-      <h3 className="mb-3 mt-8 text-[12px] font-semibold uppercase tracking-[1.2px] text-slate-500">
+      <h3 className="mb-3 mt-8 text-label font-semibold uppercase tracking-[1.2px] text-fg-faint">
         How It Works
       </h3>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {STEPS.map((s, i) => (
           <Card key={s.title} className="p-5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-app-gold/15 text-[13px] font-extrabold text-app-gold">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-panel-raised text-body-sm font-semibold text-fg">
               {i + 1}
             </span>
-            <p className="mt-3 text-[14.5px] font-bold text-slate-100">{s.title}</p>
-            <p className="mt-1 text-[13px] leading-relaxed text-slate-500">{s.body}</p>
+            <p className="mt-3 text-body font-semibold text-fg">{s.title}</p>
+            <p className="mt-1 text-body-sm leading-relaxed text-fg-faint">{s.body}</p>
           </Card>
         ))}
       </div>
 
       {(stats?.milestones ?? []).length > 0 ? (
         <>
-          <h3 className="mb-3 mt-8 text-[12px] font-semibold uppercase tracking-[1.2px] text-slate-500">
+          <h3 className="mb-3 mt-8 text-label font-semibold uppercase tracking-[1.2px] text-fg-faint">
             Milestone Rewards
           </h3>
           <Card className="overflow-hidden">
@@ -115,27 +114,27 @@ export function ReferralClient() {
                 key={m.count}
                 className={[
                   "flex items-center gap-4 px-5 py-4",
-                  i < arr.length - 1 ? "border-b border-white/6" : "",
+                  i < arr.length - 1 ? "border-b border-hairline" : "",
                 ].join(" ")}
               >
                 <span
                   className={[
                     "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
                     m.achieved
-                      ? "bg-green-500/15 text-green-500"
-                      : "bg-white/6 text-slate-600",
+                      ? "border border-live text-live"
+                      : "bg-panel-raised text-fg-faint",
                   ].join(" ")}
                 >
                   {m.achieved ? (
                     <CheckCircleFill size={17} />
                   ) : (
-                    <span className="text-[13px] font-bold">{m.count}</span>
+                    <span className="text-body-sm font-semibold">{m.count}</span>
                   )}
                 </span>
-                <p className="flex-1 text-[14.5px] text-slate-200">
+                <p className="flex-1 text-body text-fg">
                   {m.count} successful referrals
                 </p>
-                <p className="text-[14.5px] font-bold text-app-gold">
+                <p className="text-mono text-fg">
                   {formatRupees(m.reward)}
                 </p>
               </div>
@@ -144,14 +143,14 @@ export function ReferralClient() {
         </>
       ) : null}
 
-      <h3 className="mb-3 mt-8 text-[12px] font-semibold uppercase tracking-[1.2px] text-slate-500">
+      <h3 className="mb-3 mt-8 text-label font-semibold uppercase tracking-[1.2px] text-fg-faint">
         Your Referrals
       </h3>
       {statsLoading ? (
-        <div className="h-[120px] animate-pulse rounded-2xl bg-app-card" />
+        <div className="h-[120px] animate-pulse rounded-lg bg-panel" />
       ) : (stats?.referrals ?? []).length === 0 ? (
         <Card className="px-6 py-10 text-center">
-          <p className="text-[14px] text-slate-500">
+          <p className="text-body text-fg-faint">
             Nobody has signed up with your code yet.
           </p>
         </Card>
@@ -162,18 +161,18 @@ export function ReferralClient() {
               key={r.id}
               className={[
                 "flex items-center gap-4 px-5 py-4",
-                i < arr.length - 1 ? "border-b border-white/6" : "",
+                i < arr.length - 1 ? "border-b border-hairline" : "",
               ].join(" ")}
             >
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[14.5px] font-semibold text-slate-100">
+                <p className="truncate text-body font-semibold text-fg">
                   {r.refereeName}
                 </p>
-                <p className="mt-0.5 text-[12.5px] text-slate-500">
+                <p className="mt-0.5 text-body-sm text-fg-faint">
                   {relativeTime(r.createdAt)}
                 </p>
               </div>
-              <span className="shrink-0 rounded-full bg-white/6 px-3 py-1 text-[12px] font-semibold text-slate-300">
+              <span className="shrink-0 rounded-full bg-panel-raised px-3 py-1 text-label font-semibold text-fg-mid">
                 {STATUS_LABELS[r.status] ?? r.status.replace(/_/g, " ")}
               </span>
             </div>
@@ -187,23 +186,16 @@ export function ReferralClient() {
 function Stat({
   label,
   value,
-  gold,
 }: {
   label: string;
   value: string | null;
-  gold?: boolean;
 }) {
   return (
-    <Card className="px-5 py-[18px]">
-      <p className="text-xs font-medium text-slate-600">{label}</p>
-      <p
-        className={[
-          "mt-2 font-display text-[26px] font-extrabold leading-none",
-          gold ? "text-app-gold" : "text-slate-100",
-        ].join(" ")}
-      >
+    <Card className="px-5 py-4">
+      <p className="text-label font-medium text-fg-faint">{label}</p>
+      <p className="mt-2 text-mono-lg leading-none text-fg">
         {value === null ? (
-          <span className="inline-block h-[26px] w-16 animate-pulse rounded bg-white/8" />
+          <span className="inline-block h-[26px] w-16 animate-pulse rounded bg-panel-raised" />
         ) : (
           value
         )}

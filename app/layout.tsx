@@ -1,23 +1,18 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, Outfit } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 
-/**
- * The dashboard design calls for Outfit (headings) and DM Sans (body). Loaded
- * through next/font so they are self-hosted and preloaded rather than fetched
- * from fonts.googleapis.com at runtime. Both are variable fonts, so no `weight`.
- *
- * The auth screens keep the system Helvetica stack — see --font-sans.
- */
-const outfit = Outfit({
+const plexSans = IBM_Plex_Sans({
   subsets: ["latin"],
-  variable: "--font-outfit",
+  weight: ["400", "500", "600"],
+  variable: "--font-plex-sans",
   display: "swap",
 });
 
-const dmSans = DM_Sans({
+const plexMono = IBM_Plex_Mono({
   subsets: ["latin"],
-  variable: "--font-dm-sans",
+  weight: ["400", "500"],
+  variable: "--font-plex-mono",
   display: "swap",
 });
 
@@ -27,19 +22,24 @@ export const metadata: Metadata = {
     template: "%s · 20fourr",
   },
   description:
-    "20fourr licensed security services platform. Manage bookings, guards and earnings in one place.",
+    "The security marketplace where every shift is documented: PSARA-licensed guards, OTP-gated duty, GST invoice per shift.",
+  metadataBase: new URL("https://20fourr.com"),
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a1220",
+  themeColor: "#0A0E14",
   width: "device-width",
   initialScale: 1,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`h-full ${outfit.variable} ${dmSans.variable}`}>
-      <body className="min-h-full bg-bg text-text antialiased">{children}</body>
+    <html
+      lang="en"
+      data-theme="ink"
+      className={`h-full ${plexSans.variable} ${plexMono.variable}`}
+    >
+      <body className="min-h-full bg-page font-sans text-fg antialiased">{children}</body>
     </html>
   );
 }

@@ -75,7 +75,7 @@ export function LoginForm() {
       <form
         noValidate
         onSubmit={handleSubmit}
-        className="w-full rounded-card border border-border-soft bg-surface px-6 pb-8 pt-7 sm:px-9"
+        className="w-full rounded-lg border border-hairline bg-panel px-6 pb-8 pt-7 sm:px-9"
       >
         {formError ? (
           <div className="mb-5">
@@ -85,7 +85,7 @@ export function LoginForm() {
 
         <Field
           id="login-email"
-          label="EMAIL ADDRESS"
+          label="Email address"
           type="email"
           name="email"
           autoComplete="email"
@@ -102,7 +102,7 @@ export function LoginForm() {
 
         <PasswordField
           id="login-password"
-          label="PASSWORD"
+          label="Password"
           name="password"
           autoComplete="current-password"
           placeholder="Enter your password"
@@ -118,7 +118,7 @@ export function LoginForm() {
         <div className="mt-4 text-right">
           <Link
             href="/forgot-password"
-            className="text-sm font-semibold text-gold hover:underline"
+            className="text-body-sm font-semibold text-fg underline-offset-2 hover:underline"
           >
             Forgot Password?
           </Link>
@@ -130,20 +130,20 @@ export function LoginForm() {
       </form>
 
       <div className="mt-8 flex items-center gap-3.5">
-        <span className="h-px flex-1 bg-border-divider" />
-        <span className="whitespace-nowrap text-[13px] text-text-muted">
+        <span className="h-px flex-1 bg-hairline" />
+        <span className="whitespace-nowrap text-body-sm text-fg-mid">
           New to 20fourr?
         </span>
-        <span className="h-px flex-1 bg-border-divider" />
+        <span className="h-px flex-1 bg-hairline" />
       </div>
 
-      <div className="mt-5 flex items-center justify-center gap-2.5 rounded-pill border border-border-soft bg-surface px-4 py-4 text-center">
-        <span className="shrink-0 text-gold">
+      <div className="mt-5 flex items-center justify-center gap-2.5 rounded-pill border border-hairline bg-panel px-4 py-4 text-center">
+        <span className="shrink-0 text-fg">
           <UserPlusIcon />
         </span>
-        <span className="text-[15px] text-text-secondary">
+        <span className="text-body text-fg-mid">
           Don&apos;t have an account?{" "}
-          <Link href="/signup" className="font-bold text-gold hover:underline">
+          <Link href="/signup" className="font-semibold text-fg underline-offset-2 hover:underline">
             Sign Up
           </Link>
         </span>

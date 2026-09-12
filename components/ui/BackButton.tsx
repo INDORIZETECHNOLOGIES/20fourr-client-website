@@ -23,8 +23,8 @@ export function BackButton({
       className={[
         "flex items-center justify-center transition-opacity hover:opacity-80",
         variant === "circle"
-          ? "h-13 w-13 rounded-full bg-gold-soft text-gold"
-          : "h-11 w-11 text-text-input",
+          ? "h-12 w-12 rounded-full bg-panel-raised text-fg"
+          : "h-11 w-11 text-fg",
         className,
       ].join(" ")}
     >

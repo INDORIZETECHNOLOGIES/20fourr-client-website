@@ -19,12 +19,10 @@ export default function LoginPage() {
 
         <BrandMark />
 
-        <h1 className="mt-5 text-sm font-bold tracking-[3px] text-gold">
-          20FOURR
-        </h1>
-        <p className="text-display-lg mt-2.5 text-text">Welcome Back</p>
-        <p className="mt-4 max-w-[420px] text-lg text-text-muted sm:text-xl">
-          Sign in to manage your security services
+        <h1 className="mt-5 text-eyebrow text-fg">20fourr</h1>
+        <p className="text-h1 mt-2.5 text-fg">Welcome back</p>
+        <p className="mt-4 max-w-[420px] text-body text-fg-mid">
+          Sign in to manage bookings, documents and duty OTPs
         </p>
 
         <TrustLine className="mt-10 lg:mt-14" />
@@ -34,7 +32,7 @@ export default function LoginPage() {
       <section className="flex w-full min-w-0 max-w-[504px] flex-col lg:flex-1">
         {/* LoginForm reads the `next` param, so it needs a boundary to keep the
             rest of this page statically rendered. */}
-        <Suspense fallback={<div className="h-[420px] w-full rounded-card border border-border-soft bg-surface" />}>
+        <Suspense fallback={<div className="h-[420px] w-full rounded-lg border border-hairline bg-panel" />}>
           <LoginForm />
         </Suspense>
       </section>

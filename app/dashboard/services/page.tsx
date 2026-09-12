@@ -8,8 +8,8 @@ export default function ServicesPage() {
   return (
     <>
       <PageHeading
-        title="Security Services"
-        subtitle="Professional security personnel available 24/7"
+        title="Services"
+        subtitle="Four categories. Starting rates from live provider search."
       />
       <ServiceCatalogue />
     </>

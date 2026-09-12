@@ -73,15 +73,15 @@ const SECTIONS = [
 
 export default function TermsPage() {
   return (
-    <main className="min-h-screen bg-app-bg font-body text-slate-200">
-      <header className="border-b border-white/5">
+    <main className="min-h-screen bg-page font-sans text-fg">
+      <header className="border-b border-hairline">
         <div className="mx-auto flex max-w-[760px] items-center justify-between gap-4 px-6 py-5">
           <Link href="/dashboard" aria-label="20fourr">
             <Logo width={92} />
           </Link>
           <Link
             href="/dashboard"
-            className="text-[13.5px] font-semibold text-app-gold hover:underline"
+            className="text-body-sm font-semibold text-fg underline-offset-2 hover:underline"
           >
             Back to dashboard
           </Link>
@@ -89,13 +89,13 @@ export default function TermsPage() {
       </header>
 
       <div className="mx-auto max-w-[760px] px-6 py-12">
-        <h1 className="font-display text-[30px] font-extrabold tracking-[-0.5px] text-slate-100">
+        <h1 className="font-sans text-h1 font-semibold tracking-[-0.5px] text-fg">
           Terms of Service
         </h1>
-        <p className="mt-2 text-[14px] text-slate-500">Last updated 8 August 2026</p>
+        <p className="mt-2 text-body text-fg-faint">Last updated 8 August 2026</p>
 
         {/* This is placeholder drafting, not reviewed copy. */}
-        <p className="mt-6 rounded-xl border border-app-gold/30 bg-app-gold/8 px-5 py-4 text-[13.5px] leading-relaxed text-app-gold">
+        <p className="mt-6 rounded-lg border border-edge bg-panel-raised px-5 py-4 text-body-sm leading-relaxed text-fg">
           Draft copy. These terms carry legal weight and must be reviewed by counsel
           before launch — particularly the liability, cancellation and data
           retention clauses.
@@ -104,11 +104,11 @@ export default function TermsPage() {
         <div className="mt-10 flex flex-col gap-9">
           {SECTIONS.map((s) => (
             <section key={s.heading}>
-              <h2 className="font-display text-[19px] font-bold text-slate-100">
+              <h2 className="font-sans text-mono-lg font-semibold text-fg">
                 {s.heading}
               </h2>
               {s.body.map((p) => (
-                <p key={p} className="mt-3 text-[14.5px] leading-relaxed text-slate-400">
+                <p key={p} className="mt-3 text-body leading-relaxed text-fg-mid">
                   {p}
                 </p>
               ))}

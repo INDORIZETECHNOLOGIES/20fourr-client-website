@@ -96,7 +96,7 @@ export function ThreatForm() {
   }
 
   if (loading && !hydrated) {
-    return <div className="h-[420px] animate-pulse rounded-2xl bg-app-card" />;
+    return <div className="h-[420px] animate-pulse rounded-lg bg-panel" />;
   }
 
   return (
@@ -111,21 +111,21 @@ export function ThreatForm() {
       {level ? (
         <Card className="flex items-center justify-between gap-4 px-5 py-4">
           <div>
-            <p className="text-[12px] font-semibold uppercase tracking-[1px] text-slate-600">
+            <p className="text-label font-semibold uppercase tracking-[1px] text-fg-faint">
               Current assessment
             </p>
-            <p className="mt-1 text-[14px] text-slate-400">
+            <p className="mt-1 text-body text-fg-mid">
               Assigned by 20fourr from your answers.
             </p>
           </div>
           <span
             className={[
-              "shrink-0 rounded-full px-4 py-1.5 text-[13px] font-bold capitalize",
+              "shrink-0 rounded-sm px-4 py-1.5 text-body-sm font-semibold capitalize",
               level === "high"
-                ? "bg-red-500/14 text-red-400"
+                ? "border border-fault text-fault"
                 : level === "medium"
-                  ? "bg-app-warning/14 text-app-warning"
-                  : "bg-green-500/14 text-green-500",
+                  ? "bg-transparent text-attention"
+                  : "border border-live text-live",
             ].join(" ")}
           >
             {level}
@@ -176,7 +176,7 @@ export function ThreatForm() {
       {formError ? (
         <p
           role="alert"
-          className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-[14px] text-red-300"
+          className="rounded-lg border border-fault bg-transparent px-4 py-3 text-body text-fault"
         >
           {formError}
         </p>
@@ -187,20 +187,20 @@ export function ThreatForm() {
           type="submit"
           disabled={!complete || saving}
           className={[
-            "rounded-full px-7 py-3 text-[14.5px] font-bold transition-transform",
+            "rounded-sm px-7 py-3 text-body font-semibold transition-opacity",
             complete && !saving
-              ? "bg-app-gold-gradient text-black hover:-translate-y-px"
-              : "cursor-not-allowed bg-app-disabled text-slate-500",
+              ? "bg-brand text-brand-ink "
+              : "cursor-not-allowed bg-panel-raised text-fg-faint",
           ].join(" ")}
         >
           {saving ? "Saving…" : "Save assessment"}
         </button>
         {!complete ? (
-          <p className="text-[13px] text-slate-500">Answer both questions to save.</p>
+          <p className="text-body-sm text-fg-faint">Answer both questions to save.</p>
         ) : null}
       </div>
 
-      <p className="text-[12.5px] leading-relaxed text-slate-600">
+      <p className="text-body-sm leading-relaxed text-fg-faint">
         Risk levels: {THREAT_LEVELS.map((l) => l.label).join(" · ")}. The level is set by
         20fourr from your answers and a booking&apos;s own risk profile — you cannot set
         it yourself.
@@ -232,8 +232,8 @@ function Question({
 }) {
   return (
     <Card className="p-5">
-      <p className="text-[15px] font-semibold text-slate-100">{question}</p>
-      <p className="mt-1 text-[13px] leading-relaxed text-slate-500">{help}</p>
+      <p className="text-body font-semibold text-fg">{question}</p>
+      <p className="mt-1 text-body-sm leading-relaxed text-fg-faint">{help}</p>
 
       <div className="mt-4 flex gap-2.5">
         {[
@@ -246,10 +246,10 @@ function Question({
             aria-pressed={value === opt.v}
             onClick={() => onChange(opt.v)}
             className={[
-              "rounded-full border px-6 py-2 text-[14px] font-semibold transition-colors",
+              "rounded-sm border px-6 py-2 text-body font-semibold transition-colors",
               value === opt.v
-                ? "border-app-gold bg-app-gold/12 text-app-gold"
-                : "border-app-border text-slate-300 hover:border-app-gold/40",
+                ? "border-brand bg-panel-raised text-brand"
+                : "border-hairline text-fg-mid hover:border-edge",
             ].join(" ")}
           >
             {opt.label}
@@ -261,7 +261,7 @@ function Question({
         <div className="mt-4">
           <label
             htmlFor={`${id}-detail`}
-            className="mb-2 block text-[13px] font-medium text-slate-400"
+            className="mb-2 block text-body-sm font-medium text-fg-mid"
           >
             {detailLabel}
           </label>
@@ -274,19 +274,19 @@ function Question({
             onChange={(e) => onDetailChange(e.target.value)}
             placeholder="Keep it factual — this is read by our safety team."
             className={[
-              "w-full rounded-xl border bg-white/4 px-4 py-3 text-[14.5px] text-slate-100 outline-none transition-colors placeholder:text-slate-600",
-              detailError ? "border-red-500" : "border-app-border focus:border-app-gold/60",
+              "w-full rounded-lg border bg-panel-raised px-4 py-3 text-body text-fg outline-none transition-colors placeholder:text-fg-faint",
+              detailError ? "border-fault" : "border-hairline focus:border-edge",
             ].join(" ")}
           />
           <div className="mt-1.5 flex justify-between gap-3">
             {detailError ? (
-              <p role="alert" className="text-[12.5px] text-red-400">
+              <p role="alert" className="text-body-sm text-fault">
                 {detailError}
               </p>
             ) : (
               <span />
             )}
-            <span className="shrink-0 text-[12px] text-slate-600">
+            <span className="shrink-0 text-label text-fg-faint">
               {detailValue.length}/{MAX_DESC}
             </span>
           </div>

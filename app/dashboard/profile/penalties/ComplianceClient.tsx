@@ -5,7 +5,8 @@ import { AlertCircleIcon, CheckCircleFill } from "@/components/dashboard/icons";
 import { useApiQuery } from "@/hooks/useApiQuery";
 import { formatApiDate, serviceLabel } from "@/lib/api/adapters";
 import type { ApiClientProfile, BookingListResponse } from "@/lib/api/types";
-import { NOTHING_CHARGED_YET, REFUND_DESTINATION, REFUND_TIERS } from "@/lib/cancellation-policy";
+import { NOTHING_CHARGED_YET, REFUND_TIERS, refundDestination } from "@/lib/cancellation-policy";
+import { useV6Enabled } from "@/hooks/useV6Enabled";
 import { formatPaise, formatPaiseRounded } from "@/lib/money";
 
 /**
@@ -23,6 +24,7 @@ import { formatPaise, formatPaiseRounded } from "@/lib/money";
  * refund. Both are real, so both are what this shows.
  */
 export function ComplianceClient() {
+  const v6Enabled = useV6Enabled();
   const { data: profileData, loading: profileLoading } =
     useApiQuery<{ profile: ApiClientProfile }>("client/profile");
   const { data: bookingData, loading: bookingsLoading } =
@@ -65,26 +67,26 @@ export function ComplianceClient() {
       <Card
         className={[
           "flex flex-wrap items-center gap-4 p-6",
-          blacklisted ? "border-red-500/40" : "",
+          blacklisted ? "border-fault" : "",
         ].join(" ")}
       >
         <span
           className={[
-            "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl",
-            blacklisted ? "bg-red-500/14 text-red-400" : "bg-green-500/12 text-green-500",
+            "flex h-12 w-12 shrink-0 items-center justify-center rounded-lg",
+            blacklisted ? "border border-fault text-fault" : "bg-panel-raised text-live",
           ].join(" ")}
         >
           {blacklisted ? <AlertCircleIcon size={22} /> : <CheckCircleFill size={22} />}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="font-display text-[18px] font-extrabold text-slate-100">
+          <p className="font-sans text-h3 font-semibold text-fg">
             {loading
               ? "Checking…"
               : blacklisted
                 ? "Account restricted"
                 : "Account in good standing"}
           </p>
-          <p className="mt-1 text-[13.5px] leading-relaxed text-slate-500">
+          <p className="mt-1 text-body-sm leading-relaxed text-fg-faint">
             {blacklisted
               ? "New bookings are blocked. Contact support to resolve this."
               : "You can book normally. Nothing is outstanding on your account."}
@@ -101,15 +103,15 @@ export function ComplianceClient() {
         />
       </div>
 
-      <h3 className="mb-3 mt-8 text-[12px] font-semibold uppercase tracking-[1.2px] text-slate-500">
+      <h3 className="mb-3 mt-8 text-label font-semibold uppercase tracking-[1.2px] text-fg-faint">
         Cancellation History
       </h3>
 
       {loading ? (
-        <div className="h-[120px] animate-pulse rounded-2xl bg-app-card" />
+        <div className="h-[120px] animate-pulse rounded-lg bg-panel" />
       ) : cancellations.length === 0 ? (
         <Card className="px-6 py-12 text-center">
-          <p className="text-[14px] text-slate-500">
+          <p className="text-body text-fg-faint">
             No cancellations on your account.
           </p>
         </Card>
@@ -123,35 +125,35 @@ export function ComplianceClient() {
               <Card key={b._id} className="flex flex-wrap items-center gap-4 px-5 py-4">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-[14.5px] font-semibold text-slate-100">
+                    <p className="text-body font-semibold text-fg">
                       {serviceLabel(b.serviceCategory)}
                     </p>
                     <span
                       className={[
-                        "rounded-full px-2.5 py-[3px] text-[11px] font-bold",
+                        "rounded-full px-2.5 py-[3px] text-eyebrow font-semibold",
                         mine
-                          ? "bg-app-warning/14 text-app-warning"
-                          : "bg-slate-500/14 text-slate-400",
+                          ? "bg-transparent text-attention"
+                          : "border border-hairline text-fg-mid",
                       ].join(" ")}
                     >
                       {mine ? "Cancelled by you" : `Cancelled by ${c.cancelledBy ?? "—"}`}
                     </span>
                   </div>
-                  <p className="mt-1 text-[12.5px] text-slate-500">
+                  <p className="mt-1 text-body-sm text-fg-faint">
                     {b.bookingId} · {formatApiDate(c.cancelledAt)}
                   </p>
                   {c.cancellationReason ? (
-                    <p className="mt-1 text-[12.5px] italic text-slate-600">
+                    <p className="mt-1 text-body-sm italic text-fg-faint">
                       “{c.cancellationReason}”
                     </p>
                   ) : null}
                 </div>
 
                 <div className="shrink-0 text-right">
-                  <p className="text-[14.5px] font-bold text-slate-100">
+                  <p className="text-body font-semibold text-fg">
                     {formatPaise(b.totalAmount ?? 0)}
                   </p>
-                  <p className="mt-0.5 text-[12px] text-slate-600">
+                  <p className="mt-0.5 text-label text-fg-faint">
                     {refunded > 0
                       ? `${formatPaise(refunded)} refunded${
                           c.refundStatus ? ` · ${c.refundStatus}` : ""
@@ -165,11 +167,11 @@ export function ComplianceClient() {
         </div>
       )}
 
-      <h3 className="mb-3 mt-8 text-[12px] font-semibold uppercase tracking-[1.2px] text-slate-500">
+      <h3 className="mb-3 mt-8 text-label font-semibold uppercase tracking-[1.2px] text-fg-faint">
         How Cancellation Refunds Work
       </h3>
       <Card className="p-6">
-        <p className="text-[13.5px] leading-relaxed text-slate-400">
+        <p className="text-body-sm leading-relaxed text-fg-mid">
           {NOTHING_CHARGED_YET}
         </p>
 
@@ -179,23 +181,23 @@ export function ComplianceClient() {
           {REFUND_TIERS.map((tier) => (
             <div
               key={tier.label}
-              className="flex items-center gap-4 rounded-xl border border-white/6 bg-white/3 px-4 py-3"
+              className="flex items-center gap-4 rounded-lg border border-hairline bg-panel-raised px-4 py-3"
             >
               <span
                 className={[
-                  "flex h-12 w-14 shrink-0 items-center justify-center rounded-lg font-display text-[17px] font-extrabold",
+                  "flex h-12 w-14 shrink-0 items-center justify-center rounded-lg font-sans text-h3 font-semibold",
                   tier.percent >= 90
-                    ? "bg-green-500/12 text-green-500"
+                    ? "bg-panel-raised text-live"
                     : tier.percent > 0
-                      ? "bg-app-warning/12 text-app-warning"
-                      : "bg-red-500/12 text-red-400",
+                      ? "border border-attention text-attention"
+                      : "border border-fault text-fault",
                 ].join(" ")}
               >
                 {tier.percent}%
               </span>
               <div className="min-w-0">
-                <p className="text-[14px] font-semibold text-slate-200">{tier.label}</p>
-                <p className="mt-0.5 text-[12.5px] leading-relaxed text-slate-500">
+                <p className="text-body font-semibold text-fg">{tier.label}</p>
+                <p className="mt-0.5 text-body-sm leading-relaxed text-fg-faint">
                   {tier.detail}
                 </p>
               </div>
@@ -203,21 +205,21 @@ export function ComplianceClient() {
           ))}
         </div>
 
-        <ul className="mt-5 flex flex-col gap-3 text-[13.5px] leading-relaxed text-slate-400">
+        <ul className="mt-5 flex flex-col gap-3 text-body-sm leading-relaxed text-fg-mid">
           <li>
-            <strong className="text-slate-200">Where the money goes.</strong>{" "}
-            {REFUND_DESTINATION}
+            <strong className="text-fg">Where the money goes.</strong>{" "}
+            {refundDestination(v6Enabled ? "v6" : "v1")}
           </li>
           <li>
-            <strong className="text-slate-200">Timing is from the duty start,</strong> not
+            <strong className="text-fg">Timing is from the duty start,</strong> not
             from when the provider accepted.
           </li>
           <li>
-            <strong className="text-slate-200">If the provider cancels,</strong> you are
+            <strong className="text-fg">If the provider cancels,</strong> you are
             refunded in full and the penalty falls on them, not you.
           </li>
           <li>
-            <strong className="text-slate-200">Repeated late cancellations</strong> can
+            <strong className="text-fg">Repeated late cancellations</strong> can
             lead to a restriction on the account. If you think a refund is wrong, raise a
             support ticket — that is the route for disputing it.
           </li>
@@ -238,19 +240,19 @@ function Stat({
 }) {
   return (
     <Card className="p-5">
-      <p className="text-[12.5px] font-medium text-slate-500">{label}</p>
+      <p className="text-body-sm font-medium text-fg-faint">{label}</p>
       <p
         className={[
-          "mt-2 font-display text-[28px] font-extrabold leading-none",
+          "mt-2 font-sans text-h1 font-semibold leading-none",
           tone === "warning"
-            ? "text-app-warning"
+            ? "text-attention"
             : tone === "good"
-              ? "text-green-500"
-              : "text-slate-100",
+              ? "text-live"
+              : "text-fg",
         ].join(" ")}
       >
         {value === null ? (
-          <span className="inline-block h-[28px] w-20 animate-pulse rounded bg-white/8" />
+          <span className="inline-block h-[28px] w-20 animate-pulse rounded bg-panel-raised" />
         ) : (
           value
         )}

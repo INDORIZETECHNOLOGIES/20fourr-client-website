@@ -29,35 +29,35 @@ export function BookingShell({ children }: { children: ReactNode }) {
 
   if (isTerminal) {
     return (
-      <div className="min-h-screen bg-app-bg font-body text-slate-200">
+      <div className="min-h-screen bg-page font-sans text-fg">
         <main className="mx-auto max-w-[1100px] px-4 py-14 lg:px-8">{children}</main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-app-bg font-body text-slate-200">
-      <header className="sticky top-0 z-40 border-b border-white/5 bg-app-bg/95 backdrop-blur-xl">
+    <div className="min-h-screen bg-page font-sans text-fg">
+      <header className="sticky top-0 z-40 border-b border-hairline bg-page/95 backdrop-blur-xl">
         <div className="mx-auto flex h-[62px] max-w-[1100px] items-center gap-3 px-4 lg:px-8">
           {currentStep > 0 ? (
             <button
               type="button"
               onClick={() => router.back()}
               aria-label="Back"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-300 hover:bg-white/6"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-fg-mid hover:bg-panel-raised"
             >
               <ArrowLeftIcon size={18} />
             </button>
           ) : null}
 
-          <p className="flex-1 truncate font-display text-[16px] font-semibold text-slate-100">
+          <p className="flex-1 truncate font-sans text-body font-semibold text-fg">
             Book Security Service
           </p>
 
           <Link
             href="/dashboard"
             aria-label="Exit booking"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-white/6 hover:text-slate-200"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-fg-mid hover:bg-panel-raised hover:text-fg"
           >
             <CloseIcon size={18} />
           </Link>
@@ -74,24 +74,24 @@ export function BookingShell({ children }: { children: ReactNode }) {
               const body = (
                 <span
                   className={[
-                    "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-semibold transition-colors",
+                    "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-body-sm font-semibold transition-colors",
                     active
-                      ? "bg-app-gold/15 text-app-gold"
+                      ? "bg-panel-raised text-brand"
                       : done
-                        ? "text-green-500 hover:bg-white/5"
+                        ? "text-live hover:bg-panel-raised"
                         : reachable
-                          ? "text-slate-400 hover:bg-white/5"
-                          : "text-slate-600",
+                          ? "text-fg-mid hover:bg-panel-raised"
+                          : "text-fg-faint",
                   ].join(" ")}
                 >
                   <span
                     className={[
-                      "flex h-[18px] w-[18px] items-center justify-center rounded-full text-[10px]",
+                      "flex h-[18px] w-[18px] items-center justify-center rounded-full text-eyebrow",
                       active
-                        ? "bg-app-gold text-black"
+                        ? "bg-brand"
                         : done
-                          ? "bg-green-500/20 text-green-500"
-                          : "bg-white/8 text-slate-400",
+                          ? "border border-live text-live"
+                          : "bg-panel-raised text-fg-mid",
                     ].join(" ")}
                   >
                     {done ? <CheckIcon size={11} /> : i + 1}
@@ -108,7 +108,7 @@ export function BookingShell({ children }: { children: ReactNode }) {
                     body
                   )}
                   {i < BOOKING_STEPS.length - 1 ? (
-                    <span className="h-px w-4 bg-white/10" aria-hidden="true" />
+                    <span className="h-px w-4 bg-panel-raised" aria-hidden="true" />
                   ) : null}
                 </li>
               );
@@ -135,17 +135,17 @@ export function StepFooter({
   hint?: string;
 }) {
   return (
-    <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-white/6 pt-6">
-      <p className="text-[13px] text-slate-500">{hint}</p>
+    <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-hairline pt-6">
+      <p className="text-body-sm text-fg-faint">{hint}</p>
       <button
         type="button"
         onClick={onContinue}
         disabled={disabled}
         className={[
-          "rounded-full px-8 py-3.5 text-[15px] font-bold transition-all",
+          "rounded-sm px-8 py-3.5 text-body font-semibold transition-all",
           disabled
-            ? "cursor-not-allowed bg-app-disabled text-slate-500"
-            : "bg-app-gold-gradient text-black hover:-translate-y-px",
+            ? "cursor-not-allowed bg-panel-raised text-fg-faint"
+            : "bg-brand text-brand-ink ",
         ].join(" ")}
       >
         {continueLabel}
@@ -157,10 +157,10 @@ export function StepFooter({
 export function StepHeading({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
     <div className="mb-6">
-      <h1 className="font-display text-[26px] font-extrabold tracking-[-0.5px] text-slate-100">
+      <h1 className="font-sans text-h2 font-semibold tracking-[-0.5px] text-fg">
         {title}
       </h1>
-      {subtitle ? <p className="mt-1.5 text-[14.5px] text-slate-500">{subtitle}</p> : null}
+      {subtitle ? <p className="mt-1.5 text-body text-fg-faint">{subtitle}</p> : null}
     </div>
   );
 }

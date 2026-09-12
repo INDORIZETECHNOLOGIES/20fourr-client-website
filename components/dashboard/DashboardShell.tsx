@@ -28,9 +28,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   }, [navOpen]);
 
   return (
-    <div className="min-h-screen bg-app-bg font-body text-slate-200">
+    <div className="min-h-screen bg-page font-sans text-fg">
       {/* Desktop sidebar */}
-      <aside className="fixed bottom-0 left-0 top-0 z-50 hidden w-[248px] border-r border-white/5 lg:block">
+      <aside className="fixed bottom-0 left-0 top-0 z-50 hidden w-[248px] border-r border-hairline lg:block">
         <Sidebar />
       </aside>
 
@@ -54,7 +54,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           aria-modal="true"
           aria-label="Navigation"
           className={[
-            "absolute bottom-0 left-0 top-0 w-[248px] border-r border-white/5 transition-transform duration-200",
+            "absolute bottom-0 left-0 top-0 w-[248px] border-r border-hairline transition-opacity duration-200",
             navOpen ? "translate-x-0" : "-translate-x-full",
           ].join(" ")}
         >
@@ -62,7 +62,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             type="button"
             onClick={() => setNavOpen(false)}
             aria-label="Close navigation"
-            className="absolute right-3 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-white/5 hover:text-slate-300"
+            className="absolute right-3 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-lg text-fg-faint hover:bg-panel-raised hover:text-fg-mid"
           >
             <CloseIcon />
           </button>
@@ -73,10 +73,10 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       {/* Main column */}
       <div className="flex min-h-screen flex-col lg:ml-[248px]">
         <Topbar onOpenNav={() => setNavOpen(true)} />
-        <main key={pathname} className="animate-fade-up flex-1 px-4 py-7 lg:px-8">
+        <main key={pathname} className="flex-1 px-4 py-7 lg:px-8">
           {/* Capped so list rows don't stretch edge-to-edge on a wide monitor,
               leaving the middle of every card empty. */}
-          <div className="mx-auto w-full max-w-[1280px]">{children}</div>
+          <div className="mx-auto w-full max-w-[1320px]">{children}</div>
         </main>
       </div>
     </div>

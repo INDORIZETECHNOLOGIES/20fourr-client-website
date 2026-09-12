@@ -19,7 +19,7 @@ const TITLES: Record<string, string> = {
   "/dashboard/notifications": "Notifications",
   "/dashboard/bookings/chat": "Chat",
   "/dashboard/profile/wallet": "My Wallet",
-  "/dashboard/profile/invoices": "My Invoices",
+  "/dashboard/profile/invoices": "Documents & invoices",
   "/dashboard/profile/penalties": "Account Standing",
   "/dashboard/profile/privacy": "Privacy & Data Rights",
   "/dashboard/profile/change-password": "Change Password",
@@ -44,18 +44,18 @@ export function Topbar({ onOpenNav }: { onOpenNav: () => void }) {
   const unread = counts?.unreadCount ?? 0;
 
   return (
-    <header className="sticky top-0 z-40 flex h-[62px] items-center gap-3.5 border-b border-white/5 bg-app-bg/95 px-4 backdrop-blur-xl lg:px-8">
+    <header className="sticky top-0 z-40 flex h-[62px] items-center gap-3.5 border-b border-hairline bg-page/95 px-4 backdrop-blur-xl lg:px-8">
       {/* Only reachable below lg, where the sidebar is a drawer. */}
       <button
         type="button"
         onClick={onOpenNav}
         aria-label="Open navigation"
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[9px] border border-white/7 bg-white/4 text-slate-400 transition-colors hover:bg-white/8 lg:hidden"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-hairline bg-panel-raised text-fg-mid transition-colors hover:bg-panel-raised lg:hidden"
       >
         <MenuIcon />
       </button>
 
-      <h1 className="flex-1 truncate font-display text-[17px] font-semibold text-slate-100">
+      <h1 className="flex-1 truncate font-sans text-h3 font-semibold text-fg">
         {title}
       </h1>
 
@@ -66,17 +66,17 @@ export function Topbar({ onOpenNav }: { onOpenNav: () => void }) {
         aria-label={
           unread > 0 ? `Notifications, ${unread} unread` : "Notifications"
         }
-        className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-[9px] border border-white/7 bg-white/4 text-slate-300 transition-colors hover:bg-white/8"
+        className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-sm border border-hairline bg-panel-raised text-fg-mid transition-colors hover:bg-panel-raised"
       >
         <BellIcon size={17} />
         {unread > 0 ? (
-          <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-app-bg bg-app-gold px-1 text-[10px] font-bold text-black">
+          <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-page bg-fg px-1 text-eyebrow font-semibold text-page">
             {unread > 9 ? "9+" : unread}
           </span>
         ) : null}
       </Link>
 
-      <span className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full bg-app-gold-gradient text-[14px] font-extrabold text-black shadow-[0_2px_8px_rgba(245,166,35,0.3)]">
+      <span className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full bg-panel-raised text-body font-semibold text-fg">
         {profile?.initial ?? "·"}
       </span>
     </header>

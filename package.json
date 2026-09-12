@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev -p 3100",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "check:design": "node scripts/check-design.mjs",
+    "test:quote": "node --experimental-strip-types scripts/test-quote.ts"
   },
   "dependencies": {
     "next": "16.3.0",

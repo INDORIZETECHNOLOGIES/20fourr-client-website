@@ -24,7 +24,7 @@ export function AppearanceToggle() {
           disabled
           aria-disabled="true"
           title="Light theme is not available yet"
-          className="flex cursor-not-allowed items-center gap-2 rounded-full border border-white/10 px-5 py-2.5 text-[15px] font-semibold text-slate-500 opacity-60"
+          className="flex cursor-not-allowed items-center gap-2 rounded-sm border border-hairline px-5 py-2.5 text-body font-semibold text-fg-faint opacity-60"
         >
           <SunIcon size={17} />
           Light
@@ -33,14 +33,14 @@ export function AppearanceToggle() {
         <button
           type="button"
           aria-pressed="true"
-          className="flex items-center gap-2 rounded-full border border-app-gold bg-app-gold/10 px-5 py-2.5 text-[15px] font-bold text-app-gold"
+          className="flex items-center gap-2 rounded-sm border border-edge bg-panel-raised px-5 py-2.5 text-body font-medium text-fg"
         >
           <MoonIcon size={17} />
           Dark
         </button>
       </div>
 
-      <p className="text-[12.5px] text-slate-600">Light theme coming soon</p>
+      <p className="text-body-sm text-fg-faint">Light theme coming soon</p>
     </div>
   );
 }

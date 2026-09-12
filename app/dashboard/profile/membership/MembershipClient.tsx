@@ -143,8 +143,8 @@ export function MembershipClient() {
   if (loading) {
     return (
       <div className="flex flex-col gap-4">
-        <div className="h-[220px] animate-pulse rounded-2xl bg-app-card" />
-        <div className="h-[180px] animate-pulse rounded-2xl bg-app-card" />
+        <div className="h-[220px] animate-pulse rounded-lg bg-panel" />
+        <div className="h-[180px] animate-pulse rounded-lg bg-panel" />
       </div>
     );
   }
@@ -152,13 +152,13 @@ export function MembershipClient() {
   if (error) {
     return (
       <Card className="px-6 py-12 text-center">
-        <p role="alert" className="text-[14px] text-red-300">
+        <p role="alert" className="text-body text-fault">
           {error}
         </p>
         <button
           type="button"
           onClick={refetch}
-          className="mt-4 rounded-full border border-app-gold px-6 py-2.5 text-[13px] font-bold text-app-gold"
+          className="mt-4 rounded-sm border border-edge px-6 py-2.5 text-body-sm font-medium text-fg"
         >
           Try again
         </button>
@@ -173,7 +173,7 @@ export function MembershipClient() {
       {actionError ? (
         <p
           role="alert"
-          className="mb-4 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-[14px] text-red-300"
+          className="mb-4 rounded-lg border border-fault bg-transparent px-4 py-3 text-body text-fault"
         >
           {actionError}
         </p>
@@ -181,22 +181,16 @@ export function MembershipClient() {
 
       {/* Current status */}
       <Card className="relative overflow-hidden p-6 sm:p-7">
-        <span
-          className="pointer-events-none absolute -right-10 -top-10 h-44 w-44"
-          style={{
-            background: "radial-gradient(circle, rgba(232,160,32,0.14) 0%, transparent 70%)",
-          }}
-        />
-        <div className="relative flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-app-gold/15 text-app-gold">
+            <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-panel-raised text-fg">
               <CrownFill size={22} />
             </span>
             <div>
-              <p className="font-display text-[18px] font-extrabold text-slate-100">
+              <p className="font-sans text-h3 font-semibold text-fg">
                 {active ? `${titleCase(membership?.plan ?? "")} Pass` : "No active Pass"}
               </p>
-              <p className="text-[13px] text-slate-500">
+              <p className="text-body-sm text-fg-faint">
                 {active
                   ? membership?.expiresAt
                     ? `Renews ${formatApiDate(membership.expiresAt)}${
@@ -211,7 +205,7 @@ export function MembershipClient() {
           </div>
 
           {active ? (
-            <span className="rounded-full bg-green-500/14 px-4 py-1.5 text-[13px] font-bold text-green-500">
+            <span className="rounded-sm border border-live px-4 py-1.5 text-body-sm font-semibold text-live">
               Active
             </span>
           ) : null}
@@ -230,13 +224,13 @@ export function MembershipClient() {
         <ul className="relative mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
           {MEMBERSHIP_BENEFITS.map((b) => (
             <li key={b} className="flex items-start gap-2.5">
-              <span className={active ? "mt-0.5 text-green-500" : "mt-0.5 text-slate-600"}>
+              <span className={active ? "mt-0.5 text-live" : "mt-0.5 text-fg-faint"}>
                 <CheckCircleFill size={16} />
               </span>
               <span
                 className={[
-                  "text-[13.5px] leading-relaxed",
-                  active ? "text-slate-300" : "text-slate-500",
+                  "text-body-sm leading-relaxed",
+                  active ? "text-fg-mid" : "text-fg-faint",
                 ].join(" ")}
               >
                 {b}
@@ -250,11 +244,11 @@ export function MembershipClient() {
         membership?.cancelled ? null : (
           <div className="mt-4">
             {confirmCancel ? (
-              <Card className="border-red-500/35 p-5">
-                <p className="text-[14.5px] font-semibold text-red-300">
+              <Card className="border-fault p-5">
+                <p className="text-body font-semibold text-fault">
                   Turn off auto-renewal?
                 </p>
-                <p className="mt-1 text-[13px] leading-relaxed text-slate-400">
+                <p className="mt-1 text-body-sm leading-relaxed text-fg-mid">
                   Your benefits continue until{" "}
                   {formatApiDate(membership?.expiresAt)} — nothing is refunded and
                   nothing is lost today. The Pass simply won&apos;t renew.
@@ -264,14 +258,14 @@ export function MembershipClient() {
                     type="button"
                     onClick={cancel}
                     disabled={busy === "cancel"}
-                    className="rounded-full bg-red-500/90 px-6 py-2 text-[13.5px] font-bold text-white disabled:opacity-60"
+                    className="rounded-sm bg-fault px-6 py-2 text-body-sm font-semibold text-ground-ink disabled:opacity-60"
                   >
                     {busy === "cancel" ? "Cancelling…" : "Yes, cancel"}
                   </button>
                   <button
                     type="button"
                     onClick={() => setConfirmCancel(false)}
-                    className="rounded-full border border-app-border px-6 py-2 text-[13.5px] font-semibold text-slate-300"
+                    className="rounded-sm border border-hairline px-6 py-2 text-body-sm font-semibold text-fg-mid"
                   >
                     Keep it
                   </button>
@@ -281,7 +275,7 @@ export function MembershipClient() {
               <button
                 type="button"
                 onClick={() => setConfirmCancel(true)}
-                className="rounded-full border border-app-border px-6 py-2.5 text-[13.5px] font-semibold text-slate-400 transition-colors hover:bg-white/5"
+                className="rounded-sm border border-hairline px-6 py-2.5 text-body-sm font-semibold text-fg-mid transition-colors hover:bg-panel-raised"
               >
                 Cancel membership
               </button>
@@ -290,7 +284,7 @@ export function MembershipClient() {
         )
       ) : (
         <>
-          <h3 className="mb-3 mt-8 text-[12px] font-semibold uppercase tracking-[1.2px] text-slate-500">
+          <h3 className="mb-3 mt-8 text-label font-semibold uppercase tracking-[1.2px] text-fg-faint">
             Choose a plan
           </h3>
           <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
@@ -299,35 +293,36 @@ export function MembershipClient() {
                 key={p.id}
                 className={[
                   "relative p-6",
-                  p.best ? "border-app-gold/45" : "",
+                  p.best ? "border-brand" : "",
                 ].join(" ")}
               >
                 {p.best ? (
-                  <span className="absolute right-5 top-5 rounded-full bg-app-gold/15 px-3 py-1 text-[11px] font-bold text-app-gold">
+                  <span className="absolute right-5 top-5 rounded-full bg-panel-raised px-3 py-1 text-eyebrow font-medium text-fg">
                     Best value
                   </span>
                 ) : null}
-                <p className="text-[14px] font-semibold text-slate-300">{p.label}</p>
-                <p className="mt-2 font-display text-[30px] font-extrabold leading-none text-slate-100">
+                <p className="text-body font-semibold text-fg-mid">{p.label}</p>
+                <p className="mt-2 font-sans text-h1 font-semibold leading-none text-fg">
                   {formatPaiseRounded(p.pricePaise)}
                 </p>
-                <p className="mt-1.5 text-[13px] text-slate-500">{p.period}</p>
-                <p className="mt-1 text-[12.5px] text-slate-600">{p.note}</p>
+                <p className="mt-1.5 text-body-sm text-fg-faint">{p.period}</p>
+                <p className="mt-1 text-body-sm text-fg-faint">{p.note}</p>
 
                 <button
                   type="button"
                   onClick={() => subscribe(p.id)}
                   disabled={busy !== null}
-                  className="mt-5 w-full rounded-full bg-app-gold-gradient py-3 text-[14.5px] font-bold text-black transition-transform hover:-translate-y-px disabled:translate-y-0 disabled:opacity-60"
+                  className="mt-5 w-full rounded-sm bg-brand text-brand-ink py-3 text-body font-semibold transition-opacity   disabled:opacity-60"
                 >
                   {busy === p.id ? "Opening payment…" : `Get ${p.label} Pass`}
                 </button>
               </Card>
             ))}
           </div>
-          <p className="mt-3 text-[12.5px] text-slate-600">
+          <p className="mt-3 text-body-sm text-fg-faint">
             Billed once through Razorpay. The Pass does not auto-charge again — renew
-            manually when it expires.
+            manually when it expires. Renewing before expiry extends the remaining term
+            rather than resetting it.
           </p>
         </>
       )}

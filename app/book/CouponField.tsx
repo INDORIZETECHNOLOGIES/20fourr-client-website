@@ -79,26 +79,26 @@ export function CouponField({
 
   if (value && applied) {
     return (
-      <div className="rounded-xl border border-green-500/35 bg-green-500/8 px-4 py-3">
+      <div className="rounded-lg border border-live bg-transparent px-4 py-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-[14px] font-semibold text-green-400">
+          <p className="text-body font-semibold text-live">
             {applied.code} applied
           </p>
           <button
             type="button"
             onClick={remove}
-            className="text-[13px] font-semibold text-slate-400 hover:text-slate-200"
+            className="text-body-sm font-semibold text-fg-mid hover:text-fg"
           >
             Remove
           </button>
         </div>
-        <p className="mt-1 text-[13px] text-slate-300">
+        <p className="mt-1 text-body-sm text-fg-mid">
           {applied.name ? `${applied.name} — ` : ""}
           saves {formatPaise(applied.discountAmountPaise)}, new total{" "}
           {formatPaiseRounded(applied.finalAmountPaise)}.
         </p>
         {/* The preview is not a guarantee — the server re-validates on create. */}
-        <p className="mt-1 text-[11.5px] text-slate-500">
+        <p className="mt-1 text-label text-fg-faint">
           Confirmed when the booking is created.
         </p>
       </div>
@@ -122,27 +122,27 @@ export function CouponField({
           }}
           placeholder="Coupon code"
           autoComplete="off"
-          className="min-w-0 flex-1 rounded-xl border border-app-border bg-white/4 px-4 py-2.5 font-mono text-[14px] uppercase tracking-wider text-slate-100 outline-none placeholder:font-sans placeholder:normal-case placeholder:tracking-normal placeholder:text-slate-600 focus:border-app-gold/60"
+          className="min-w-0 flex-1 rounded-lg border border-hairline bg-panel-raised px-4 py-2.5 font-mono text-body uppercase tracking-wider text-fg outline-none placeholder:font-sans placeholder:normal-case placeholder:tracking-normal placeholder:text-fg-faint focus:border-edge"
         />
         <button
           type="button"
           onClick={() => apply(code)}
           disabled={!code.trim() || checking}
-          className="shrink-0 rounded-xl border border-app-gold px-5 py-2.5 text-[13.5px] font-bold text-app-gold transition-colors hover:bg-app-gold/10 disabled:opacity-50"
+          className="shrink-0 rounded-sm border border-edge px-5 py-2.5 text-body-sm font-medium text-fg transition-colors hover:bg-panel-raised disabled:opacity-50"
         >
           {checking ? "Checking…" : "Apply"}
         </button>
       </div>
 
       {error ? (
-        <p role="alert" className="mt-2 text-[12.5px] text-red-400">
+        <p role="alert" className="mt-2 text-body-sm text-fault">
           {error}
         </p>
       ) : null}
 
       {(available?.coupons ?? []).length > 0 ? (
         <div className="mt-3">
-          <p className="mb-1.5 text-[11.5px] font-semibold uppercase tracking-[1px] text-slate-600">
+          <p className="mb-1.5 text-label font-semibold uppercase tracking-[1px] text-fg-faint">
             Available to you
           </p>
           <div className="flex flex-wrap gap-2">
@@ -152,7 +152,7 @@ export function CouponField({
                 type="button"
                 onClick={() => apply(c.code)}
                 title={c.description ?? c.name}
-                className="rounded-full border border-app-border px-3.5 py-1.5 font-mono text-[12.5px] font-semibold text-slate-300 transition-colors hover:border-app-gold/50 hover:text-app-gold"
+                className="rounded-full border border-hairline px-3.5 py-1.5 font-mono text-body-sm font-medium text-fg-mid transition-colors hover:border-edge hover:text-fg"
               >
                 {c.code}
               </button>

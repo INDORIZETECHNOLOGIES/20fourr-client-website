@@ -37,7 +37,7 @@ export function ForgotPasswordForm() {
         </Notice>
         <Link
           href="/login"
-          className="text-center text-[15px] font-bold text-gold hover:underline"
+          className="text-center text-body font-semibold text-fg underline-offset-2 hover:underline"
         >
           Back to Sign In
         </Link>
@@ -49,7 +49,7 @@ export function ForgotPasswordForm() {
     <form
       noValidate
       onSubmit={handleSubmit}
-      className="w-full rounded-card border border-border-soft bg-surface px-6 pb-8 pt-7 sm:px-9"
+      className="w-full rounded-lg border border-hairline bg-panel px-6 pb-8 pt-7 sm:px-9"
     >
       <Field
         id="reset-email"

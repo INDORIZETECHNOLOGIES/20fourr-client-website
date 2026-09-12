@@ -27,17 +27,17 @@ export function ShareCode({
 
   return (
     <Card className="p-6 text-center">
-      <p className="text-[12px] font-semibold uppercase tracking-[1.2px] text-slate-500">
-        Share Your Code
+      <p className="text-label font-semibold uppercase tracking-[1.2px] text-fg-faint">
+        Your code
       </p>
-      <p className="mt-3 select-all font-display text-[30px] font-extrabold tracking-[3px] text-app-gold">
+      <p className="mt-3 select-all text-mono-lg font-medium tracking-[3px] text-fg">
         {code}
       </p>
       <div className="mt-5 flex flex-wrap justify-center gap-3">
         <button
           type="button"
           onClick={copy}
-          className="rounded-full bg-app-gold-gradient px-7 py-2.5 text-[14px] font-bold text-black transition-transform hover:-translate-y-px"
+          className="rounded-sm bg-brand text-brand-ink px-7 py-2.5 text-body font-semibold"
         >
           {copied ? "Copied" : shareLink ? "Copy link" : "Copy code"}
         </button>
@@ -49,7 +49,7 @@ export function ShareCode({
           )}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-full border border-app-border px-7 py-2.5 text-[14px] font-semibold text-slate-300 transition-colors hover:bg-white/5"
+          className="rounded-sm border border-hairline px-7 py-2.5 text-body font-semibold text-fg-mid transition-colors hover:bg-panel-raised"
         >
           Share on WhatsApp
         </a>

@@ -30,7 +30,7 @@ export function TicketThread({ id }: { id: string }) {
       <SubPage title="Ticket" backHref="/dashboard/support" backLabel="Support" width={720}>
         <div className="flex flex-col gap-3">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="h-[110px] animate-pulse rounded-2xl bg-app-card" />
+            <div key={i} className="h-[110px] animate-pulse rounded-lg bg-panel" />
           ))}
         </div>
       </SubPage>
@@ -42,7 +42,7 @@ export function TicketThread({ id }: { id: string }) {
       <SubPage title="Ticket" backHref="/dashboard/support" backLabel="Support" width={720}>
         <p
           role="alert"
-          className="rounded-2xl border border-red-500/30 bg-red-500/8 px-6 py-10 text-center text-[15px] text-red-300"
+          className="rounded-lg border border-fault bg-transparent px-6 py-10 text-center text-body text-fault"
         >
           {error ?? "This ticket could not be found."}
         </p>
@@ -96,10 +96,10 @@ export function TicketThread({ id }: { id: string }) {
       width={720}
     >
       <div className="mb-5 flex flex-wrap items-center gap-2">
-        <span className={`rounded-full px-3 py-1 text-[12px] font-bold ${status.cls}`}>
+        <span className={`rounded-full px-3 py-1 text-label font-semibold ${status.cls}`}>
           {status.label}
         </span>
-        <span className={`rounded-full px-3 py-1 text-[12px] font-bold ${priority.cls}`}>
+        <span className={`rounded-full px-3 py-1 text-label font-semibold ${priority.cls}`}>
           {priority.label} priority
         </span>
       </div>
@@ -107,7 +107,7 @@ export function TicketThread({ id }: { id: string }) {
       {actionError ? (
         <p
           role="alert"
-          className="mb-4 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-[14px] text-red-300"
+          className="mb-4 rounded-lg border border-fault bg-transparent px-4 py-3 text-body text-fault"
         >
           {actionError}
         </p>
@@ -130,7 +130,7 @@ export function TicketThread({ id }: { id: string }) {
 
       {closed ? (
         <Card className="mt-5 px-6 py-8 text-center">
-          <p className="text-[14px] text-slate-500">
+          <p className="text-body text-fg-faint">
             This ticket is {status.label.toLowerCase()}. Create a new one if you need more
             help.
           </p>
@@ -146,14 +146,14 @@ export function TicketThread({ id }: { id: string }) {
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             placeholder="Write a reply…"
-            className="w-full rounded-xl border border-app-border bg-white/4 px-4 py-3 text-[14.5px] text-slate-100 outline-none transition-colors placeholder:text-slate-600 focus:border-app-gold/60"
+            className="w-full rounded-lg border border-hairline bg-panel-raised px-4 py-3 text-body text-fg outline-none transition-colors placeholder:text-fg-faint focus:border-edge"
           />
           <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
             <button
               type="button"
               onClick={close}
               disabled={closing}
-              className="rounded-full border border-app-border px-5 py-2 text-[13.5px] font-semibold text-slate-400 transition-colors hover:bg-white/5 disabled:opacity-50"
+              className="rounded-sm border border-hairline px-5 py-2 text-body-sm font-semibold text-fg-mid transition-colors hover:bg-panel-raised disabled:opacity-50"
             >
               {closing ? "Closing…" : "Close ticket"}
             </button>
@@ -162,10 +162,10 @@ export function TicketThread({ id }: { id: string }) {
               onClick={send}
               disabled={!draft.trim() || sending}
               className={[
-                "rounded-full px-7 py-2.5 text-[14px] font-bold transition-colors",
+                "rounded-sm px-7 py-2.5 text-body font-semibold transition-colors",
                 draft.trim() && !sending
-                  ? "bg-app-gold-gradient text-black"
-                  : "cursor-not-allowed bg-app-disabled text-slate-500",
+                  ? "bg-brand text-brand-ink"
+                  : "cursor-not-allowed bg-panel-raised text-fg-faint",
               ].join(" ")}
             >
               {sending ? "Sending…" : "Send reply"}
@@ -192,15 +192,15 @@ function Bubble({
     <div className={["flex", mine ? "justify-end" : "justify-start"].join(" ")}>
       <div
         className={[
-          "max-w-[85%] rounded-2xl px-5 py-4",
+          "max-w-[85%] rounded-lg px-5 py-4",
           mine
-            ? "rounded-br-md bg-app-gold/12 text-slate-100"
-            : "rounded-bl-md border border-app-border bg-app-card text-slate-200",
+            ? "rounded-br-md bg-panel-raised text-fg"
+            : "rounded-bl-md border border-hairline bg-panel text-fg",
         ].join(" ")}
       >
-        <p className="mb-1.5 text-[12px] font-bold text-slate-400">{author}</p>
-        <p className="whitespace-pre-wrap text-[14px] leading-relaxed">{body}</p>
-        {at ? <p className="mt-2 text-[11.5px] text-slate-600">{at}</p> : null}
+        <p className="mb-1.5 text-label font-semibold text-fg-mid">{author}</p>
+        <p className="whitespace-pre-wrap text-body leading-relaxed">{body}</p>
+        {at ? <p className="mt-2 text-label text-fg-faint">{at}</p> : null}
       </div>
     </div>
   );

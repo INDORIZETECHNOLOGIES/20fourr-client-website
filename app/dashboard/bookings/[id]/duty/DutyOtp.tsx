@@ -90,7 +90,7 @@ export function DutyOtp({ bookingId }: { bookingId: string }) {
   if (loading) {
     return (
       <Shell bookingId={bookingId} booking={booking}>
-        <div className="h-[380px] animate-pulse rounded-2xl bg-app-card" />
+        <div className="h-[380px] animate-pulse rounded-lg bg-panel" />
       </Shell>
     );
   }
@@ -100,10 +100,10 @@ export function DutyOtp({ bookingId }: { bookingId: string }) {
     return (
       <Shell bookingId={bookingId} booking={booking}>
         <Card className="px-6 py-12 text-center">
-          <p className="text-[15px] text-slate-300">
+          <p className="text-body text-fg-mid">
             Duty codes appear once the booking is paid.
           </p>
-          <p className="mx-auto mt-2 max-w-[420px] text-[13.5px] leading-relaxed text-slate-500">
+          <p className="mx-auto mt-2 max-w-[420px] text-body-sm leading-relaxed text-fg-faint">
             The provider needs to accept the request first, then you complete payment.
           </p>
         </Card>
@@ -115,16 +115,16 @@ export function DutyOtp({ bookingId }: { bookingId: string }) {
     return (
       <Shell bookingId={bookingId} booking={booking}>
         <Card className="px-6 py-12 text-center">
-          <span className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-green-500/12 text-green-500">
+          <span className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-panel-raised text-live">
             <CheckCircleFill size={28} />
           </span>
-          <p className="text-[15px] font-semibold text-slate-200">Duty complete</p>
-          <p className="mx-auto mt-2 max-w-[420px] text-[13.5px] leading-relaxed text-slate-500">
+          <p className="text-body font-semibold text-fg">Duty complete</p>
+          <p className="mx-auto mt-2 max-w-[420px] text-body-sm leading-relaxed text-fg-faint">
             Both codes have been verified. Nothing further is needed here.
           </p>
           <Link
             href={`/dashboard/bookings/${bookingId}/rate`}
-            className="mt-5 inline-block rounded-full bg-app-gold-gradient px-7 py-2.5 text-[14px] font-bold text-black"
+            className="mt-5 inline-block rounded-sm bg-brand text-brand-ink px-7 py-2.5 text-body font-semibold"
           >
             Rate the provider
           </Link>
@@ -148,28 +148,28 @@ export function DutyOtp({ bookingId }: { bookingId: string }) {
       {error ? (
         <p
           role="alert"
-          className="mb-4 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-[14px] text-red-300"
+          className="mb-4 rounded-lg border border-fault bg-transparent px-4 py-3 text-body text-fault"
         >
           {error}
         </p>
       ) : null}
 
       <Card className="p-6 text-center sm:p-8">
-        <p className="text-[12px] font-semibold uppercase tracking-[1.2px] text-slate-500">
+        <p className="text-label font-semibold uppercase tracking-[1.2px] text-fg-faint">
           {stage === "start" ? "Start-of-duty code" : "End-of-duty code"}
         </p>
-        <p className="mx-auto mt-2 max-w-[460px] text-[13.5px] leading-relaxed text-slate-500">
+        <p className="mx-auto mt-2 max-w-[460px] text-body-sm leading-relaxed text-fg-faint">
           {stage === "start"
-            ? "Read this to the guard once they are physically at the site. They enter it to begin the shift."
-            : "Read this to the guard only when the shift is genuinely finished. It closes the booking."}
+            ? "Read this to the guard in person once they are physically at the site. Nothing is texted. They enter it to begin the shift."
+            : "Read this to the guard in person only when the shift is genuinely finished. Nothing is texted. It closes the booking."}
         </p>
 
         {otp && showingCurrentStage ? (
           <>
             <p
               className={[
-                "mt-6 font-mono text-[44px] font-extrabold tracking-[0.32em] sm:text-[56px]",
-                expired ? "text-slate-600 line-through" : "text-app-gold",
+                "mt-6 font-mono text-h1 font-semibold tracking-[0.32em] sm:text-h1",
+                expired ? "text-fg-faint line-through" : "text-fg",
               ].join(" ")}
             >
               {otp}
@@ -177,15 +177,15 @@ export function DutyOtp({ bookingId }: { bookingId: string }) {
             <p
               aria-live="polite"
               className={[
-                "mt-1 text-[13.5px] font-semibold",
-                expired ? "text-red-400" : "text-slate-400",
+                "mt-1 text-body-sm font-semibold",
+                expired ? "text-fault" : "text-fg-mid",
               ].join(" ")}
             >
               {expired ? "Expired — generate a new one" : `Expires in ${formatCountdown(remaining)}`}
             </p>
           </>
         ) : (
-          <p className="mt-6 font-mono text-[44px] font-extrabold tracking-[0.32em] text-slate-700 sm:text-[56px]">
+          <p className="mt-6 font-mono text-h1 font-semibold tracking-[0.32em] text-fg-faint sm:text-h1">
             ••••••
           </p>
         )}
@@ -194,7 +194,7 @@ export function DutyOtp({ bookingId }: { bookingId: string }) {
           type="button"
           onClick={() => generate(stage)}
           disabled={busy}
-          className="mt-6 rounded-full bg-app-gold-gradient px-8 py-3 text-[14.5px] font-bold text-black transition-transform hover:-translate-y-px disabled:translate-y-0 disabled:opacity-60"
+          className="mt-6 rounded-sm bg-brand text-brand-ink px-8 py-3 text-body font-semibold transition-opacity   disabled:opacity-60"
         >
           {busy
             ? "Generating…"
@@ -205,7 +205,7 @@ export function DutyOtp({ bookingId }: { bookingId: string }) {
                 : "Show end code"}
         </button>
 
-        <p className="mt-4 flex items-center justify-center gap-2 text-[13px] font-semibold text-app-warning">
+        <p className="mt-4 flex items-center justify-center gap-2 text-body-sm font-semibold text-attention">
           <AlertCircleIcon size={15} />
           {stage === "start"
             ? "Don't share this until the guard is at the site"
@@ -214,20 +214,19 @@ export function DutyOtp({ bookingId }: { bookingId: string }) {
       </Card>
 
       <Card className="mt-4 p-5">
-        <p className="flex items-center gap-2 text-[13px] font-semibold text-slate-300">
-          <span className="text-app-gold">
+        <p className="flex items-center gap-2 text-body-sm font-semibold text-fg-mid">
+          <span className="text-fg">
             <ShieldFill size={15} />
           </span>
           Why this matters
         </p>
-        <ul className="mt-3 flex list-disc flex-col gap-2 pl-5 text-[13px] leading-relaxed text-slate-500">
+        <ul className="mt-3 flex list-disc flex-col gap-2 pl-5 text-body-sm leading-relaxed text-fg-faint">
           <li>
             Sharing the start code early lets duty be marked as started with nobody on
             site — and starts the clock on what you are paying for.
           </li>
           <li>
-            Sharing the end code early closes a shift that is still running, and releases
-            the provider&apos;s final payout.
+            Sharing the end code early closes a shift that is still running.
           </li>
           <li>20fourr will never ask you for either code over a call or in chat.</li>
           <li>
@@ -276,12 +275,12 @@ function Step({
   return (
     <span
       className={[
-        "rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold",
+        "rounded-full px-3.5 py-1.5 text-body-sm font-semibold",
         done
-          ? "bg-green-500/12 text-green-500"
+          ? "bg-panel-raised text-live"
           : current
-            ? "bg-app-gold/12 text-app-gold"
-            : "bg-white/5 text-slate-600",
+            ? "bg-panel-raised text-fg"
+            : "bg-panel-raised text-fg-faint",
       ].join(" ")}
     >
       {label}

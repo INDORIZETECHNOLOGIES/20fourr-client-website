@@ -40,7 +40,7 @@ export function HomePrompts() {
         <Prompt
           href={`/dashboard/bookings/${firstUnrated}/rate`}
           icon={<StarFill size={17} />}
-          tint="bg-app-gold/12 text-app-gold"
+          tint="bg-panel-raised text-fg"
           title={`Rate ${pending} completed ${pending === 1 ? "booking" : "bookings"}`}
           body="Your rating is what keeps good providers visible to other clients."
           cta="Rate now"
@@ -51,7 +51,7 @@ export function HomePrompts() {
         <Prompt
           href="/dashboard/profile"
           icon={<PinFill size={17} />}
-          tint="bg-app-info/12 text-app-info"
+          tint="bg-panel-raised text-fg-mid"
           title="Add your address"
           body="Bookings need a service address. Saving one now means you won't be asked mid-booking."
           cta="Add address"
@@ -79,18 +79,18 @@ function Prompt({
   return (
     <Link
       href={href}
-      className="flex flex-wrap items-center gap-4 rounded-[18px] border border-white/8 bg-app-card px-5 py-4 transition-colors hover:border-app-gold/35"
+      className="flex flex-wrap items-center gap-4 rounded-lg border border-hairline bg-panel px-5 py-4 transition-colors hover:border-edge"
     >
       <span
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${tint}`}
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${tint}`}
       >
         {icon}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-[14.5px] font-semibold text-slate-100">{title}</p>
-        <p className="mt-0.5 text-[12.5px] leading-relaxed text-slate-500">{body}</p>
+        <p className="text-body font-semibold text-fg">{title}</p>
+        <p className="mt-0.5 text-body-sm leading-relaxed text-fg-faint">{body}</p>
       </div>
-      <span className="shrink-0 rounded-full border border-app-gold px-4 py-1.5 text-[12.5px] font-bold text-app-gold">
+      <span className="shrink-0 rounded-sm border border-edge px-4 py-1.5 text-body-sm font-medium text-fg">
         {cta}
       </span>
     </Link>

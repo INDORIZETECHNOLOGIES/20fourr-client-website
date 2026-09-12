@@ -16,7 +16,7 @@ export function RatePageClient({ id }: { id: string }) {
   if (loading) {
     return (
       <SubPage title="Rate Your Experience" backHref={`/dashboard/bookings/${id}`} backLabel="Booking" width={620}>
-        <div className="h-[420px] animate-pulse rounded-2xl border border-white/6 bg-app-card" />
+        <div className="h-[420px] animate-pulse rounded-lg border border-hairline bg-panel" />
       </SubPage>
     );
   }
@@ -24,7 +24,7 @@ export function RatePageClient({ id }: { id: string }) {
   if (error || !data?.booking) {
     return (
       <SubPage title="Rate Your Experience" backHref={`/dashboard/bookings/${id}`} backLabel="Booking" width={620}>
-        <p role="alert" className="rounded-2xl border border-red-500/30 bg-red-500/8 px-6 py-10 text-center text-[15px] text-red-300">
+        <p role="alert" className="rounded-lg border border-fault bg-transparent px-6 py-10 text-center text-body text-fault">
           {error ?? "This booking could not be found."}
         </p>
       </SubPage>

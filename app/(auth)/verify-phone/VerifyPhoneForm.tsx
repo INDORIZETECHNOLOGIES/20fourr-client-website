@@ -92,11 +92,11 @@ export function VerifyPhoneForm() {
         <PhoneMark />
       </div> */}
 
-      <h1 className="text-display-md mt-7 text-text">Verify Phone</h1>
-      <p className="mt-4 text-lg text-text-muted sm:text-xl">
+      <h1 className="text-h1 mt-7 text-fg">Verify Phone</h1>
+      <p className="mt-4 text-body text-fg-mid">
         Enter the 6-digit code sent to
       </p>
-      <p className="mt-1 text-lg font-bold text-gold sm:text-xl">
+      <p className="mt-1 text-mono-lg text-fg">
         {tail ? `****${tail}` : "your registered mobile number"}
       </p>
 
@@ -106,9 +106,9 @@ export function VerifyPhoneForm() {
           e.preventDefault();
           if (otp.complete) void submit(otp.code);
         }}
-        className="mt-10 flex w-full flex-col items-center rounded-card border border-border-soft bg-surface px-4 pb-12 pt-11 sm:px-10"
+        className="mt-10 flex w-full flex-col items-center rounded-lg border border-hairline bg-panel px-4 pb-12 pt-11 sm:px-10"
       >
-        <p className="text-[15px] font-bold tracking-[2px] text-text-label">
+        <p className="text-body font-semibold tracking-[2px] text-fg-faint">
           ENTER 6-DIGIT CODE
         </p>
 
@@ -130,7 +130,7 @@ export function VerifyPhoneForm() {
           <p
             id="otp-error"
             role="alert"
-            className="mt-6 text-center text-sm font-medium text-danger"
+            className="mt-6 text-center text-body-sm font-medium text-fault"
           >
             {error}
           </p>
@@ -141,8 +141,8 @@ export function VerifyPhoneForm() {
           onClick={handleResend}
           disabled={!expired || resending}
           className={[
-            "mt-8 flex items-center gap-2.5 rounded-[24px] border border-gold/50 bg-gold-soft px-7 py-3.5",
-            "text-[17px] font-bold text-gold transition-opacity",
+            "mt-8 flex items-center gap-2.5 rounded-lg border border-edge bg-panel-raised px-7 py-3.5",
+            "text-h3 font-medium text-fg transition-opacity",
             expired && !resending
               ? "cursor-pointer hover:opacity-80"
               : "cursor-not-allowed opacity-60",
@@ -162,12 +162,11 @@ export function VerifyPhoneForm() {
 
         <Button
           type="submit"
-          active={otp.complete}
           disabled={!otp.complete}
           loading={submitting}
           loadingLabel="Verifying…"
-          shape="pill"
-          className="mt-9 sm:w-[56%]"
+          size="lg"
+          className="mt-9 w-full sm:w-[56%]"
         >
           Verify OTP
         </Button>

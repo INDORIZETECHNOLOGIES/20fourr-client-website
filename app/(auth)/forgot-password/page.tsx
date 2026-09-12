@@ -18,8 +18,8 @@ export default function ForgotPasswordPage() {
     <div className="mx-auto flex min-h-screen w-full max-w-[504px] flex-col justify-center px-6 py-14">
       <BackButton href="/login" label="Back to sign in" className="mb-10" />
 
-      <h1 className="text-display-sm text-text">Reset Password</h1>
-      <p className="mt-4 text-lg text-text-muted">
+      <h1 className="text-h2 text-fg">Reset password</h1>
+      <p className="mt-4 text-body text-fg-mid">
         Enter your email and we&apos;ll send you a link to set a new password.
       </p>
 

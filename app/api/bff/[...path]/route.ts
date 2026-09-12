@@ -33,6 +33,8 @@ const ALLOWED_PREFIXES = [
   "wallet",
   "referral",
   "invoices",
+  "documents",
+  "uploads/",
   "coupons/",
   "recurring",
   "protection/",
@@ -42,7 +44,7 @@ const ALLOWED_PREFIXES = [
 
 /** Paths whose responses are files, not JSON. */
 const BINARY_PATHS =
-  /^(invoices\/[^/]+\/pdf|client\/bookings\/[^/]+\/invoice)$/;
+  /^(invoices\/[^/]+\/pdf|client\/bookings\/[^/]+\/invoice|documents\/[^/]+\/pdf)$/;
 
 function passThrough(upstream: Response): NextResponse {
   return new NextResponse(upstream.body, {

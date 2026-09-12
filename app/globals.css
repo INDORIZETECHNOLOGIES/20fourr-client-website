@@ -1,187 +1,206 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------------------
-   20fourr design tokens.
-   Every color below is lifted verbatim from the approved Claude Design files
-   (Login / Signup / VerifyPhone / VerifyEmail). The only addition is
-   --color-danger: the designs have no error state, so they define no error color.
+   20fourr design tokens v2 — spec 0001.
+   Two grounds (paper / ink), one semantic layer. Flat fills. Two radii
+   plus pill. Borders are solid tokens, never alpha-white.
    --------------------------------------------------------------------------- */
 @theme {
-  /* Surfaces */
-  --color-bg: #0a1220;
-  --color-surface: #101c2e;
-  --color-field: #13233b;
-  --color-field-otp: #0d1728;
+  /* Paper (marketing) */
+  --color-paper: #fbfaf8;
+  --color-paper-raised: #f4f2ed;
+  --color-ink: #12100e;
+  --color-ink-mid: #5c5852;
+  --color-ink-faint: #746f68;
+  --color-rule: #e3dfd8;
 
-  /* Borders */
-  --color-border: #24374f;
-  --color-border-soft: #1c2c42;
-  --color-border-divider: #22304a;
+  /* Ink (signed-in app, auth, funnel) */
+  --color-ground: #0a0e14;
+  --color-surface: #11161e;
+  --color-surface-raised: #161c26;
+  --color-ground-ink: #f2f4f7;
+  --color-ground-mid: #98a2b3;
+  --color-ground-faint: #7d8795;
+  --color-ground-rule: #212936;
+  --color-ground-edge: #5a6577;
 
-  /* Gold accent */
-  --color-gold: #e8a020;
-  --color-gold-soft: #2a2110;
-  --color-on-gold: #231404;
+  /* Shared */
+  --color-brand: #e8a020;
+  --color-brand-ink: #1a1203;
+  --color-live: #0e9f6e;
+  --color-attention: #b45309;
+  --color-fault: #d64545;
 
-  /* Notice panels */
-  --color-notice-bg: #221a0d;
-  --color-notice-fg: #c9a765;
+  /* Semantic aliases — default to the ink palette. Paper overrides these. */
+  --color-page: #0a0e14;
+  --color-panel: #11161e;
+  --color-panel-raised: #161c26;
+  --color-fg: #f2f4f7;
+  --color-fg-mid: #98a2b3;
+  --color-fg-faint: #7d8795;
+  --color-hairline: #212936;
+  --color-edge: #5a6577;
+  --color-primary: #e8a020;
+  --color-on-primary: #1a1203;
 
-  /* Text ramp */
-  --color-text: #f4f6f9;
-  --color-text-input: #e9edf3;
-  --color-text-secondary: #c9d2de;
-  --color-text-muted: #8a97ab;
-  --color-text-label: #7b8aa0;
-  --color-text-dim: #6b7c94;
-  --color-placeholder: #5b6b82;
+  --radius-sm: 6px;
+  --radius-lg: 12px;
+  --radius-pill: 9999px;
 
-  /* States */
-  --color-disabled-bg: #1a2740;
-  --color-disabled-fg: #5b6b82;
-  --color-success: #5fbf7a;
-  --color-toast: #22c55e;
-  --color-dot-off: #2a3a52;
-  --color-danger: #f87171;
+  --font-sans: var(--font-plex-sans), "IBM Plex Sans", ui-sans-serif, sans-serif;
+  --font-mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, monospace;
 
-  /* Radii */
-  --radius-field: 16px;
-  --radius-card: 24px;
-  --radius-pill: 20px;
-  --radius-notice: 12px;
-  --radius-tile: 22px;
-
-  /* Type */
-  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
-
-  /* ---------------------------------------------------------------------
-     Dashboard shell — the PRODUCTION palette.
-
-     These values are lifted from the live client app's default theme
-     (`deepNavy` in SecureConnect/mobile/src/constants/theme.js). The dashboard
-     design comp used a different, brighter gold (#f5a623 on #060918); that comp
-     came from a separate Design project and diverged from what ships. The app
-     is the source of truth, so these now match it exactly.
-
-     The auth screens already use this gold (#E8A020) — they were derived from
-     the same palette — so the whole site is now on one brand color.
-
-     Tailwind's slate ramp is kept for text because it already lines up:
-     slate-400 #94a3b8 IS production's textSecondary. Likewise green-500,
-     red-500 match production's success and error.
-     --------------------------------------------------------------------- */
-  --color-app-bg: #060c16; /* background */
-  --color-app-sidebar: #0b1626; /* gradientHeader top stop */
-  --color-app-card: #0f1c2e; /* surface */
-  --color-app-card-raised: #162236; /* surfaceElevated */
-  --color-app-gold: #e8a020; /* primary */
-  --color-app-gold-light: #f2b23e; /* primaryLight */
-  --color-app-gold-deep: #c9851a; /* primaryDark */
-  --color-app-info: #3b82f6; /* secondary / info */
-  --color-app-warning: #f59e0b; /* warning */
-  --color-app-border: #1e3048; /* border */
-  --color-app-border-soft: #16263c; /* borderLight */
-  --color-app-disabled: #27384e; /* disabled */
-
-  --font-display: var(--font-outfit), "Outfit", ui-sans-serif, sans-serif;
-  --font-body: var(--font-dm-sans), "DM Sans", ui-sans-serif, sans-serif;
-
-  /* Breakpoints in px, overriding Tailwind's rem defaults.
-     In a media query `rem` resolves against the browser's *default* font size,
-     not the html element's — so a user who sets Chrome to a 20px default would
-     otherwise get every breakpoint scaled 1.25x (sm 640→800, lg 1024→1280) and
-     see the wrong layout at a given width. The designs are specified in px;
-     these keep the breakpoints there too. */
+  /* Breakpoints in px — rem in media queries tracks the browser default, not html. */
   --breakpoint-sm: 640px;
   --breakpoint-md: 768px;
   --breakpoint-lg: 1024px;
   --breakpoint-xl: 1280px;
   --breakpoint-2xl: 1536px;
 
-  /* Spacing base in px for the same reason. The designs mix absolute values
-     (px-[18px], max-w-[620px]) with scale utilities (px-6, gap-4); leaving the
-     scale in rem makes the two drift apart under a non-16px root font and the
-     reproduction stops matching the comp. */
   --spacing: 4px;
 }
 
-/* Fluid display sizes. The designs are fixed at 56/52/44px; these hold that
-   exact value at desktop and scale down rather than overflowing on mobile. */
-/* px, not rem, so the headline holds the design's size (and stays on one line)
-   regardless of the reader's default font size — see the breakpoint note above. */
-@utility text-display-lg {
-  font-size: clamp(32px, 20px + 3.2vw, 56px);
-  line-height: 1.05;
-  font-weight: 800;
-}
-@utility text-display-md {
-  font-size: clamp(32px, 22px + 2.6vw, 52px);
-  line-height: 1.05;
-  font-weight: 800;
-}
-@utility text-display-sm {
-  font-size: clamp(28px, 21px + 2vw, 44px);
-  line-height: 1.1;
-  font-weight: 800;
+[data-theme="paper"] {
+  --color-page: #fbfaf8;
+  --color-panel: #fbfaf8;
+  --color-panel-raised: #f4f2ed;
+  --color-fg: #12100e;
+  --color-fg-mid: #5c5852;
+  --color-fg-faint: #746f68;
+  --color-hairline: #e3dfd8;
+  --color-edge: #8a857c;
+  --color-primary: #12100e;
+  --color-on-primary: #fbfaf8;
 }
 
-/* The uppercase micro-label above every input. */
-@utility label-caps {
-  font-size: 11px;
+@utility text-display {
+  font-size: clamp(40px, 5.5vw, 68px);
+  line-height: 1.02;
   font-weight: 600;
-  letter-spacing: 1px;
-  color: var(--color-text-label);
+  letter-spacing: -0.03em;
 }
 
-/* The gold gradient shared by every primary button on the auth screens. */
-@utility bg-gold-gradient {
-  background-image: linear-gradient(180deg, #f0ac33, #d68a12);
+@utility text-h1 {
+  font-size: clamp(30px, 3.2vw, 40px);
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
-/* The dashboard's gold gradient. Stops are production's `gradientPrimary`
-   (primary → primaryDark); only the angle differs from the auth one. */
-@utility bg-app-gold-gradient {
-  background-image: linear-gradient(135deg, #e8a020, #c9851a);
+@utility text-h2 {
+  font-size: 24px;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+@utility text-h3 {
+  font-size: 18px;
+  line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+@utility text-body {
+  font-size: 15px;
+  line-height: 1.55;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+@utility text-body-sm {
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+@utility text-label {
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+@utility text-eyebrow {
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@utility text-mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+@utility text-mono-lg {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  line-height: 1.2;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+@utility font-tabular {
+  font-variant-numeric: tabular-nums;
 }
 
 @layer base {
   html {
-    background: var(--color-bg);
+    background: var(--color-page);
   }
 
   body {
-    background: var(--color-bg);
-    color: var(--color-text);
+    background: var(--color-page);
+    color: var(--color-fg);
     font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.55;
     -webkit-font-smoothing: antialiased;
   }
 
-  /* The source files set outline:none on every input and never replace it.
-     Restore a visible focus indicator for keyboard users only. */
   :focus-visible {
-    outline: 2px solid var(--color-gold);
+    outline: 2px solid var(--color-brand);
     outline-offset: 2px;
     border-radius: 4px;
   }
 
-  input::placeholder {
-    color: var(--color-placeholder);
+  [data-theme="paper"] :focus-visible {
+    outline-color: var(--color-ink);
   }
 
-  /* Chrome autofill repaints inputs white, which destroys the dark fields. */
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-fg-faint);
+  }
+
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus {
-    -webkit-text-fill-color: var(--color-text-input);
-    -webkit-box-shadow: 0 0 0 1000px var(--color-field) inset;
-    caret-color: var(--color-text-input);
+    -webkit-text-fill-color: var(--color-fg);
+    -webkit-box-shadow: 0 0 0 1000px var(--color-panel-raised) inset;
+    caret-color: var(--color-fg);
     transition: background-color 9999s ease-out 0s;
+  }
+
+  button:disabled,
+  input:disabled,
+  textarea:disabled,
+  select:disabled {
+    cursor: not-allowed;
   }
 }
 
 @keyframes toast-in {
   from {
-    transform: translateY(30px);
+    transform: translateY(8px);
     opacity: 0;
   }
   to {
@@ -190,13 +209,13 @@
   }
 }
 
-@keyframes ring-pulse {
+@keyframes pulse-dot {
   0%,
   100% {
-    opacity: 0.5;
+    opacity: 1;
   }
   50% {
-    opacity: 1;
+    opacity: 0.45;
   }
 }
 
@@ -206,43 +225,14 @@
   }
 }
 
-/* Dashboard: the live-status dot and the content enter transition. */
-@keyframes pulse-dot {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.6;
-    transform: scale(1.3);
-  }
-}
-
-@keyframes fade-up {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .animate-pulse-dot {
-  animation: pulse-dot 2s ease-in-out infinite;
-}
-.animate-fade-up {
-  animation: fade-up 0.25s ease;
+  animation: pulse-dot 2s ease-out infinite;
 }
 
 .animate-toast-in {
-  animation: toast-in 0.4s ease;
+  animation: toast-in 160ms ease-out;
 }
-.animate-ring-pulse {
-  animation: ring-pulse 3s ease-in-out infinite;
-}
+
 .animate-spin-slow {
   animation: spin 0.7s linear infinite;
 }
@@ -255,12 +245,8 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-  .animate-toast-in {
-    animation: none;
-    transform: none;
-    opacity: 1;
-  }
-  .animate-fade-up {
+  .animate-toast-in,
+  .animate-pulse-dot {
     animation: none;
   }
 }

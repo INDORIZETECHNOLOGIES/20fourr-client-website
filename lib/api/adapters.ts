@@ -45,14 +45,14 @@ export function formatApiTime(time?: string | null): string {
 }
 
 const SERVICE_LABELS: Record<string, string> = {
-  guard: "Security Guard",
+  guard: "Security guard",
   bouncer: "Bouncer",
   gunman: "Gunman",
   pso: "PSO",
 };
 
 export function serviceLabel(category?: string | null): string {
-  if (!category) return "Security Service";
+  if (!category) return "Security service";
   return SERVICE_LABELS[category] ?? category;
 }
 

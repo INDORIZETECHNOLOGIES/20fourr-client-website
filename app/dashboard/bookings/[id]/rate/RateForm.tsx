@@ -92,7 +92,7 @@ export function RateForm({
         </Notice>
         <Link
           href="/dashboard/bookings"
-          className="mt-5 inline-block rounded-full bg-app-gold-gradient px-7 py-2.5 text-[14px] font-bold text-black"
+          className="mt-5 inline-block rounded-sm bg-brand text-brand-ink px-7 py-2.5 text-body font-semibold"
         >
           Back to bookings
         </Link>
@@ -102,8 +102,8 @@ export function RateForm({
 
   return (
     <Card className="p-6">
-      <p className="text-center text-[15px] text-slate-300">
-        How was your experience with <strong className="text-slate-100">{guard}</strong>?
+      <p className="text-center text-body text-fg-mid">
+        How was your experience with <strong className="text-fg">{guard}</strong>?
       </p>
 
       <div className="mt-5 flex justify-center gap-2">
@@ -120,8 +120,8 @@ export function RateForm({
             onMouseEnter={() => setHover(n)}
             onMouseLeave={() => setHover(0)}
             className={[
-              "transition-transform hover:scale-110",
-              (hover || stars) >= n ? "text-app-gold" : "text-slate-700",
+              "transition-opacity hover:scale-110",
+              (hover || stars) >= n ? "text-fg" : "text-fg-faint",
             ].join(" ")}
           >
             <StarFill size={38} />
@@ -131,7 +131,7 @@ export function RateForm({
 
       {stars > 0 ? (
         <>
-          <p className="mt-6 text-[12px] font-semibold uppercase tracking-[1.2px] text-slate-500">
+          <p className="mt-6 text-label font-semibold uppercase tracking-[1.2px] text-fg-faint">
             {negative ? "Areas of concern" : "What went well"}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -142,12 +142,12 @@ export function RateForm({
                 aria-pressed={tags.includes(t)}
                 onClick={() => toggle(t)}
                 className={[
-                  "rounded-full border px-4 py-2 text-[13.5px] font-semibold transition-colors",
+                  "rounded-sm border px-4 py-2 text-body-sm font-semibold transition-colors",
                   tags.includes(t)
                     ? negative
-                      ? "border-red-500/50 bg-red-500/10 text-red-400"
-                      : "border-app-gold bg-app-gold/12 text-app-gold"
-                    : "border-app-border text-slate-300 hover:border-app-gold/40",
+                      ? "border-fault/50 bg-transparent text-fault"
+                      : "border-brand bg-panel-raised text-brand"
+                    : "border-hairline text-fg-mid hover:border-edge",
                 ].join(" ")}
               >
                 {t}
@@ -157,9 +157,9 @@ export function RateForm({
 
           <label
             htmlFor="rating-comment"
-            className="mb-2 mt-6 block text-[13px] font-medium text-slate-400"
+            className="mb-2 mt-6 block text-body-sm font-medium text-fg-mid"
           >
-            Anything else? <span className="text-slate-600">(optional)</span>
+            Anything else? <span className="text-fg-faint">(optional)</span>
           </label>
           <textarea
             id="rating-comment"
@@ -167,15 +167,15 @@ export function RateForm({
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             placeholder="Your review helps other clients choose."
-            className="w-full rounded-xl border border-app-border bg-white/4 px-4 py-3 text-[14.5px] text-slate-100 outline-none transition-colors placeholder:text-slate-600 focus:border-app-gold/60"
+            className="w-full rounded-lg border border-hairline bg-panel-raised px-4 py-3 text-body text-fg outline-none transition-colors placeholder:text-fg-faint focus:border-edge"
           />
 
-          <label className="mt-4 flex cursor-pointer items-center gap-3 text-[14px] text-slate-300">
+          <label className="mt-4 flex cursor-pointer items-center gap-3 text-body text-fg-mid">
             <input
               type="checkbox"
               checked={anonymous}
               onChange={(e) => setAnonymous(e.target.checked)}
-              className="h-5 w-5 accent-app-gold"
+              className="h-5 w-5 accent-brand"
             />
             Post anonymously
           </label>
@@ -183,7 +183,7 @@ export function RateForm({
           {error ? (
             <p
               role="alert"
-              className="mb-3 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-[14px] text-red-300"
+              className="mb-3 rounded-lg border border-fault bg-transparent px-4 py-3 text-body text-fault"
             >
               {error}
             </p>
@@ -192,13 +192,13 @@ export function RateForm({
             type="button"
             onClick={submit}
             disabled={saving || stars === 0}
-            className="mt-6 w-full rounded-full bg-app-gold-gradient py-3.5 text-[15px] font-bold text-black transition-transform hover:-translate-y-px disabled:translate-y-0 disabled:opacity-50"
+            className="mt-6 w-full rounded-sm bg-brand text-brand-ink py-3.5 text-body font-semibold transition-opacity   disabled:opacity-50"
           >
             {saving ? "Submitting…" : "Submit rating"}
           </button>
         </>
       ) : (
-        <p className="mt-6 text-center text-[13.5px] text-slate-600">
+        <p className="mt-6 text-center text-body-sm text-fg-faint">
           Pick a rating to continue.
         </p>
       )}

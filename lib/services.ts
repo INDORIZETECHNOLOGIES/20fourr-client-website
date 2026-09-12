@@ -28,49 +28,38 @@ export type ServiceDefinition = {
   name: string;
   desc: string;
   icon: ServiceIcon;
-  /** Tailwind text-color class for the glyph, and the tinted tile behind it. */
-  color: string;
-  iconBg: string;
-  /** Border tint used on hover. */
-  hover: string;
+  /** Arms licence is checked before a booking in this category is accepted. */
+  licenceRequired: boolean;
 };
 
 export const SERVICE_CATALOGUE: ServiceDefinition[] = [
   {
     id: "guard",
-    name: "Security Guard",
-    desc: "Professional trained security personnel for premises and perimeter protection",
+    name: "Security guard",
+    desc: "Trained personnel for premises and perimeter",
     icon: "shield",
-    color: "text-app-gold",
-    iconBg: "bg-app-gold/12",
-    hover: "hover:border-app-gold/20",
+    licenceRequired: false,
   },
   {
     id: "bouncer",
     name: "Bouncer",
-    desc: "Crowd control and access management for events, clubs and venues",
+    desc: "Crowd control and access for events, clubs and venues",
     icon: "crowd",
-    color: "text-app-info",
-    iconBg: "bg-app-info/12",
-    hover: "hover:border-app-info/20",
+    licenceRequired: false,
   },
   {
     id: "gunman",
     name: "Gunman",
-    desc: "Licensed armed security personnel for high-risk environments",
+    desc: "Armed personnel for high-risk sites. Arms licence verified before the booking is accepted.",
     icon: "pistol",
-    color: "text-red-500",
-    iconBg: "bg-red-500/12",
-    hover: "hover:border-red-500/20",
+    licenceRequired: true,
   },
   {
     id: "pso",
     name: "PSO",
-    desc: "Personal Security Officer for close protection of individuals and families",
+    desc: "Close protection for individuals. Arms licence verified before the booking is accepted.",
     icon: "guard",
-    color: "text-green-500",
-    iconBg: "bg-green-500/12",
-    hover: "hover:border-green-500/20",
+    licenceRequired: true,
   },
 ];
 
@@ -80,12 +69,10 @@ export const SERVICE_CATALOGUE: ServiceDefinition[] = [
  * it resolves to a query flag rather than a category.
  */
 export const EX_SERVICEMAN_FILTER = {
-  name: "Ex-Serviceman",
-  desc: "Any category, restricted to providers with a verified ex-serviceman certificate",
+  name: "Ex-serviceman",
+  desc: "A filter, not a category: any of the four services, restricted to providers with a verified ex-serviceman certificate",
   icon: "medal" as ServiceIcon,
-  color: "text-violet-400",
-  iconBg: "bg-violet-400/12",
-  hover: "hover:border-violet-400/20",
+  licenceRequired: false,
 };
 
 export function serviceById(id: string): ServiceDefinition | undefined {
