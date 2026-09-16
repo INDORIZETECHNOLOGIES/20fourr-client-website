@@ -1,12 +1,15 @@
+import type { ReactNode } from "react";
 import { formatPaise } from "@/lib/money";
 import type { WorkedQuote } from "@/lib/sample-quote";
 
 export function QuoteBreakdown({
   quote,
   className = "",
+  action,
 }: {
   quote: WorkedQuote;
   className?: string;
+  action?: ReactNode;
 }) {
   return (
     <div className={`rounded-lg border border-rule bg-paper-raised p-6 ${className}`}>
@@ -18,11 +21,12 @@ export function QuoteBreakdown({
             <dd className="text-mono text-ink">{formatPaise(line.amountPaise)}</dd>
           </div>
         ))}
-        <div className="mt-2 flex items-baseline justify-between gap-4 border-t border-rule pt-3">
-          <dt className="text-body font-medium text-ink">Total</dt>
+        <div className="mt-3 flex items-baseline justify-between gap-4 border-t border-ink pt-4">
+          <dt className="text-h3 text-ink">Total</dt>
           <dd className="text-mono-lg text-ink">{formatPaise(quote.totalPaise)}</dd>
         </div>
       </dl>
+      {action ? <div className="mt-5">{action}</div> : null}
       <p className="mt-3 text-body-sm text-ink-faint">{quote.note}</p>
     </div>
   );

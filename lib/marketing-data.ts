@@ -7,6 +7,7 @@
  */
 
 import { API_BASE_URL } from "@/lib/api/backend";
+import { maskPublicProvider, type MaskedProvider } from "@/lib/provider-display";
 
 export type Officer = {
   name?: string;
@@ -29,6 +30,9 @@ export type Coverage = {
   cities: CoverageCity[];
   /** Unique verified providers on the public index, when the API sends pagination. */
   verifiedProviders: number | null;
+  /** One listing from the public index, names already stripped. */
+  featured: MaskedProvider | null;
+  listings: MaskedProvider[];
 };
 
 const CITY_ALIASES: Record<string, string> = {
@@ -134,15 +138,25 @@ export async function getSiteContacts(): Promise<SiteContacts | null> {
 
 export async function getCoverage(): Promise<Coverage> {
   const body = await publicJson("public/providers?limit=100");
-  if (!body) return { cities: [], verifiedProviders: null };
+  if (!body) return { cities: [], verifiedProviders: null, featured: null, listings: [] };
   const data = unwrap(body);
   const providers = Array.isArray(data.providers) ? data.providers : [];
   const pagination = data.pagination as { total?: number } | undefined;
   const counts = new Map<string, number>();
+  const listings: MaskedProvider[] = [];
+  let first: MaskedProvider | null = null;
+  let featured: MaskedProvider | null = null;
 
   for (const raw of providers) {
     if (!raw || typeof raw !== "object") continue;
     const p = raw as Record<string, unknown>;
+    const masked = maskPublicProvider(p);
+    if (masked) {
+      if (!first) first = masked;
+      if (!featured && masked.isVerified) featured = masked;
+      if (listings.length < 8) listings.push(masked);
+    }
+
     const cities = new Set<string>();
     if (typeof p.serviceCity === "string" && p.serviceCity.trim()) {
       cities.add(normalizeCity(p.serviceCity));
@@ -164,6 +178,8 @@ export async function getCoverage(): Promise<Coverage> {
   return {
     cities: list,
     verifiedProviders: typeof pagination?.total === "number" ? pagination.total : null,
+    featured: featured ?? first,
+    listings,
   };
 }
 

@@ -155,6 +155,7 @@
 @layer base {
   html {
     background: var(--color-page);
+    scroll-padding-top: 64px;
   }
 
   body {

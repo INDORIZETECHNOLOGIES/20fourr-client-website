@@ -5,11 +5,10 @@ import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
 
 const LINKS = [
-  { href: "/#services", label: "Services" },
   { href: "/#how-it-works", label: "How it works" },
+  { href: "/#compliance", label: "Verification" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/coverage", label: "Coverage" },
-  { href: "/for-business", label: "For business" },
+  { href: "/#faq", label: "FAQ" },
 ];
 
 export function MarketingNav() {
@@ -79,10 +78,10 @@ export function MarketingNav() {
             </Link>
           )}
           <Link
-            href="/book"
+            href={signedIn ? "/book" : "/#find"}
             className="inline-flex h-10 items-center justify-center rounded-sm bg-ink px-4 text-body font-medium text-paper"
           >
-            Book a guard
+            Find security
           </Link>
         </div>
 
@@ -103,9 +102,16 @@ export function MarketingNav() {
       {open ? (
         <div
           id="mobile-nav"
-          className="fixed inset-0 top-16 z-40 bg-paper px-6 py-8 lg:hidden"
+          className="fixed inset-0 top-16 z-40 overflow-y-auto bg-paper px-6 py-8 lg:hidden"
         >
           <nav className="flex flex-col gap-4" aria-label="Mobile">
+            <Link
+              href={signedIn ? "/book" : "/#find"}
+              className="inline-flex h-12 items-center justify-center rounded-sm bg-ink px-5 text-body font-medium text-paper"
+              onClick={() => setOpen(false)}
+            >
+              Find security
+            </Link>
             {LINKS.map((l) => (
               <Link
                 key={l.href}
@@ -118,13 +124,6 @@ export function MarketingNav() {
             ))}
             <Link href={signedIn ? "/dashboard" : "/login"} className="text-h3 text-ink">
               {signedIn ? "Dashboard" : "Sign in"}
-            </Link>
-            <Link
-              href="/book"
-              className="mt-4 inline-flex h-12 items-center justify-center rounded-sm bg-ink px-5 text-body font-medium text-paper"
-              onClick={() => setOpen(false)}
-            >
-              Book a guard
             </Link>
           </nav>
         </div>

@@ -1,52 +1,67 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { QuoteBreakdown } from "@/components/marketing/QuoteBreakdown";
 import { CostCalculator } from "@/components/marketing/CostCalculator";
-import { SERVICE_CATALOGUE, EX_SERVICEMAN_FILTER } from "@/lib/services";
-import { DEFAULT_QUOTE } from "@/lib/sample-quote";
-import { getCoverage } from "@/lib/marketing-data";
 import { CoverageDirectory } from "@/components/marketing/CoverageDirectory";
+import { FinalCta } from "@/components/marketing/FinalCta";
+import { MarketingCta } from "@/components/marketing/MarketingCta";
+import { ProductHero } from "@/components/marketing/ProductHero";
+import { ProductShowcase } from "@/components/marketing/ProductShowcase";
+import { PublicListings } from "@/components/marketing/PublicListings";
+import { TrustStrip } from "@/components/marketing/TrustStrip";
+import { SERVICE_CATALOGUE, EX_SERVICEMAN_FILTER } from "@/lib/services";
+import { getCoverage } from "@/lib/marketing-data";
 import { CANCELLATION_SUMMARY } from "@/lib/cancellation-policy";
 
 export const metadata: Metadata = {
-  title: "Licensed guards. Documented shifts.",
+  title: "Verified security. Documented shifts.",
   description:
-    "Book PSARA-licensed security guards, bouncers, gunmen and PSOs. Every shift is OTP-gated and issued a GST tax document.",
+    "Find verified security guards, bouncers, gunmen and PSOs with transparent pricing, OTP attendance and GST documents for every shift.",
   alternates: { canonical: "/" },
+};
+
+const WHEN: Record<string, string> = {
+  guard: "Offices, facilities, residential associations and site gates.",
+  bouncer: "Venues, events, door and floor control.",
+  gunman: "Named sites that need armed duty.",
+  pso: "Close protection for a named individual.",
 };
 
 const STEPS = [
   {
-    n: "1",
-    title: "Search and quote",
+    n: "01",
+    title: "Search",
     body: "Pick a category and city. The quote lists service, platform fee and GST lines before you commit.",
   },
   {
-    n: "2",
-    title: "Book, with four waivers recorded",
-    body: "Purpose, risk, absence and safety acknowledgements are stored on the booking, not a checkbox you never see again.",
+    n: "02",
+    title: "Compare",
+    body: "Review verified profiles, rates and availability for the shift you named.",
   },
   {
-    n: "3",
-    title: "Provider accepts, you pay",
-    body: "Nothing is charged until a provider accepts. Payment is taken once, in full.",
+    n: "03",
+    title: "Book",
+    body: "Purpose, risk, absence and safety acknowledgements are stored on the booking. Nothing is charged until a provider accepts. Payment is taken once, in full.",
   },
   {
-    n: "4",
-    title: "OTP starts the shift, OTP ends it",
+    n: "04",
+    title: "Start with OTP",
     body: "Duty start and end are codes you show the guard in person. Timestamps are recorded, not self-reported.",
   },
   {
-    n: "5",
-    title: "Documents issued",
+    n: "05",
+    title: "Complete",
     body: "A GST tax invoice for the platform fee and a service document for the shift, with CGST/SGST/IGST by place of supply.",
   },
 ];
 
 const COMPLIANCE = [
   {
-    dt: "PSARA against the shift",
+    dt: "Provider verification",
     dd: "Licence validity is checked against the service start date and the deployment state, not a screenshot from last year.",
+  },
+  {
+    dt: "PSARA against the shift",
+    dd: "The agency licence is matched to the state of deployment for that booking.",
   },
   {
     dt: "Arms licence before armed duty",
@@ -135,6 +150,7 @@ const jsonLd = {
 
 export default async function LandingPage() {
   const coverage = await getCoverage();
+
   return (
     <>
       <script
@@ -142,91 +158,93 @@ export default async function LandingPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <section className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
-        <div className="grid grid-cols-1 items-start gap-12 lg:grid-cols-12">
+      <section className="mx-auto max-w-[1200px] px-4 py-12 lg:px-6 lg:py-20">
+        <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-12 lg:gap-12">
           <div className="lg:col-span-6">
-            <p className="text-eyebrow text-ink-faint">PSARA-licensed</p>
-            <h1 className="text-display mt-4 text-ink">Licensed guards. Documented shifts.</h1>
-            <p className="mt-5 max-w-[60ch] text-body text-ink-mid">
-              20fourr is a marketplace for security guard, bouncer, gunman and PSO shifts. Every
-              booking checks the provider&apos;s licence, starts and ends on an OTP, and issues a
-              GST tax document. Built for venues, events, offices, facilities and residential
-              associations; an individual PSO booking is the same path.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                href="/book"
-                className="inline-flex h-12 items-center justify-center rounded-sm bg-ink px-5 text-body font-medium text-paper"
-              >
-                Book a guard
-              </Link>
-              <Link
-                href="/pricing"
-                className="inline-flex h-12 items-center justify-center rounded-sm border border-edge px-5 text-body font-medium text-ink"
-              >
-                See a sample quote
-              </Link>
+            <p className="text-eyebrow text-ink-faint">PSARA-licensed marketplace</p>
+            <h1 className="text-display mt-4 text-ink">Verified security. Documented shifts.</h1>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <MarketingCta href="/#find" className="w-full sm:w-auto">
+                Find security
+              </MarketingCta>
+              <MarketingCta href="/pricing" variant="secondary" className="w-full sm:w-auto">
+                Get a quote
+              </MarketingCta>
             </div>
+            <p className="mt-5 max-w-[60ch] text-body text-ink-mid">
+              Find verified security guards, bouncers, gunmen and PSOs with transparent pricing,
+              digital attendance and documented shifts. Every booking checks the provider&apos;s
+              licence, starts and ends on an OTP, and issues a GST tax document.
+            </p>
+            {(coverage.verifiedProviders != null || coverage.cities.length > 0) && (
+              <dl className="mt-10 grid grid-cols-2 gap-6 border-t border-rule pt-6 sm:max-w-sm">
+                {coverage.verifiedProviders != null ? (
+                  <div>
+                    <dt className="text-label text-ink-faint">Verified providers</dt>
+                    <dd className="mt-1 text-mono-lg text-ink">{coverage.verifiedProviders}</dd>
+                  </div>
+                ) : null}
+                {coverage.cities.length > 0 ? (
+                  <div>
+                    <dt className="text-label text-ink-faint">Cities with supply</dt>
+                    <dd className="mt-1 text-mono-lg text-ink">{coverage.cities.length}</dd>
+                  </div>
+                ) : null}
+              </dl>
+            )}
           </div>
           <div className="lg:col-span-6 lg:col-start-7">
-            <QuoteBreakdown quote={DEFAULT_QUOTE} />
+            <ProductHero provider={coverage.featured} />
           </div>
         </div>
       </section>
 
-      <section id="services" className="border-t border-rule">
-        <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6">
+      <TrustStrip />
+
+      <PublicListings listings={coverage.listings} />
+
+      <section id="services" className="border-b border-rule">
+        <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
           <p className="text-eyebrow text-ink-faint">What you can book</p>
           <h2 className="text-h1 mt-3 text-ink">Four categories. Ex-serviceman is a filter.</h2>
-          <div className="mt-8 overflow-x-auto">
-            <table className="w-full min-w-[640px] border-collapse text-left">
-              <thead className="bg-paper-raised">
-                <tr>
-                  <th className="border-b border-rule px-4 py-3 text-label font-medium text-ink">
-                    Category
-                  </th>
-                  <th className="border-b border-rule px-4 py-3 text-label font-medium text-ink">
-                    What it covers
-                  </th>
-                  <th className="border-b border-rule px-4 py-3 text-label font-medium text-ink">
-                    Licence
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {SERVICE_CATALOGUE.map((s) => (
-                  <tr key={s.id} className="border-b border-rule">
-                    <td className="px-4 py-4 text-body font-medium text-ink">
-                      <Link href={`/services/${s.id}`} className="hover:underline">
-                        {s.name}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-4 text-body text-ink-mid">{s.desc}</td>
-                    <td className="px-4 py-4 text-body-sm">
-                      {s.licenceRequired ? (
-                        <span className="text-attention">Arms licence verified</span>
-                      ) : (
-                        <span className="text-ink-mid">PSARA agency licence</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className="mt-4 text-body-sm text-ink-mid">
+          <ul className="mt-10 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-rule bg-rule sm:grid-cols-2">
+            {SERVICE_CATALOGUE.map((s) => (
+              <li key={s.id} className="flex flex-col bg-paper p-6">
+                <h3 className="text-h3 text-ink">{s.name}</h3>
+                <p className="mt-2 text-body text-ink-mid">{s.desc}</p>
+                <p className="mt-3 text-body-sm text-ink-mid">{WHEN[s.id]}</p>
+                <p className="mt-4 text-label text-ink-faint">
+                  {s.licenceRequired ? (
+                    <span className="text-attention">Arms licence verified</span>
+                  ) : (
+                    "PSARA agency licence"
+                  )}
+                </p>
+                <Link
+                  href="/#find"
+                  className="mt-5 text-body font-medium text-ink hover:underline"
+                >
+                  Find {s.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-6 text-body-sm text-ink-mid">
             {EX_SERVICEMAN_FILTER.name}: {EX_SERVICEMAN_FILTER.desc}
           </p>
         </div>
       </section>
 
-      <section id="how-it-works" className="border-t border-rule">
-        <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6">
+      <section id="how-it-works">
+        <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
           <p className="text-eyebrow text-ink-faint">How it works</p>
-          <h2 className="text-h1 mt-3 text-ink">The real lifecycle, not a shortened one</h2>
-          <ol className="mt-10 grid grid-cols-1 gap-0 border-t border-rule lg:grid-cols-5">
+          <h2 className="text-h1 mt-3 text-ink">From search to a documented shift</h2>
+          <ol className="mt-10 grid grid-cols-1 gap-0 border-t border-rule md:grid-cols-2 xl:grid-cols-5">
             {STEPS.map((s) => (
-              <li key={s.n} className="border-b border-rule px-0 py-6 lg:border-b-0 lg:border-r lg:px-4 lg:py-8 last:lg:border-r-0">
+              <li
+                key={s.n}
+                className="border-b border-rule py-6 md:border-r md:px-4 md:py-8 last:md:border-r-0 xl:border-b-0"
+              >
                 <p className="text-mono text-ink-faint">{s.n}</p>
                 <h3 className="text-h3 mt-3 text-ink">{s.title}</h3>
                 <p className="mt-2 text-body-sm text-ink-mid">{s.body}</p>
@@ -236,24 +254,11 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <section id="compliance" className="bg-paper-raised">
-        <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6">
-          <p className="text-eyebrow text-ink-faint">Compliance</p>
-          <h2 className="text-h1 mt-3 text-ink">A deployment you can put through procurement</h2>
-          <dl className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-2">
-            {COMPLIANCE.map((c) => (
-              <div key={c.dt} className="border-t border-rule pt-4">
-                <dt className="text-h3 text-ink">{c.dt}</dt>
-                <dd className="mt-2 text-body text-ink-mid">{c.dd}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      </section>
+      <ProductShowcase provider={coverage.featured} />
 
       <section id="pricing" className="border-t border-rule">
-        <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6">
-          <p className="text-eyebrow text-ink-faint">What a booking actually costs</p>
+        <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
+          <p className="text-eyebrow text-ink-faint">Transparent pricing</p>
           <h2 className="text-h1 mt-3 text-ink">Every line, including both GST components</h2>
           <p className="mt-4 max-w-prose text-body text-ink-mid">
             Live quotes are generated in the booking funnel from the provider&apos;s rates. This
@@ -271,8 +276,23 @@ export default async function LandingPage() {
         </div>
       </section>
 
+      <section id="compliance" className="bg-paper-raised">
+        <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
+          <p className="text-eyebrow text-ink-faint">Trust and compliance</p>
+          <h2 className="text-h1 mt-3 text-ink">Built for accountable security operations.</h2>
+          <dl className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-2">
+            {COMPLIANCE.map((c) => (
+              <div key={c.dt} className="border-t border-rule pt-4">
+                <dt className="text-h3 text-ink">{c.dt}</dt>
+                <dd className="mt-2 text-body text-ink-mid">{c.dd}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </section>
+
       <section id="coverage" className="border-t border-rule">
-        <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6">
+        <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
           <p className="text-eyebrow text-ink-faint">Coverage</p>
           <h2 className="text-h1 mt-3 max-w-[20ch] text-ink">Verified supply, by city</h2>
           <p className="mt-3 max-w-prose text-body text-ink-mid">
@@ -288,19 +308,8 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <section id="providers" className="border-t border-rule bg-paper-raised">
-        <div className="mx-auto max-w-[1200px] px-4 py-12 lg:px-6">
-          <p className="text-eyebrow text-ink-faint">For providers</p>
-          <h2 className="text-h1 mt-3 text-ink">Supply is onboarded in the provider app</h2>
-          <p className="mt-4 max-w-prose text-body text-ink-mid">
-            This page is for clients booking a shift. Provider applications, PSARA documents and
-            payouts live in the 20fourr provider app, not on this website.
-          </p>
-        </div>
-      </section>
-
       <section id="faq" className="border-t border-rule">
-        <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6">
+        <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
           <p className="text-eyebrow text-ink-faint">FAQ</p>
           <h2 className="text-h1 mt-3 text-ink">Straight answers</h2>
           <div className="mt-8 max-w-[680px] divide-y divide-rule border-y border-rule">
@@ -313,6 +322,19 @@ export default async function LandingPage() {
           </div>
         </div>
       </section>
+
+      <section id="providers" className="border-t border-rule bg-paper-raised">
+        <div className="mx-auto max-w-[1200px] px-4 py-12 lg:px-6">
+          <p className="text-eyebrow text-ink-faint">For providers</p>
+          <h2 className="text-h2 mt-3 text-ink">Supply is onboarded in the provider app</h2>
+          <p className="mt-4 max-w-prose text-body text-ink-mid">
+            This page is for clients booking a shift. Provider applications, PSARA documents and
+            payouts live in the 20fourr provider app, not on this website.
+          </p>
+        </div>
+      </section>
+
+      <FinalCta />
     </>
   );
 }

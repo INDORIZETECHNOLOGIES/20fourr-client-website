@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { QuoteBreakdown } from "@/components/marketing/QuoteBreakdown";
+import { MarketingCta } from "@/components/marketing/MarketingCta";
 import { SERVICE_CATALOGUE } from "@/lib/services";
 import { CANCELLATION_SUMMARY } from "@/lib/cancellation-policy";
 import { workedQuote } from "@/lib/sample-quote";
@@ -56,7 +57,15 @@ export function CostCalculator() {
             ))}
           </div>
         </div>
-        <QuoteBreakdown quote={quote} className="w-full lg:max-w-md" />
+        <QuoteBreakdown
+          quote={quote}
+          className="w-full lg:max-w-md"
+          action={
+            <MarketingCta href="/book" className="w-full min-w-0">
+              Continue booking
+            </MarketingCta>
+          }
+        />
       </div>
       <p className="mt-6 max-w-prose text-body text-ink-mid">{CANCELLATION_SUMMARY}</p>
     </div>

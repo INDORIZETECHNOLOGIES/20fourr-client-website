@@ -15,6 +15,7 @@ import type {
 import { TRUST_BADGE_LABELS } from "@/lib/api/types";
 import { relativeTime } from "@/lib/api/adapters";
 import { formatPaiseRounded } from "@/lib/money";
+import { maskPublicProvider } from "@/lib/provider-display";
 
 /** Mirrors ALLOWED_SORTS on the discovery service. */
 const SORTS = [
@@ -192,7 +193,10 @@ export default function ProviderStep() {
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {providers.map((p) => (
+          {providers.map((p) => {
+            const masked = maskPublicProvider(p);
+            const label = masked ? `${masked.title} ${masked.code}` : "Licensed professional";
+            return (
             <ProviderCard
               key={p.id}
               provider={p}
@@ -200,12 +204,13 @@ export default function ProviderStep() {
               onSelect={() =>
                 update({
                   providerId: p.id,
-                  providerName: p.businessName || p.user?.fullName || "Provider",
+                  providerName: label,
                   providerMinimumHours: p.pricing?.minimumHours ?? null,
                 })
               }
             />
-          ))}
+            );
+          })}
 
           {data?.pagination && data.pagination.pages > 1 ? (
             <p className="mt-1 text-center text-body-sm text-fg-faint">
@@ -224,12 +229,6 @@ export default function ProviderStep() {
   );
 }
 
-function initialsOf(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  return (parts[0][0] + (parts[1]?.[0] ?? "")).toUpperCase();
-}
-
 function ProviderCard({
   provider,
   selected,
@@ -240,7 +239,8 @@ function ProviderCard({
   onSelect: () => void;
 }) {
   const [open, setOpen] = useState(false);
-  const name = provider.businessName || provider.user?.fullName || "Security provider";
+  const masked = maskPublicProvider(provider);
+  const title = masked?.title ?? "Licensed professional";
   const hourly = provider.pricing?.hourlyRate ?? null;
   const daily = provider.pricing?.dailyRate ?? null;
 
@@ -253,12 +253,15 @@ function ProviderCard({
     >
       <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
         <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-panel-raised text-h3 font-semibold text-fg">
-          {initialsOf(name)}
+          {masked?.initials ?? "LP"}
         </span>
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-body font-semibold text-fg">{name}</span>
+            <span className="text-body font-semibold text-fg">{title}</span>
+            {masked ? (
+              <span className="text-mono text-fg-faint">{masked.code}</span>
+            ) : null}
             {provider.isVerified ? (
               <span className="inline-flex items-center gap-1 rounded-sm border border-live px-2 py-0.5 text-label font-medium text-live">
                 <CheckCircleFill size={12} />

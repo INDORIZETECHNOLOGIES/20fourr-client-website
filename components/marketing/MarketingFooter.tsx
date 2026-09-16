@@ -32,10 +32,19 @@ export function MarketingFooter({ contacts }: { contacts: SiteContacts | null })
           <p className="text-eyebrow text-ink-faint">Product</p>
           <ul className="mt-3 flex flex-col gap-2 text-body text-ink-mid">
             <li>
+              <a href="/#how-it-works">How it works</a>
+            </li>
+            <li>
               <a href="/#services">Services</a>
             </li>
             <li>
+              <a href="/#compliance">Verification</a>
+            </li>
+            <li>
               <Link href="/pricing">Pricing</Link>
+            </li>
+            <li>
+              <a href="/#faq">FAQ</a>
             </li>
             <li>
               <Link href="/coverage">Coverage</Link>
@@ -44,7 +53,7 @@ export function MarketingFooter({ contacts }: { contacts: SiteContacts | null })
               <Link href="/for-business">For business</Link>
             </li>
             <li>
-              <Link href="/book">Book a guard</Link>
+              <Link href="/#find">Find security</Link>
             </li>
           </ul>
         </div>
