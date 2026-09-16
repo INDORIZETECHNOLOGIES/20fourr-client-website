@@ -194,11 +194,9 @@ export default async function LandingPage() {
                 {TRUST_PILLS.map((label) => (
                   <li
                     key={label}
-                    className="inline-flex items-center gap-1.5 rounded-pill border border-rule bg-paper px-3 py-1.5 text-label text-ink"
+                    className="inline-flex items-center gap-1.5 rounded-pill border border-live bg-paper px-3 py-1.5 text-label font-medium text-live"
                   >
-                    <span className="text-live">
-                      <CheckIcon size={14} />
-                    </span>
+                    <CheckIcon size={14} />
                     {label}
                   </li>
                 ))}
