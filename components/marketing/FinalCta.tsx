@@ -9,15 +9,14 @@ export function FinalCta({ surface = "paper" }: { surface?: ProductSurface }) {
       <div className="mx-auto flex max-w-[1200px] flex-col gap-8 px-4 py-16 lg:flex-row lg:items-end lg:justify-between lg:px-6 lg:py-24">
         <div className="max-w-[36rem]">
           <h2 className={`text-h1 ${surface === "ink" ? "text-ground-ink" : "text-paper"}`}>
-            Need security for your next requirement?
+            Your next shift is one booking away.
           </h2>
           <p className={`mt-4 text-body ${t.bandMid}`}>
-            Search verified guards, bouncers, gunmen and PSOs. The quote is itemized before you
-            book. Duty starts and ends on an OTP.
+            Verified guard. OTP duty. GST document. No follow-up calls.
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <MarketingCta href="/#find" variant="inverse">
+          <MarketingCta href="/#find" variant="inverse" className="w-full sm:w-auto">
             Find security
           </MarketingCta>
           <MarketingCta href="/pricing" variant="secondary" className={t.ctaSecondary}>
