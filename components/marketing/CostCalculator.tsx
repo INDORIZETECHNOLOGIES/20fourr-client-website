@@ -21,20 +21,23 @@ export function CostCalculator({
   surface = "paper",
   showLiveRateBadge = false,
   mutedGst = false,
+  elevated = false,
 }: {
   provider?: MaskedProvider | null;
   surface?: ProductSurface;
-  /** Shows a "Live rate · ₹X/hr base" badge on the quote card, tracking the selected category. */
+  /** Shows a "Live rate · ₹X/hr base" badge above the quote card, tracking the selected category. */
   showLiveRateBadge?: boolean;
   /** Renders the GST lines on the quote card smaller and muted. */
   mutedGst?: boolean;
+  /** Adds a soft shadow to the quote card, for a card-on-tinted-section treatment. */
+  elevated?: boolean;
 }) {
   const [category, setCategory] = useState("guard");
   const [hours, setHours] = useState(8);
   const quote = useMemo(() => workedQuote(category, hours), [category, hours]);
   const liveBadge = showLiveRateBadge
     ? `Live rate · ${formatHourlyRate(baseHourlyRatePaise(category))} base`
-    : undefined;
+    : null;
 
   return (
     <div>
@@ -83,22 +86,33 @@ export function CostCalculator({
             <ProviderSelectMock provider={provider} surface={surface} />
           </div>
         </div>
-        <QuoteBreakdown
-          quote={quote}
-          surface={surface}
-          badge={liveBadge}
-          mutedGst={mutedGst}
-          className="w-full min-w-0 lg:max-w-md"
-          action={
-            <MarketingCta
-              href="/book"
-              variant={surface === "ink" ? "inverse" : "primary"}
-              className="w-full min-w-0"
+        <div className="w-full min-w-0 lg:max-w-md">
+          {liveBadge ? (
+            <p
+              className={[
+                "mb-2 inline-flex items-center rounded-pill border border-live px-3 py-1 text-label font-medium text-live",
+                surface === "ink" ? "bg-surface" : "bg-paper",
+              ].join(" ")}
             >
-              Continue booking
-            </MarketingCta>
-          }
-        />
+              {liveBadge}
+            </p>
+          ) : null}
+          <QuoteBreakdown
+            quote={quote}
+            surface={surface}
+            mutedGst={mutedGst}
+            className={elevated ? "shadow-sm" : ""}
+            action={
+              <MarketingCta
+                href="/book"
+                variant={surface === "ink" ? "inverse" : "primary"}
+                className="w-full min-w-0"
+              >
+                Continue booking
+              </MarketingCta>
+            }
+          />
+        </div>
       </div>
       <p className="mt-6 max-w-prose text-body text-ink-mid">{CANCELLATION_SUMMARY}</p>
     </div>

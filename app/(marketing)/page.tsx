@@ -283,7 +283,7 @@ export default async function LandingPage() {
             section is a worked example so the structure is visible before you create an account.
           </p>
           <div className="mt-10">
-            <CostCalculator provider={coverage.featured} showLiveRateBadge mutedGst />
+            <CostCalculator provider={coverage.featured} showLiveRateBadge mutedGst elevated />
           </div>
           <p className="mt-6 text-body-sm text-ink-mid">Platform fee is 15%. No hidden charges.</p>
           <p className="mt-2 text-body-sm text-ink-mid">
