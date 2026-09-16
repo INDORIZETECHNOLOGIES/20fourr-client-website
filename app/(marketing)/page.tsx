@@ -1,16 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CheckIcon } from "@/components/icons";
 import { CostCalculator } from "@/components/marketing/CostCalculator";
 import { CoverageDirectory } from "@/components/marketing/CoverageDirectory";
-import { FinalCta } from "@/components/marketing/FinalCta";
+import { LandingFooterCta } from "@/components/marketing/LandingFooterCta";
 import { MarketingCta } from "@/components/marketing/MarketingCta";
 import { ProductHero } from "@/components/marketing/ProductHero";
 import { ProductShowcase } from "@/components/marketing/ProductShowcase";
 import { PublicListings } from "@/components/marketing/PublicListings";
+import { SocialProofBand } from "@/components/marketing/SocialProofBand";
 import { TrustStrip } from "@/components/marketing/TrustStrip";
 import { SERVICE_CATALOGUE, EX_SERVICEMAN_FILTER } from "@/lib/services";
 import { getCoverage } from "@/lib/marketing-data";
 import { CANCELLATION_SUMMARY } from "@/lib/cancellation-policy";
+
+const TRUST_PILLS = ["PSARA Licensed", "OTP Attendance", "GST Invoiced"];
 
 export const metadata: Metadata = {
   title: "Verified security. Documented shifts.",
@@ -85,40 +89,50 @@ const COMPLIANCE = [
   },
 ];
 
+const FAQ_CATEGORIES = ["Compliance", "Payments", "Operations"] as const;
+
 const FAQS = [
   {
     q: "What is PSARA and why does it matter?",
     a: "The Private Security Agencies (Regulation) Act is the licence a private security agency needs to operate in a state. 20fourr checks that licence against the state and start date of the shift you are booking.",
+    category: "Compliance",
   },
   {
     q: "Will I get a GST invoice?",
     a: "Yes. Each completed shift issues a GST tax invoice for the platform fee and a service document. CGST/SGST versus IGST follows place of supply.",
+    category: "Payments",
   },
   {
     q: "What happens if the guard doesn't turn up?",
     a: "Duty cannot start without the start OTP. If the provider does not attend, raise it from the booking. You are not asked to self-certify a no-show in a chat thread.",
+    category: "Operations",
   },
   {
     q: "How do refunds work?",
     a: CANCELLATION_SUMMARY,
+    category: "Payments",
   },
   {
     q: "Can I book the same guard weekly?",
     a: "Yes, as a recurring series. Cancelling the series stops still-pending occurrences; bookings already generated stay live unless you cancel those too.",
+    category: "Operations",
   },
   {
     q: "Is the guard armed?",
     a: "Only gunman and PSO bookings are armed, and only after the arms licence is verified. Guard and bouncer are unarmed categories.",
+    category: "Compliance",
   },
   {
     q: "Who is liable?",
     a: "The service contract is between you and the provider. 20fourr is the marketplace: discovery, scheduling, payment and documents. Terms of service state the liability cap as the amount paid for that booking.",
+    category: "Compliance",
   },
   {
     q: "How is my data handled?",
     a: "Under the DPDP Act. You can export, withdraw consent and request erasure from Privacy and data rights in the account. A named grievance officer is listed there.",
+    category: "Compliance",
   },
-];
+] as const;
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -158,46 +172,46 @@ export default async function LandingPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <section className="mx-auto max-w-[1200px] px-4 py-12 lg:px-6 lg:py-20">
-        <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-12 lg:gap-12">
-          <div className="lg:col-span-6">
-            <p className="text-eyebrow text-ink-faint">PSARA-licensed marketplace</p>
-            <h1 className="text-display mt-4 text-ink">Verified security. Documented shifts.</h1>
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <MarketingCta href="/#find" className="w-full sm:w-auto">
-                Find security
-              </MarketingCta>
-              <MarketingCta href="/pricing" variant="secondary" className="w-full sm:w-auto">
-                Get a quote
-              </MarketingCta>
+      <section className="hero-shimmer relative overflow-hidden">
+        <div className="mx-auto max-w-[1200px] px-4 py-12 lg:px-6 lg:py-20">
+          <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-12 lg:gap-12">
+            <div className="lg:col-span-6">
+              <p className="text-eyebrow text-ink-faint">PSARA-licensed marketplace</p>
+              <h1 className="text-display mt-4 text-ink">Verified security. Documented shifts.</h1>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <MarketingCta href="/#find" className="w-full sm:w-auto">
+                  Book a verified guard
+                </MarketingCta>
+                <MarketingCta href="/#how-it-works" variant="secondary" className="w-full sm:w-auto">
+                  See how it works
+                </MarketingCta>
+              </div>
+              <p className="mt-5 max-w-[60ch] text-body text-ink-mid">
+                The only security marketplace where every shift starts on an OTP and closes with a
+                GST document. Built for procurement teams.
+              </p>
+              <ul className="mt-8 flex flex-wrap gap-2">
+                {TRUST_PILLS.map((label) => (
+                  <li
+                    key={label}
+                    className="inline-flex items-center gap-1.5 rounded-pill border border-rule bg-paper px-3 py-1.5 text-label text-ink"
+                  >
+                    <span className="text-live">
+                      <CheckIcon size={14} />
+                    </span>
+                    {label}
+                  </li>
+                ))}
+              </ul>
             </div>
-            <p className="mt-5 max-w-[60ch] text-body text-ink-mid">
-              Find verified security guards, bouncers, gunmen and PSOs with transparent pricing,
-              digital attendance and documented shifts. Every booking checks the provider&apos;s
-              licence, starts and ends on an OTP, and issues a GST tax document.
-            </p>
-            {(coverage.verifiedProviders != null || coverage.cities.length > 0) && (
-              <dl className="mt-10 grid grid-cols-2 gap-6 border-t border-rule pt-6 sm:max-w-sm">
-                {coverage.verifiedProviders != null ? (
-                  <div>
-                    <dt className="text-label text-ink-faint">Verified providers</dt>
-                    <dd className="mt-1 text-mono-lg text-ink">{coverage.verifiedProviders}</dd>
-                  </div>
-                ) : null}
-                {coverage.cities.length > 0 ? (
-                  <div>
-                    <dt className="text-label text-ink-faint">Cities with supply</dt>
-                    <dd className="mt-1 text-mono-lg text-ink">{coverage.cities.length}</dd>
-                  </div>
-                ) : null}
-              </dl>
-            )}
-          </div>
-          <div className="lg:col-span-6 lg:col-start-7">
-            <ProductHero provider={coverage.featured} />
+            <div className="lg:col-span-6 lg:col-start-7">
+              <ProductHero provider={coverage.featured} />
+            </div>
           </div>
         </div>
       </section>
+
+      <SocialProofBand />
 
       <TrustStrip />
 
@@ -262,7 +276,7 @@ export default async function LandingPage() {
 
       <ProductShowcase provider={coverage.featured} />
 
-      <section id="pricing" className="border-t border-rule">
+      <section id="pricing" className="border-t border-rule bg-paper-raised">
         <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
           <p className="text-eyebrow text-ink-faint">Transparent pricing</p>
           <h2 className="text-h1 mt-3 text-ink">Every line, including both GST components</h2>
@@ -271,9 +285,10 @@ export default async function LandingPage() {
             section is a worked example so the structure is visible before you create an account.
           </p>
           <div className="mt-10">
-            <CostCalculator provider={coverage.featured} />
+            <CostCalculator provider={coverage.featured} showLiveRateBadge mutedGst />
           </div>
-          <p className="mt-6 text-body-sm text-ink-mid">
+          <p className="mt-6 text-body-sm text-ink-mid">Platform fee is 15%. No hidden charges.</p>
+          <p className="mt-2 text-body-sm text-ink-mid">
             <Link href="/pricing" className="hover:underline">
               Cancellation refunds are on the pricing page
             </Link>
@@ -282,7 +297,7 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <section id="compliance" className="bg-paper-raised">
+      <section id="compliance" className="border-t border-rule bg-paper">
         <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
           <p className="text-eyebrow text-ink-faint">Trust and compliance</p>
           <h2 className="text-h1 mt-3 text-ink">Built for accountable security operations.</h2>
@@ -318,19 +333,36 @@ export default async function LandingPage() {
         <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
           <p className="text-eyebrow text-ink-faint">FAQ</p>
           <h2 className="text-h1 mt-3 text-ink">Straight answers</h2>
-          <div className="mt-8 max-w-[680px] divide-y divide-rule border-y border-rule">
-            {FAQS.map((f) => (
-              <details key={f.q} className="group py-4">
-                <summary className="flex cursor-pointer list-none items-start justify-between gap-4 text-left text-h3 text-ink [&::-webkit-details-marker]:hidden">
-                  <span>{f.q}</span>
-                  <span aria-hidden className="mt-0.5 w-4 shrink-0 text-center text-mono text-ink-faint">
-                    <span className="group-open:hidden">+</span>
-                    <span className="hidden group-open:inline">-</span>
-                  </span>
-                </summary>
-                <p className="mt-3 text-body text-ink-mid">{f.a}</p>
-              </details>
-            ))}
+          <div className="mt-8 flex max-w-[680px] flex-col gap-8">
+            {FAQ_CATEGORIES.map((category) => {
+              const items = FAQS.filter((f) => f.category === category);
+              if (items.length === 0) return null;
+              return (
+                <div key={category}>
+                  <p className="text-eyebrow text-ink-faint">{category}</p>
+                  <div className="mt-3 divide-y divide-rule border-y border-rule">
+                    {items.map((f) => (
+                      <details
+                        key={f.q}
+                        className="group border-l-2 border-transparent py-4 pl-4 transition-colors duration-100 ease-in-out open:border-brand"
+                      >
+                        <summary className="flex cursor-pointer list-none items-start justify-between gap-4 text-left text-h3 text-ink [&::-webkit-details-marker]:hidden">
+                          <span>{f.q}</span>
+                          <span
+                            aria-hidden
+                            className="mt-0.5 w-4 shrink-0 text-center text-mono text-ink-faint"
+                          >
+                            <span className="group-open:hidden">+</span>
+                            <span className="hidden group-open:inline">-</span>
+                          </span>
+                        </summary>
+                        <p className="mt-3 text-body text-ink-mid">{f.a}</p>
+                      </details>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -346,7 +378,7 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <FinalCta />
+      <LandingFooterCta />
     </>
   );
 }

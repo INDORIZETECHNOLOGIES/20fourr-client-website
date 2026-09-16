@@ -4,6 +4,11 @@ import { DEFAULT_QUOTE } from "@/lib/sample-quote";
 import { formatPaiseRounded } from "@/lib/money";
 import type { MaskedProvider } from "@/lib/provider-display";
 
+/**
+ * Radio-driven tabs, not a client component: the marketing island budget
+ * (spec 0001) is already spent on the nav sheet and the cost calculator.
+ * `:checked` + sibling selectors in globals.css do the switching.
+ */
 export function ProductShowcase({ provider }: { provider: MaskedProvider | null }) {
   const rate = provider?.hourlyRatePaise
     ? `From ${formatPaiseRounded(provider.hourlyRatePaise)}/hr`
@@ -122,14 +127,44 @@ export function ProductShowcase({ provider }: { provider: MaskedProvider | null 
           Discovery, quote, booking, OTP duty and documents are the same path as the signed-in
           app. These frames are the interface, not a campaign illustration.
         </p>
-        <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {frames.map((frame) => (
-            <article key={frame.id} className="flex flex-col rounded-lg border border-rule bg-paper">
-              <header className="border-b border-rule px-4 py-3">
-                <h3 className="text-h3 text-ink">{frame.title}</h3>
-                <p className="mt-1 text-body-sm text-ink-mid">{frame.caption}</p>
+
+        <div className="product-steps mt-10">
+          {frames.map((f, i) => (
+            <input
+              key={f.id}
+              type="radio"
+              name="product-step"
+              id={`step-${f.id}`}
+              defaultChecked={i === 0}
+              className="product-steps__radio sr-only"
+            />
+          ))}
+
+          <fieldset className="m-0 flex flex-wrap gap-2 border-0 p-0">
+            <legend className="sr-only">Product steps</legend>
+            {frames.map((f) => (
+              <label
+                key={f.id}
+                htmlFor={`step-${f.id}`}
+                data-step={f.id}
+                className="product-steps__tab min-h-11 cursor-pointer rounded-sm border border-edge px-4 py-2 text-body text-ink transition-colors duration-150 hover:bg-paper-raised"
+              >
+                {f.title}
+              </label>
+            ))}
+          </fieldset>
+
+          {frames.map((f) => (
+            <article
+              key={f.id}
+              data-step-panel={f.id}
+              className="product-steps__panel mt-4 flex-col overflow-hidden rounded-lg border border-rule bg-paper md:flex-row"
+            >
+              <header className="border-b border-rule px-4 py-4 md:w-64 md:shrink-0 md:border-b-0 md:border-r">
+                <h3 className="text-h3 text-ink">{f.title}</h3>
+                <p className="mt-1 text-body-sm text-ink-mid">{f.caption}</p>
               </header>
-              <div className="flex-1 bg-paper-raised p-4">{frame.body}</div>
+              <div className="flex-1 bg-paper-raised p-4">{f.body}</div>
             </article>
           ))}
         </div>

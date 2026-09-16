@@ -76,3 +76,9 @@ export function workedQuote(category: string, hours: number): WorkedQuote {
 }
 
 export const DEFAULT_QUOTE = workedQuote("guard", 8);
+
+/** Per-hour pre-GST base rate for a category, derived from the same SERVICE_BASE used above. */
+export function baseHourlyRatePaise(category: string): number {
+  const eightHourBase = SERVICE_BASE[category] ?? SERVICE_BASE.guard;
+  return Math.round(eightHourBase / 8);
+}

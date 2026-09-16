@@ -22,11 +22,17 @@ export function QuoteBreakdown({
   className = "",
   action,
   surface = "paper",
+  badge,
+  mutedGst = false,
 }: {
   quote: WorkedQuote;
   className?: string;
   action?: ReactNode;
   surface?: ProductSurface;
+  /** Overrides the default "Itemized" badge text. */
+  badge?: string;
+  /** Renders the GST group in smaller, muted text — required lines that shouldn't dominate. */
+  mutedGst?: boolean;
 }) {
   const t = productSurface[surface];
   const grouped = GROUPS.map((group) => ({
@@ -40,22 +46,27 @@ export function QuoteBreakdown({
     <div className={`${t.shell} p-5 ${className}`}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className={t.eyebrow}>Quote · {quote.hours}-hour shift</p>
-        <p className={t.badge}>Itemized</p>
+        <p className={t.badge}>{badge ?? "Itemized"}</p>
       </div>
       <dl className="mt-4 flex flex-col gap-4">
-        {grouped.map((group) => (
-          <div key={group.id}>
-            <p className={t.label}>{group.label}</p>
-            <div className="mt-1.5 flex flex-col gap-1.5">
-              {group.lines.map((line) => (
-                <div key={line.id} className="flex items-baseline justify-between gap-4">
-                  <dt className={`min-w-0 ${t.mid}`}>{line.label}</dt>
-                  <dd className={`shrink-0 ${t.mono}`}>{formatPaise(line.amountPaise)}</dd>
-                </div>
-              ))}
+        {grouped.map((group) => {
+          const muted = mutedGst && group.id === "gst";
+          return (
+            <div key={group.id}>
+              <p className={muted ? t.note : t.label}>{group.label}</p>
+              <div className="mt-1.5 flex flex-col gap-1.5">
+                {group.lines.map((line) => (
+                  <div key={line.id} className="flex items-baseline justify-between gap-4">
+                    <dt className={`min-w-0 ${muted ? t.note : t.mid}`}>{line.label}</dt>
+                    <dd className={`shrink-0 ${muted ? t.note : t.mono}`}>
+                      {formatPaise(line.amountPaise)}
+                    </dd>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         {leftover.map((line) => (
           <div key={line.id} className="flex items-baseline justify-between gap-4">
             <dt className={`min-w-0 ${t.mid}`}>{line.label}</dt>

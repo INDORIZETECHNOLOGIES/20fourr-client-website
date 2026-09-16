@@ -226,6 +226,27 @@
   }
 }
 
+@keyframes hero-shimmer-sweep {
+  0%,
+  100% {
+    transform: translateX(-12%);
+  }
+  50% {
+    transform: translateX(12%);
+  }
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .animate-pulse-dot {
   animation: pulse-dot 2s ease-out infinite;
 }
@@ -238,6 +259,59 @@
   animation: spin 0.7s linear infinite;
 }
 
+/* Flat-fill sweep behind the hero copy — a single soft, blurred paper-raised pass. */
+.hero-shimmer::before {
+  content: "";
+  position: absolute;
+  inset: -20% -30%;
+  z-index: -1;
+  background: var(--color-paper-raised);
+  filter: blur(64px);
+  opacity: 0.7;
+  animation: hero-shimmer-sweep 16s ease-in-out infinite;
+}
+
+.animate-panel-in {
+  animation: panel-in 220ms ease-out;
+}
+
+/* CSS-only product step tabs — see ProductShowcase.tsx. Radio + sibling
+   selectors so switching steps needs no client JS island. */
+.product-steps__panel {
+  display: none;
+}
+
+#step-find:checked ~ .product-steps__tab[data-step="find"],
+#step-compare:checked ~ .product-steps__tab[data-step="compare"],
+#step-quote:checked ~ .product-steps__tab[data-step="quote"],
+#step-book:checked ~ .product-steps__tab[data-step="book"],
+#step-track:checked ~ .product-steps__tab[data-step="track"],
+#step-complete:checked ~ .product-steps__tab[data-step="complete"] {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+
+#step-find:focus-visible ~ .product-steps__tab[data-step="find"],
+#step-compare:focus-visible ~ .product-steps__tab[data-step="compare"],
+#step-quote:focus-visible ~ .product-steps__tab[data-step="quote"],
+#step-book:focus-visible ~ .product-steps__tab[data-step="book"],
+#step-track:focus-visible ~ .product-steps__tab[data-step="track"],
+#step-complete:focus-visible ~ .product-steps__tab[data-step="complete"] {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+#step-find:checked ~ .product-steps__panel[data-step-panel="find"],
+#step-compare:checked ~ .product-steps__panel[data-step-panel="compare"],
+#step-quote:checked ~ .product-steps__panel[data-step-panel="quote"],
+#step-book:checked ~ .product-steps__panel[data-step-panel="book"],
+#step-track:checked ~ .product-steps__panel[data-step-panel="track"],
+#step-complete:checked ~ .product-steps__panel[data-step-panel="complete"] {
+  display: flex;
+  animation: panel-in 220ms ease-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -247,7 +321,15 @@
     transition-duration: 0.01ms !important;
   }
   .animate-toast-in,
-  .animate-pulse-dot {
+  .animate-pulse-dot,
+  .hero-shimmer::before,
+  .animate-panel-in,
+  #step-find:checked ~ .product-steps__panel[data-step-panel="find"],
+  #step-compare:checked ~ .product-steps__panel[data-step-panel="compare"],
+  #step-quote:checked ~ .product-steps__panel[data-step-panel="quote"],
+  #step-book:checked ~ .product-steps__panel[data-step-panel="book"],
+  #step-track:checked ~ .product-steps__panel[data-step-panel="track"],
+  #step-complete:checked ~ .product-steps__panel[data-step-panel="complete"] {
     animation: none;
   }
 }
