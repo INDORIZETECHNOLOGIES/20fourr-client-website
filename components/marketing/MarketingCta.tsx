@@ -24,7 +24,7 @@ export function MarketingCta({
     <Link
       href={href}
       className={[
-        "inline-flex h-12 min-w-[9.5rem] items-center justify-center rounded-sm border px-5 text-body font-medium transition-colors duration-150",
+        "inline-flex h-12 min-w-[9.5rem] items-center justify-center rounded-sm border px-5 text-body font-medium transition-[opacity,background-color,color] duration-150 ease-out",
         STYLES[variant],
         className,
       ].join(" ")}

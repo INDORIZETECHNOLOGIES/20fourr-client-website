@@ -22,7 +22,10 @@ export function PublicListings({ listings }: { listings: MaskedProvider[] }) {
                 ? `${formatPaiseRounded(p.dailyRatePaise)}/day`
                 : null;
             return (
-              <li key={p.id} className="rounded-lg border border-rule bg-paper p-5">
+              <li
+                key={p.id}
+                className="rounded-lg border border-rule bg-paper p-5 transition-colors duration-150 hover:border-edge"
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-h3 text-ink">{p.title}</p>

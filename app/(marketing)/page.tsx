@@ -209,7 +209,7 @@ export default async function LandingPage() {
           <h2 className="text-h1 mt-3 text-ink">Four categories. Ex-serviceman is a filter.</h2>
           <ul className="mt-10 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-rule bg-rule sm:grid-cols-2">
             {SERVICE_CATALOGUE.map((s) => (
-              <li key={s.id} className="flex flex-col bg-paper p-6">
+              <li key={s.id} className="flex flex-col bg-paper p-6 transition-colors duration-150 hover:bg-paper-raised">
                 <h3 className="text-h3 text-ink">{s.name}</h3>
                 <p className="mt-2 text-body text-ink-mid">{s.desc}</p>
                 <p className="mt-3 text-body-sm text-ink-mid">{WHEN[s.id]}</p>
@@ -239,13 +239,19 @@ export default async function LandingPage() {
         <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
           <p className="text-eyebrow text-ink-faint">How it works</p>
           <h2 className="text-h1 mt-3 text-ink">From search to a documented shift</h2>
-          <ol className="mt-10 grid grid-cols-1 gap-0 border-t border-rule md:grid-cols-2 xl:grid-cols-5">
+          <ol className="mt-10 border-l border-rule pl-6 xl:grid xl:grid-cols-5 xl:gap-0 xl:border-l-0 xl:border-t xl:pl-0">
             {STEPS.map((s) => (
               <li
                 key={s.n}
-                className="border-b border-rule py-6 md:border-r md:px-4 md:py-8 last:md:border-r-0 xl:border-b-0"
+                className="relative py-6 xl:border-r xl:px-4 xl:py-8 last:xl:border-r-0"
               >
-                <p className="text-mono text-ink-faint">{s.n}</p>
+                <span
+                  aria-hidden
+                  className="absolute -left-[25px] top-8 h-2 w-2 rounded-full bg-ink xl:hidden"
+                />
+                <p className="inline-flex h-8 min-w-8 items-center justify-center rounded-sm border border-rule px-2 text-mono text-ink">
+                  {s.n}
+                </p>
                 <h3 className="text-h3 mt-3 text-ink">{s.title}</h3>
                 <p className="mt-2 text-body-sm text-ink-mid">{s.body}</p>
               </li>
@@ -265,7 +271,7 @@ export default async function LandingPage() {
             section is a worked example so the structure is visible before you create an account.
           </p>
           <div className="mt-10">
-            <CostCalculator />
+            <CostCalculator provider={coverage.featured} />
           </div>
           <p className="mt-6 text-body-sm text-ink-mid">
             <Link href="/pricing" className="hover:underline">
@@ -315,7 +321,13 @@ export default async function LandingPage() {
           <div className="mt-8 max-w-[680px] divide-y divide-rule border-y border-rule">
             {FAQS.map((f) => (
               <details key={f.q} className="group py-4">
-                <summary className="cursor-pointer text-h3 text-ink">{f.q}</summary>
+                <summary className="flex cursor-pointer list-none items-start justify-between gap-4 text-left text-h3 text-ink [&::-webkit-details-marker]:hidden">
+                  <span>{f.q}</span>
+                  <span aria-hidden className="mt-0.5 w-4 shrink-0 text-center text-mono text-ink-faint">
+                    <span className="group-open:hidden">+</span>
+                    <span className="hidden group-open:inline">-</span>
+                  </span>
+                </summary>
                 <p className="mt-3 text-body text-ink-mid">{f.a}</p>
               </details>
             ))}

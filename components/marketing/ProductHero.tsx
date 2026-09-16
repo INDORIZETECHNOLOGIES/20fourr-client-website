@@ -17,7 +17,7 @@ export function ProductHero({ provider }: { provider: MaskedProvider | null }) {
       : null;
 
   return (
-    <div className="rounded-lg border border-rule bg-paper">
+    <div className="rounded-lg border border-rule bg-paper transition-colors duration-150 hover:border-edge">
       <div className="flex items-center justify-between border-b border-rule px-4 py-3">
         <p className="text-label text-ink-mid">Provider search</p>
         <p className="text-mono text-ink-faint">{provider?.code ?? "guard · 8h"}</p>
