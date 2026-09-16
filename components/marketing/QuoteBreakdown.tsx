@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { formatPaise } from "@/lib/money";
 import type { WorkedQuote, WorkedQuoteLine } from "@/lib/sample-quote";
+import { productSurface, type ProductSurface } from "@/components/marketing/product-surface";
 
 const GROUPS: { id: string; label: string; match: (line: WorkedQuoteLine) => boolean }[] = [
   {
@@ -20,11 +21,14 @@ export function QuoteBreakdown({
   quote,
   className = "",
   action,
+  surface = "paper",
 }: {
   quote: WorkedQuote;
   className?: string;
   action?: ReactNode;
+  surface?: ProductSurface;
 }) {
+  const t = productSurface[surface];
   const grouped = GROUPS.map((group) => ({
     ...group,
     lines: quote.lines.filter(group.match),
@@ -33,22 +37,20 @@ export function QuoteBreakdown({
   const leftover = quote.lines.filter((line) => !GROUPS.some((g) => g.match(line)));
 
   return (
-    <div className={`rounded-lg border border-rule bg-paper p-5 ${className}`}>
+    <div className={`${t.shell} p-5 ${className}`}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-eyebrow text-ink-faint">Quote · {quote.hours}-hour shift</p>
-        <p className="rounded-sm border border-rule px-2 py-0.5 text-label text-ink-mid">
-          Itemized
-        </p>
+        <p className={t.eyebrow}>Quote · {quote.hours}-hour shift</p>
+        <p className={t.badge}>Itemized</p>
       </div>
       <dl className="mt-4 flex flex-col gap-4">
         {grouped.map((group) => (
           <div key={group.id}>
-            <p className="text-label text-ink-faint">{group.label}</p>
+            <p className={t.label}>{group.label}</p>
             <div className="mt-1.5 flex flex-col gap-1.5">
               {group.lines.map((line) => (
                 <div key={line.id} className="flex items-baseline justify-between gap-4">
-                  <dt className="min-w-0 text-body-sm text-ink-mid">{line.label}</dt>
-                  <dd className="shrink-0 text-mono text-ink">{formatPaise(line.amountPaise)}</dd>
+                  <dt className={`min-w-0 ${t.mid}`}>{line.label}</dt>
+                  <dd className={`shrink-0 ${t.mono}`}>{formatPaise(line.amountPaise)}</dd>
                 </div>
               ))}
             </div>
@@ -56,17 +58,17 @@ export function QuoteBreakdown({
         ))}
         {leftover.map((line) => (
           <div key={line.id} className="flex items-baseline justify-between gap-4">
-            <dt className="min-w-0 text-body-sm text-ink-mid">{line.label}</dt>
-            <dd className="shrink-0 text-mono text-ink">{formatPaise(line.amountPaise)}</dd>
+            <dt className={`min-w-0 ${t.mid}`}>{line.label}</dt>
+            <dd className={`shrink-0 ${t.mono}`}>{formatPaise(line.amountPaise)}</dd>
           </div>
         ))}
-        <div className="flex items-baseline justify-between gap-4 border-t border-ink pt-4">
-          <dt className="text-h3 text-ink">Total</dt>
-          <dd className="shrink-0 text-mono-lg text-ink">{formatPaise(quote.totalPaise)}</dd>
+        <div className={`flex items-baseline justify-between gap-4 pt-4 ${t.totalRule}`}>
+          <dt className={t.title}>Total</dt>
+          <dd className={`shrink-0 ${t.monoLg}`}>{formatPaise(quote.totalPaise)}</dd>
         </div>
       </dl>
       {action ? <div className="mt-5">{action}</div> : null}
-      <p className="mt-3 text-body-sm text-ink-faint">{quote.note}</p>
+      <p className={`mt-3 ${t.note}`}>{quote.note}</p>
     </div>
   );
 }

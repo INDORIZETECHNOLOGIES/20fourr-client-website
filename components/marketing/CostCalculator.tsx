@@ -8,13 +8,20 @@ import { SERVICE_CATALOGUE } from "@/lib/services";
 import { CANCELLATION_SUMMARY } from "@/lib/cancellation-policy";
 import { workedQuote } from "@/lib/sample-quote";
 import type { MaskedProvider } from "@/lib/provider-display";
+import type { ProductSurface } from "@/components/marketing/product-surface";
 
 const HOURS = [4, 8, 12];
 
 const chip =
   "min-h-11 rounded-sm border px-4 py-2 text-body transition-colors duration-150";
 
-export function CostCalculator({ provider = null }: { provider?: MaskedProvider | null }) {
+export function CostCalculator({
+  provider = null,
+  surface = "paper",
+}: {
+  provider?: MaskedProvider | null;
+  surface?: ProductSurface;
+}) {
   const [category, setCategory] = useState("guard");
   const [hours, setHours] = useState(8);
   const quote = useMemo(() => workedQuote(category, hours), [category, hours]);
@@ -63,14 +70,19 @@ export function CostCalculator({ provider = null }: { provider?: MaskedProvider 
           </div>
           <p className="mt-6 text-label text-ink-mid">Provider</p>
           <div className="mt-2 max-w-md">
-            <ProviderSelectMock provider={provider} />
+            <ProviderSelectMock provider={provider} surface={surface} />
           </div>
         </div>
         <QuoteBreakdown
           quote={quote}
+          surface={surface}
           className="w-full min-w-0 lg:max-w-md"
           action={
-            <MarketingCta href="/book" className="w-full min-w-0">
+            <MarketingCta
+              href="/book"
+              variant={surface === "ink" ? "inverse" : "primary"}
+              className="w-full min-w-0"
+            >
               Continue booking
             </MarketingCta>
           }

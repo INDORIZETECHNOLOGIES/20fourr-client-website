@@ -1,3 +1,4 @@
+import { BookingStatusMock } from "@/components/marketing/BookingStatusMock";
 import { QuoteBreakdown } from "@/components/marketing/QuoteBreakdown";
 import { DEFAULT_QUOTE } from "@/lib/sample-quote";
 import { formatPaiseRounded } from "@/lib/money";
@@ -87,22 +88,7 @@ export function ProductShowcase({ provider }: { provider: MaskedProvider | null 
       id: "track",
       title: "Track",
       caption: "Duty starts and ends with an OTP shown in person.",
-      body: (
-        <dl className="flex flex-col gap-3">
-          <div className="flex items-baseline justify-between gap-3 border-b border-rule pb-3">
-            <dt className="text-body-sm text-ink">Start OTP</dt>
-            <dd className="text-mono text-ink-mid">Pending on site</dd>
-          </div>
-          <div className="flex items-baseline justify-between gap-3 border-b border-rule pb-3">
-            <dt className="text-body-sm text-ink">End OTP</dt>
-            <dd className="text-mono text-ink-mid">After duty starts</dd>
-          </div>
-          <div className="flex items-baseline justify-between gap-3">
-            <dt className="text-body-sm text-ink">Timestamp</dt>
-            <dd className="text-mono text-ink-mid">Recorded, not self-reported</dd>
-          </div>
-        </dl>
-      ),
+      body: <BookingStatusMock />,
     },
     {
       id: "complete",
