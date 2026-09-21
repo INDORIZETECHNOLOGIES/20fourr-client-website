@@ -46,7 +46,7 @@ export function ProfileHero() {
           )}
         </div>
         <Link
-          href="/dashboard/profile/edit"
+          href="/dashboard/profile/edit#photo"
           aria-label="Change profile photo"
           className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border border-hairline bg-panel text-fg"
         >

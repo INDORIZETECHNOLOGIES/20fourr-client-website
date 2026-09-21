@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/dashboard/primitives";
 import { Notice } from "@/components/ui/Notice";
+import { AvatarUploader } from "./AvatarUploader";
 import { useSession } from "@/components/session/SessionProvider";
 import { useApiQuery } from "@/hooks/useApiQuery";
 import { api } from "@/lib/api/client";
@@ -190,6 +191,8 @@ export function EditProfileForm() {
           {formError}
         </p>
       ) : null}
+
+      <AvatarUploader />
 
       {/* ── Personal ── */}
       <Section title="Personal Information">

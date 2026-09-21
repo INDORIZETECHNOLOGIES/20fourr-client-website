@@ -24,6 +24,7 @@ import { getAccessToken, refreshSession, clearTokens } from "@/lib/api/session";
  * means adding its prefix here on purpose.
  */
 const ALLOWED_PREFIXES = [
+  "auth/profile-photo",
   "client/",
   "bookings",
   "ratings",
