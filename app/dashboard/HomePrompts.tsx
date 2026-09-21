@@ -27,10 +27,13 @@ export function HomePrompts() {
   const pending = rating?.pendingBookingCount ?? 0;
   const firstUnrated = rating?.pendingBookingIds?.[0];
 
-  // The app treats the address as complete only when it has a city — a
-  // half-filled address is what makes a booking fail at the schedule step.
+  // Mirrors the API's requireClientProfileComplete: a booking is accepted with
+  // either a primary address that has a city or at least one saved address.
+  // Checking only the primary one kept this banner up for people who had added
+  // an address under Saved addresses.
   const address = profileData?.profile?.address;
-  const needsAddress = Boolean(profileData) && !address?.city;
+  const hasSavedAddress = (profileData?.profile?.savedAddresses?.length ?? 0) > 0;
+  const needsAddress = Boolean(profileData) && !address?.city && !hasSavedAddress;
 
   if (!pending && !needsAddress) return null;
 
@@ -49,7 +52,7 @@ export function HomePrompts() {
 
       {needsAddress ? (
         <Prompt
-          href="/dashboard/profile"
+          href="/dashboard/profile/addresses"
           icon={<PinFill size={17} />}
           tint="bg-panel-raised text-fg-mid"
           title="Add your address"
