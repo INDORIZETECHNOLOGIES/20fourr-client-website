@@ -53,11 +53,22 @@ export function QuoteBreakdown({
     <div className={className}>
       <dl className={compact ? "flex flex-col gap-1" : "flex flex-col gap-2.5"}>
         {rows.map((row, i) => (
-          <div key={`${row.label}-${i}`} className="flex items-baseline justify-between gap-3">
-            <dt className={compact ? "text-label text-fg-mid" : "text-body-sm text-fg-mid"}>
+          <div
+            key={`${row.label}-${i}`}
+            className={[
+              "flex items-baseline justify-between gap-3",
+              row.subtotal ? (compact ? "border-t border-hairline pt-1" : "border-t border-hairline pt-2.5") : "",
+            ].join(" ")}
+          >
+            <dt
+              className={[
+                compact ? "text-label" : "text-body-sm",
+                row.subtotal ? "font-medium text-fg" : "text-fg-mid",
+              ].join(" ")}
+            >
               {row.label}
               {row.note ? (
-                <span className="mt-0.5 block text-label text-fg-faint">{row.note}</span>
+                <span className="mt-0.5 block text-label font-normal text-fg-faint">{row.note}</span>
               ) : null}
             </dt>
             <dd className={`text-mono tabular-nums ${compact ? "text-label text-fg" : "text-fg"}`}>
@@ -72,7 +83,7 @@ export function QuoteBreakdown({
           ].join(" ")}
         >
           <dt className={compact ? "text-body-sm font-medium text-fg" : "text-body font-medium text-fg"}>
-            Total
+            To be paid
           </dt>
           <dd className={`tabular-nums ${compact ? "text-mono text-fg" : "text-mono-lg text-fg"}`}>
             {formatPaise(total)}

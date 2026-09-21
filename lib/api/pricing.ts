@@ -37,6 +37,8 @@ export type DisplayLine = {
   label: string;
   amountPaise: number;
   note?: string;
+  /** Rendered as a ruled subtotal row. */
+  subtotal?: boolean;
 };
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -48,15 +50,6 @@ function asRecord(value: unknown): Record<string, unknown> | null {
 
 function asNumber(value: unknown, fallback = 0): number {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
-}
-
-function gstNote(line: QuoteLine): string | undefined {
-  if (!line.split) return undefined;
-  if (line.split.intraState) {
-    const half = line.ratePct != null ? `${line.ratePct / 2}%` : "";
-    return half ? `CGST ${half} · SGST ${half}` : "CGST · SGST";
-  }
-  return line.ratePct != null ? `IGST ${line.ratePct}%` : "IGST";
 }
 
 function isV6Payload(obj: Record<string, unknown>): boolean {
@@ -141,13 +134,44 @@ export function quotePlatformFeePaise(quote: PriceQuote): number {
   return line?.amountPaise ?? quote.quote.platformFeePaise ?? 0;
 }
 
+/**
+ * The client-facing shape, as the business specified it:
+ *
+ *   Service charge (base price)   100
+ *   Platform fee                   15
+ *   Total                         115
+ *   GST 18%                     20.70
+ *   (To be paid — rendered by the caller from the quote total)
+ *
+ * GST is shown as ONE line, but it is the sum of the two GST lines the server
+ * charged (service GST + platform fee GST), never recomputed here — the two
+ * are rounded separately and go on two separate invoices, so recomputing 18%
+ * of the subtotal could disagree with what is charged by a paisa.
+ *
+ * An unregistered provider charges no GST on the service, so there the single
+ * line is GST on the platform fee only, and is labelled as such.
+ */
 export function toDisplayLines(quote: PriceQuote): DisplayLine[] {
   if (quote.engine === "v6") {
-    return quote.quote.lines.map((line) => ({
-      label: line.label,
-      amountPaise: line.amountPaise,
-      note: gstNote(line),
-    }));
+    const lines = quote.quote.lines;
+    const byKey = (key: string) => lines.find((line) => line.key === key);
+    const service = byKey("service")?.amountPaise ?? quote.quote.providerPreGstPaise ?? 0;
+    const fee = byKey("platformFee")?.amountPaise ?? quote.quote.platformFeePaise ?? 0;
+    const serviceGstLine = byKey("serviceGst");
+    const feeGstLine = byKey("platformGst");
+    const serviceGst = serviceGstLine?.amountPaise ?? quote.quote.serviceGstPaise ?? 0;
+    const feeGst = feeGstLine?.amountPaise ?? quote.quote.platformGstPaise ?? 0;
+    const rate = feeGstLine?.ratePct ?? serviceGstLine?.ratePct ?? 18;
+
+    return [
+      { label: "Service charge (base price)", amountPaise: service },
+      { label: "Platform fee", amountPaise: fee },
+      { label: "Total", amountPaise: service + fee, subtotal: true },
+      {
+        label: serviceGst > 0 ? `GST ${rate}%` : `GST ${rate}% on platform fee`,
+        amountPaise: serviceGst + feeGst,
+      },
+    ];
   }
 
   const v1 = quote.v1;

@@ -33,12 +33,34 @@ const v6Registered = {
 const tagged = tagPriceQuote(v6Registered);
 assert.equal(tagged.engine, "v6");
 const lines = toDisplayLines(tagged);
-const sum = lines.reduce((n, l) => n + l.amountPaise, 0);
-assert.equal(sum, 13570);
+// Business format: service, platform fee, their total, one GST line.
+assert.deepEqual(
+  lines.map((l) => [l.label, l.amountPaise]),
+  [
+    ["Service charge (base price)", 10000],
+    ["Platform fee", 1500],
+    ["Total", 11500],
+    ["GST 18%", 2070],
+  ],
+);
+assert.equal(lines[2].subtotal, true);
+assert.equal(lines[3].note, undefined);
+// Subtotal + GST = what is charged.
+assert.equal(lines[2].amountPaise + lines[3].amountPaise, 13570);
 assert.equal(quoteTotalPaise(tagged), 13570);
-assert.equal(lines.length, 4);
 assert.ok(!JSON.stringify(lines).includes("11738"));
 assert.ok(!JSON.stringify(lines).includes("tcs"));
+
+// Unregistered provider: no GST on the service, so the one GST line is the fee's only.
+const unregistered = toDisplayLines(
+  tagPriceQuote({
+    ...v6Registered,
+    lines: v6Registered.lines.map((l) => (l.key === "serviceGst" ? { ...l, amountPaise: 0, split: undefined } : l)),
+    clientTotalPaise: 11770,
+  }),
+);
+assert.equal(unregistered[3].label, "GST 18% on platform fee");
+assert.equal(unregistered[3].amountPaise, 270);
 
 const v1 = tagPriceQuote({
   baseAmount: 100000,
@@ -74,7 +96,9 @@ if (platform !== Math.round(service * 0.15)) {
     `worked example platform fee ${platform} != 15% of ${service} (${Math.round(service * 0.15)})`,
   );
 }
-const summed = q.lines.reduce((s, l) => s + l.amountPaise, 0);
+const subtotalLine = q.lines.find((l) => l.id === "subtotal")!.amountPaise;
+if (subtotalLine !== service + platform) throw new Error("worked example Total must be service + fee");
+const summed = q.lines.filter((l) => l.id !== "subtotal").reduce((s, l) => s + l.amountPaise, 0);
 if (summed !== q.totalPaise) {
   throw new Error(`worked example lines sum to ${summed}, total says ${q.totalPaise}`);
 }

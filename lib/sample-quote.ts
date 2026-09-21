@@ -51,27 +51,28 @@ const SERVICE_BASE: Record<string, number> = {
   pso: 560000,
 };
 
+/**
+ * Same shape as a live quote: service, platform fee, their total, one GST line
+ * at 18% of that total, then the amount to be paid. GST is computed per
+ * supply (service, fee) and summed, exactly as the engine charges it.
+ */
 export function workedQuote(category: string, hours: number): WorkedQuote {
   const eightHourBase = SERVICE_BASE[category] ?? SERVICE_BASE.guard;
   const service = Math.round((eightHourBase * hours) / 8);
-  const serviceGst = gstSplit(service);
   const platform = Math.round(service * COMMISSION_RATE);
-  const platformGst = gstSplit(platform);
+  const gst = gstSplit(service).gst + gstSplit(platform).gst;
   const lines: WorkedQuoteLine[] = [
-    { id: "service", label: "Security service", amountPaise: service },
-    { id: "sgst-s", label: "SGST 9% on service", amountPaise: serviceGst.sgst },
-    { id: "cgst-s", label: "CGST 9% on service", amountPaise: serviceGst.cgst },
+    { id: "service", label: "Service charge (base price)", amountPaise: service },
     { id: "platform", label: "Platform fee (15%)", amountPaise: platform },
-    { id: "sgst-p", label: "SGST 9% on platform fee", amountPaise: platformGst.sgst },
-    { id: "cgst-p", label: "CGST 9% on platform fee", amountPaise: platformGst.cgst },
+    { id: "subtotal", label: "Total", amountPaise: service + platform },
+    { id: "gst", label: "GST 18%", amountPaise: gst },
   ];
-  const totalPaise = lines.reduce((sum, line) => sum + line.amountPaise, 0);
   return {
     categoryLabel: category,
     hours,
     lines,
-    totalPaise,
-    note: "Worked example: platform fee 15% of the service price, GST 18% (CGST 9% + SGST 9%) on each, intra-state supply. Not a live quote — rates are the platform defaults.",
+    totalPaise: service + platform + gst,
+    note: "Worked example: platform fee 15% of the service price, GST 18% on the total, intra-state supply. Not a live quote — rates are the platform defaults.",
   };
 }
 
