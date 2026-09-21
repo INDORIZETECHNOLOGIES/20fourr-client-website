@@ -9,7 +9,6 @@ import { useApiQuery } from "@/hooks/useApiQuery";
 import { useSession } from "@/components/session/SessionProvider";
 import { SERVICE_CATALOGUE, isServiceCategory } from "@/lib/services";
 import { GST_STATES, matchGstStateName } from "@/lib/gst-states";
-import type { RatingRequiredResponse } from "@/lib/api/types";
 
 export default function ServiceStep() {
   const { draft, update, hydrated } = useBooking();
@@ -30,9 +29,6 @@ export default function ServiceStep() {
   const { data: cityData, loading: citiesLoading, error: citiesError, refetch } =
     useApiQuery<{ cities: string[] }>("client/service-cities");
   const cities = cityData?.cities;
-
-  const { data: rating } = useApiQuery<RatingRequiredResponse>("client/rating-required");
-  const ratingBlock = Boolean(rating?.ratingRequired && rating.pendingBookingIds?.[0]);
 
   // "Book Now" arrives with ?category=guard, and the catalogue's ex-serviceman
   // tile with ?exServiceman=true. Read from location rather than
@@ -204,27 +200,11 @@ export default function ServiceStep() {
         ))}
       </select>
 
-      {ratingBlock ? (
-        <div className="mb-6 rounded-lg border border-attention px-4 py-3">
-          <p className="text-body text-fg">Rate a completed booking before starting a new one.</p>
-          <a
-            href={`/dashboard/bookings/${rating?.pendingBookingIds?.[0]}/rate`}
-            className="mt-2 inline-block text-body-sm text-fg-mid hover:underline"
-          >
-            Rate now
-          </a>
-        </div>
-      ) : null}
-
       <StepFooter
-        disabled={!ready || ratingBlock}
-        hint={
-          ratingBlock
-            ? "Rate the completed booking first."
-            : ready
-              ? undefined
-              : "Choose a service, a city and the deployment state to continue."
-        }
+        disabled={!ready}
+        // Rating a past booking is optional — offered on the booking and the
+        // dashboard, never a condition for booking again. The API has no such rule.
+        hint={ready ? undefined : "Choose a service, a city and the deployment state to continue."}
         onContinue={() => router.push("/book/provider")}
       />
     </>

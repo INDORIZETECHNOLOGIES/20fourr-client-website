@@ -15,7 +15,7 @@ import {
 } from "@/components/dashboard/icons";
 import { useApiQuery } from "@/hooks/useApiQuery";
 import { adaptBooking, dutyStartsAt } from "@/lib/api/adapters";
-import type { ApiBooking } from "@/lib/api/types";
+import type { ApiBooking, RatingRequiredResponse } from "@/lib/api/types";
 import { PayNowButton } from "./PayNowButton";
 import { CancelBookingButton } from "./CancelBookingButton";
 import { SafetyActions } from "./SafetyActions";
@@ -62,6 +62,10 @@ export function BookingDetail({ id }: { id: string }) {
     query: { bookingId: id },
   });
   const unread = unreadData?.unreadCount ?? 0;
+  // Completed bookings the client hasn't rated. Rating is optional — this only
+  // decides whether the booking's "Rate provider" action is live or done.
+  const { data: ratingData, loading: ratingLoading } =
+    useApiQuery<RatingRequiredResponse>("client/rating-required");
 
   if (loading) {
     return (
@@ -274,16 +278,6 @@ export function BookingDetail({ id }: { id: string }) {
             />
           ) : null}
 
-          {bk.awaitingRating ? (
-            <Link
-              href={`/dashboard/bookings/${bk.id}/rate`}
-              className="flex items-center justify-center gap-2 rounded-sm bg-brand text-brand-ink px-6 py-3 text-body font-semibold"
-            >
-              <StarFill size={15} />
-              Rate provider
-            </Link>
-          ) : null}
-
           <ActionLink
             icon={<ChatIcon size={16} />}
             label={
@@ -321,6 +315,34 @@ export function BookingDetail({ id }: { id: string }) {
               pendingTitle={
                 v6 ? "Available once the booking is paid" : "Available once the work is complete"
               }
+            />
+          )}
+
+          {/* Optional, and only once the booking is completed — the API accepts a
+              rating from `completed` on. */}
+          {bk.status !== "completed" ? (
+            terminated ? null : (
+              <ActionLink
+                icon={<StarFill size={16} />}
+                label="Rate provider"
+                pending
+                pendingLabel="After completion"
+                pendingTitle="Available once the booking is completed"
+              />
+            )
+          ) : ratingLoading ? null : ratingData?.pendingBookingIds?.some((b) => String(b) === id) ? (
+            <ActionLink
+              icon={<StarFill size={16} />}
+              label="Rate provider"
+              href={`/dashboard/bookings/${id}/rate`}
+            />
+          ) : (
+            <ActionLink
+              icon={<StarFill size={16} />}
+              label="Rate provider"
+              pending
+              pendingLabel="Rated"
+              pendingTitle="You've rated this booking"
             />
           )}
 

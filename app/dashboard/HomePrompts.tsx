@@ -18,7 +18,8 @@ import type { ApiClientProfile, RatingRequiredResponse } from "@/lib/api/types";
  * the app currently hides. That is the endpoint working as written.
  *
  * Neither prompt blocks anything. The API does not refuse new bookings over an
- * unrated one, so making the website refuse would invent a rule.
+ * unrated one, so making the website refuse would invent a rule — the booking
+ * flow used to, and no longer does.
  */
 export function HomePrompts() {
   const { data: rating } = useApiQuery<RatingRequiredResponse>("client/rating-required");
@@ -39,14 +40,25 @@ export function HomePrompts() {
 
   return (
     <div className="mb-[22px] flex flex-col gap-3">
+      {/* One card however many are pending — never one per booking. With one,
+          it goes straight to that rating; with several, to the Completed tab,
+          where each unrated booking is marked. */}
       {pending > 0 && firstUnrated ? (
         <Prompt
-          href={`/dashboard/bookings/${firstUnrated}/rate`}
+          href={
+            pending === 1
+              ? `/dashboard/bookings/${firstUnrated}/rate`
+              : "/dashboard/bookings?tab=completed"
+          }
           icon={<StarFill size={17} />}
           tint="bg-panel-raised text-fg"
-          title={`Rate ${pending} completed ${pending === 1 ? "booking" : "bookings"}`}
-          body="Your rating is what keeps good providers visible to other clients."
-          cta="Rate now"
+          title={
+            pending === 1
+              ? "How was your last booking?"
+              : `${pending} completed bookings to rate`
+          }
+          body="Optional — your rating helps other clients find good providers."
+          cta={pending === 1 ? "Rate provider" : "View bookings"}
         />
       ) : null}
 

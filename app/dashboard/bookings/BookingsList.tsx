@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, StatusPill } from "@/components/dashboard/primitives";
 import { ListRow } from "@/components/dashboard/ListRow";
 import {
@@ -12,7 +12,7 @@ import {
 } from "@/components/dashboard/icons";
 import { useApiQuery } from "@/hooks/useApiQuery";
 import { adaptBooking } from "@/lib/api/adapters";
-import type { BookingListResponse } from "@/lib/api/types";
+import type { BookingListResponse, RatingRequiredResponse } from "@/lib/api/types";
 import { quoteFromBooking } from "@/lib/api/pricing";
 import { QuoteBreakdown } from "@/app/book/PriceSummary";
 import {
@@ -27,6 +27,17 @@ import { formatPaiseRounded } from "@/lib/money";
 
 export function BookingsList() {
   const [tab, setTab] = useState<BookingTab>("ongoing");
+
+  // ?tab=completed from the dashboard's rating card. Read from location rather
+  // than useSearchParams so the route doesn't need a Suspense boundary.
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("tab");
+    if (BOOKING_TABS.some((t) => t.id === requested)) setTab(requested as BookingTab);
+  }, []);
+
+  // Marks completed bookings still waiting for an (optional) rating.
+  const { data: ratingData } = useApiQuery<RatingRequiredResponse>("client/rating-required");
+  const unrated = new Set((ratingData?.pendingBookingIds ?? []).map(String));
 
   // One request for the whole list, grouped into tabs here. The API's `status`
   // filter takes a single value, but every tab covers several — Ongoing alone
@@ -118,7 +129,18 @@ export function BookingsList() {
                 icon={<ServiceGlyph icon={service?.icon ?? "shield"} size={19} />}
                 iconClass="bg-panel-raised text-fg"
                 title={bk.service}
-                badge={<StatusPill status={bk.status} />}
+                badge={
+                  unrated.has(bk.id) ? (
+                    <span className="flex items-center gap-1.5">
+                      <StatusPill status={bk.status} />
+                      <span className="rounded-full border border-hairline px-2 py-[2px] text-eyebrow font-semibold text-fg-mid">
+                        Rate
+                      </span>
+                    </span>
+                  ) : (
+                    <StatusPill status={bk.status} />
+                  )
+                }
                 primaryMeta={[
                   { icon: <CalendarIcon size={12} />, text: bk.date },
                   { icon: <ClockIcon size={12} />, text: bk.time },
