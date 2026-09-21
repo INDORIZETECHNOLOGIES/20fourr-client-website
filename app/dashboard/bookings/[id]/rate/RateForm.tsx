@@ -8,22 +8,24 @@ import { StarFill } from "@/components/dashboard/icons";
 import { api } from "@/lib/api/client";
 import { errorMessage } from "@/lib/api/errors";
 
+/**
+ * The API only accepts these ten slugs (rating.validators.ts / Rating model);
+ * anything else fails with "tags[n]: Invalid rating tag". `label` is display only.
+ */
 const POSITIVES = [
-  "Punctual",
-  "Professional",
-  "Alert and attentive",
-  "Well presented",
-  "Good communication",
-  "Handled an incident well",
+  { value: "professional", label: "Professional" },
+  { value: "reliable", label: "Reliable" },
+  { value: "punctual", label: "Punctual" },
+  { value: "friendly", label: "Friendly" },
+  { value: "trustworthy", label: "Trustworthy" },
 ];
 
 const CONCERNS = [
-  "Arrived late",
-  "Left the post",
-  "Poor communication",
-  "Uniform / presentation",
-  "Phone use on duty",
-  "Attitude",
+  { value: "unprofessional", label: "Unprofessional" },
+  { value: "unreliable", label: "Unreliable" },
+  { value: "late", label: "Arrived late" },
+  { value: "rude", label: "Rude" },
+  { value: "untrustworthy", label: "Untrustworthy" },
 ];
 
 export function RateForm({
@@ -62,6 +64,7 @@ export function RateForm({
           rating: stars,
           review: comment.trim() || undefined,
           tags,
+          anonymous,
         },
       });
       setSent(true);
@@ -135,22 +138,22 @@ export function RateForm({
             {negative ? "Areas of concern" : "What went well"}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            {pool.map((t) => (
+            {pool.map(({ value, label }) => (
               <button
-                key={t}
+                key={value}
                 type="button"
-                aria-pressed={tags.includes(t)}
-                onClick={() => toggle(t)}
+                aria-pressed={tags.includes(value)}
+                onClick={() => toggle(value)}
                 className={[
                   "rounded-sm border px-4 py-2 text-body-sm font-semibold transition-colors",
-                  tags.includes(t)
+                  tags.includes(value)
                     ? negative
                       ? "border-fault/50 bg-transparent text-fault"
                       : "border-brand bg-panel-raised text-brand"
                     : "border-hairline text-fg-mid hover:border-edge",
                 ].join(" ")}
               >
-                {t}
+                {label}
               </button>
             ))}
           </div>
