@@ -13,6 +13,7 @@ import { errorMessage, isApiError } from "@/lib/api/errors";
 import { adaptProfile } from "@/lib/api/adapters";
 import type { ApiClientProfile } from "@/lib/api/types";
 import { CATEGORY_OPTIONS, type ClientType, type PreferredCategory } from "@/lib/dashboard-data";
+import { GST_STATES, matchGstStateName } from "@/lib/gst-states";
 import {
   emailError,
   gstinError,
@@ -29,6 +30,7 @@ type Values = {
   email: string;
   phone: string;
   city: string;
+  state: string;
   address: string;
   clientType: ClientType;
   gstin: string;
@@ -45,6 +47,7 @@ const EMPTY: Values = {
   email: "",
   phone: "",
   city: "",
+  state: "",
   address: "",
   clientType: "individual",
   gstin: "",
@@ -79,6 +82,9 @@ export function EditProfileForm() {
       email: view.email,
       phone: view.phone,
       city: view.city,
+      // Normalised to a GST state name so the select shows it; an unrecognised
+      // spelling comes through empty and has to be picked again.
+      state: matchGstStateName(profileData?.profile?.address?.state),
       address: view.address,
       clientType: view.clientType,
       gstin: view.gstin,
@@ -105,6 +111,9 @@ export function EditProfileForm() {
       email: emailError(v.email),
       phone: phoneError(v.phone),
       city: requiredError(v.city, "City"),
+      // Required: v6 pricing reads it to decide GST on the platform fee, and
+      // refuses to quote without it (SC_1421).
+      state: v.state ? undefined : "Select your state",
       address: requiredError(v.address, "Address"),
       gstin: v.clientType === "registered_business" ? gstinError(v.gstin) : undefined,
     };
@@ -123,11 +132,12 @@ export function EditProfileForm() {
           address: {
             // The API assigns this whole subdocument (`update.address =
             // req.body.address`), so anything omitted is erased. This form only
-            // edits city and street, so state and pincode are carried through
+            // edits city, state and street, so pincode and the rest are carried through
             // verbatim — sending just the two fields would silently wipe the
             // rest of the user's address.
             ...(profileData?.profile?.address ?? {}),
             city: v.city.trim(),
+            state: v.state,
             // `street`, not `fullAddress`: the ClientProfile address subschema
             // has no fullAddress field, so Mongoose silently drops it.
             street: v.address.trim(),
@@ -256,6 +266,38 @@ export function EditProfileForm() {
             placeholder="Enter city"
             onChange={(x) => set("city", x)}
           />
+          <div>
+            <label htmlFor="state" className="mb-2 block text-body-sm font-medium text-fg-mid">
+              State
+            </label>
+            <select
+              id="state"
+              value={v.state}
+              aria-invalid={errors.state ? true : undefined}
+              aria-describedby={errors.state ? "state-error" : "state-hint"}
+              onChange={(e) => set("state", e.target.value)}
+              className={[
+                "w-full rounded-lg border bg-panel-raised px-4 py-3 text-body text-fg outline-none transition-colors",
+                errors.state ? "border-fault" : "border-hairline focus:border-edge",
+              ].join(" ")}
+            >
+              <option value="">Select state</option>
+              {GST_STATES.map((st) => (
+                <option key={st.code} value={st.name}>
+                  {st.name}
+                </option>
+              ))}
+            </select>
+            {errors.state ? (
+              <p id="state-error" role="alert" className="mt-1.5 text-body-sm text-fault">
+                {errors.state}
+              </p>
+            ) : (
+              <p id="state-hint" className="mt-1.5 text-body-sm text-fg-faint">
+                Used to work out GST on your invoices.
+              </p>
+            )}
+          </div>
           <Field
             id="address"
             label="Address"
