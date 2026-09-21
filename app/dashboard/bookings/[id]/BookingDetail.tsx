@@ -21,7 +21,7 @@ import { CancelBookingButton } from "./CancelBookingButton";
 import { SafetyActions } from "./SafetyActions";
 import { RepeatBookingButton } from "./RepeatBookingButton";
 import { KeyIcon } from "@/components/dashboard/icons";
-import { DOCS_ALLOWED_STATUSES, INVOICE_DOWNLOAD_STATUSES, PAID_STATUSES } from "@/lib/api/types";
+import { DOCS_ALLOWED_STATUSES, PAID_STATUSES, invoicesAvailable } from "@/lib/api/types";
 import { ONGOING_STATUSES, statusStyle } from "@/lib/dashboard-data";
 import { formatPaise } from "@/lib/money";
 import { refundNotice } from "@/lib/cancellation-policy";
@@ -93,6 +93,7 @@ export function BookingDetail({ id }: { id: string }) {
   }
 
   const bk = adaptBooking(data.booking);
+  const v6 = data.booking.billingEngine === "v6";
   const quote = quoteFromBooking(data.booking);
   const style = statusStyle(bk.status);
   const reached = ORDER[bk.status] ?? -1;
@@ -303,20 +304,23 @@ export function BookingDetail({ id }: { id: string }) {
               pending
             />
           )}
-          {/* The invoice is only offered once the work is complete. */}
-          {INVOICE_DOWNLOAD_STATUSES.includes(bk.status) ? (
+          {/* v6: the platform fee invoice from payment, the provider's once uploaded.
+              v1: the single invoice once the work is complete. */}
+          {invoicesAvailable(data.booking) ? (
             <ActionLink
               icon={<InvoiceIcon size={16} />}
-              label="View invoice"
+              label={v6 ? "View invoices" : "View invoice"}
               href={`/dashboard/bookings/${id}/invoice`}
             />
           ) : (
             <ActionLink
               icon={<InvoiceIcon size={16} />}
-              label="View invoice"
+              label={v6 ? "View invoices" : "View invoice"}
               pending
-              pendingLabel="After completion"
-              pendingTitle="Available once the work is complete"
+              pendingLabel={v6 ? "After payment" : "After completion"}
+              pendingTitle={
+                v6 ? "Available once the booking is paid" : "Available once the work is complete"
+              }
             />
           )}
 

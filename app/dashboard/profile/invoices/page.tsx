@@ -8,7 +8,7 @@ export default function InvoicesPage() {
   return (
     <SubPage
       title="Documents and invoices"
-      subtitle="GST documents for paid bookings. The service document is issued at shift end."
+      subtitle="20fourr's platform fee invoices, issued at payment. Each provider's own invoice is on its booking's Invoices page."
     >
       <InvoiceList />
     </SubPage>

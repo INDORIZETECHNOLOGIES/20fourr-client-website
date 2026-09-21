@@ -500,11 +500,47 @@ export const INVOICE_STATUSES = [
 ];
 
 /**
- * When this site offers the invoice. The API would already serve it from
- * `payment_done`, but the client should only see it once the work is over:
- * the shift has ended (end-of-duty OTP verified) or the booking is closed.
+ * When this site offers the single v1 invoice: only once the work is over
+ * (end-of-duty OTP verified, or the booking closed), although the API would
+ * already serve it from `payment_done`.
  */
 export const INVOICE_DOWNLOAD_STATUSES = ["duty_ended", "completed"];
+
+/**
+ * When the booking's invoices are offered. A v6 booking has two, from two
+ * suppliers: 20fourr's platform fee invoice, issued at payment and shown from
+ * then on, and the provider's own invoice, which the provider uploads after
+ * the work is complete. A v1 booking keeps its single invoice behind
+ * completion.
+ */
+export function invoicesAvailable(booking: Pick<ApiBooking, "status" | "billingEngine">): boolean {
+  return booking.billingEngine === "v6"
+    ? INVOICE_STATUSES.includes(booking.status)
+    : INVOICE_DOWNLOAD_STATUSES.includes(booking.status);
+}
+
+/** `GET /bookings/:id/provider-invoice` — the provider's own invoice (v6 only). */
+export type ProviderInvoiceView = {
+  bookingId: string;
+  bookingRef: string;
+  providerInvoice: {
+    invoiceNumber: string;
+    invoiceDate: string;
+    totalPaise: number;
+    fileName: string | null;
+    mimeType: string;
+    uploadedAt: string;
+    /** Presigned and short-lived — fetch the view again rather than caching it. */
+    fileUrl: string | null;
+  } | null;
+  expected: {
+    documentKind: "tax_invoice" | "bill_of_supply";
+    servicePaise: number;
+    serviceGstPaise: number;
+    serviceGstRatePct: number;
+    totalPaise: number;
+  };
+};
 
 // ─── Duty OTP ───────────────────────────────────────────────────────────────
 

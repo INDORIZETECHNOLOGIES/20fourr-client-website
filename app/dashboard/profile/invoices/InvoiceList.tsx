@@ -71,8 +71,8 @@ export function InvoiceList() {
     return (
       <Card className="px-6 py-12 text-center">
         <p className="text-body text-fg-faint">
-          No documents yet. A platform fee invoice is issued at payment; the service document
-          is issued when the end-of-duty OTP is verified.
+          No documents yet. 20fourr&apos;s platform fee invoice is issued at payment. The
+          provider&apos;s own invoice appears on the booking once the work is complete.
         </p>
       </Card>
     );
