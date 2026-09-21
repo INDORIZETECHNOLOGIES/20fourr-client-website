@@ -6,6 +6,7 @@ import Link from "next/link";
 import { SubPage } from "@/components/dashboard/SubPage";
 import { Card } from "@/components/dashboard/primitives";
 import { useApiQuery } from "@/hooks/useApiQuery";
+import { INVOICE_DOWNLOAD_STATUSES } from "@/lib/api/types";
 import type {
   ApiBooking,
   InvoiceListResponse,
@@ -25,21 +26,23 @@ export function InvoiceForBooking({ bookingId }: { bookingId: string }) {
 
   const booking = bookingData?.booking;
   const v6 = booking?.billingEngine === "v6";
+  // Direct URLs must obey the same gate as the booking screen's button.
+  const workComplete = INVOICE_DOWNLOAD_STATUSES.includes(booking?.status ?? "");
 
   const { data: invoiceData, loading: invoicesLoading } =
     useApiQuery<InvoiceListResponse>("invoices", {
       query: { limit: 100 },
-      enabled: !v6,
+      enabled: !v6 && workComplete,
     });
 
   const { data: docsData, loading: docsLoading } =
     useApiQuery<TaxDocumentListResponse>("documents", {
       query: { bookingId, limit: 20 },
-      enabled: v6,
+      enabled: v6 && workComplete,
     });
 
   const ref = booking?.bookingId;
-  const match = ref
+  const match = ref && workComplete
     ? invoiceData?.invoices?.find((i) => i.bookingRef === ref || i.bookingId === bookingId)
     : undefined;
 
@@ -51,7 +54,7 @@ export function InvoiceForBooking({ bookingId }: { bookingId: string }) {
     if (!v6 && match) router.replace(`/dashboard/profile/invoices/${match._id}`);
   }, [match, router, v6]);
 
-  const loading = bookingLoading || invoicesLoading || docsLoading;
+  const loading = bookingLoading || (workComplete && (invoicesLoading || docsLoading));
   const paid = ["payment_done", "duty_started", "duty_ended", "completed", "settled"].includes(
     booking?.status ?? "",
   );
@@ -66,18 +69,20 @@ export function InvoiceForBooking({ bookingId }: { bookingId: string }) {
       ) : (
         <Card className="px-6 py-12 text-center">
           <p className="text-body text-fg-mid">
-            {v6 && paid && !shiftEnded
-              ? "The platform fee invoice is issued at payment. The service document is issued when the end-of-duty OTP is verified."
-              : "No invoice has been issued for this booking yet."}
+            {!workComplete
+              ? "The invoice is available once the work is complete."
+              : v6 && paid && !shiftEnded
+                ? "The platform fee invoice is issued at payment. The service document is issued when the end-of-duty OTP is verified."
+                : "No invoice has been issued for this booking yet."}
           </p>
-          {!v6 ? (
+          {!v6 && workComplete ? (
             <p className="mx-auto mt-2 max-w-[440px] text-body-sm leading-relaxed text-fg-faint">
               An invoice is generated once payment is captured. If you have just paid, give it a
               moment and reload.
             </p>
           ) : null}
           <div className="mt-5 flex flex-wrap justify-center gap-3">
-            {!v6 ? (
+            {!v6 && workComplete ? (
               <a
                 href={`/api/bff/client/bookings/${bookingId}/invoice`}
                 target="_blank"

@@ -499,6 +499,13 @@ export const INVOICE_STATUSES = [
   "completed",
 ];
 
+/**
+ * When this site offers the invoice. The API would already serve it from
+ * `payment_done`, but the client should only see it once the work is over:
+ * the shift has ended (end-of-duty OTP verified) or the booking is closed.
+ */
+export const INVOICE_DOWNLOAD_STATUSES = ["duty_ended", "completed"];
+
 // ─── Duty OTP ───────────────────────────────────────────────────────────────
 
 /**

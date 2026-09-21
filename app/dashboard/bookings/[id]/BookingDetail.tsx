@@ -21,7 +21,7 @@ import { CancelBookingButton } from "./CancelBookingButton";
 import { SafetyActions } from "./SafetyActions";
 import { RepeatBookingButton } from "./RepeatBookingButton";
 import { KeyIcon } from "@/components/dashboard/icons";
-import { DOCS_ALLOWED_STATUSES, INVOICE_STATUSES, PAID_STATUSES } from "@/lib/api/types";
+import { DOCS_ALLOWED_STATUSES, INVOICE_DOWNLOAD_STATUSES, PAID_STATUSES } from "@/lib/api/types";
 import { ONGOING_STATUSES, statusStyle } from "@/lib/dashboard-data";
 import { formatPaise } from "@/lib/money";
 import { refundNotice } from "@/lib/cancellation-policy";
@@ -303,9 +303,8 @@ export function BookingDetail({ id }: { id: string }) {
               pending
             />
           )}
-          {/* An invoice only exists from payment_done onward; before that the
-              API returns 400. Offering it earlier would be a dead click. */}
-          {INVOICE_STATUSES.includes(bk.status) ? (
+          {/* The invoice is only offered once the work is complete. */}
+          {INVOICE_DOWNLOAD_STATUSES.includes(bk.status) ? (
             <ActionLink
               icon={<InvoiceIcon size={16} />}
               label="View invoice"
@@ -316,6 +315,8 @@ export function BookingDetail({ id }: { id: string }) {
               icon={<InvoiceIcon size={16} />}
               label="View invoice"
               pending
+              pendingLabel="After completion"
+              pendingTitle="Available once the work is complete"
             />
           )}
 
@@ -369,6 +370,8 @@ function ActionLink({
   href,
   tone,
   pending,
+  pendingLabel = "Soon",
+  pendingTitle = "Not available yet",
 }: {
   icon: React.ReactNode;
   label: string;
@@ -380,6 +383,8 @@ function ActionLink({
    * this screen one of them was "Cancel booking".
    */
   pending?: boolean;
+  pendingLabel?: string;
+  pendingTitle?: string;
 }) {
   const cls = [
     "flex items-center gap-3 rounded-lg border px-4 py-3 text-body font-semibold transition-colors",
@@ -394,10 +399,10 @@ function ActionLink({
 
   if (pending) {
     return (
-      <button type="button" disabled className={cls} title="Not available yet">
+      <button type="button" disabled className={cls} title={pendingTitle}>
         {icon}
         <span className="flex-1 text-left">{label}</span>
-        <span className="text-eyebrow font-normal text-fg-faint">Soon</span>
+        <span className="text-eyebrow font-normal text-fg-faint">{pendingLabel}</span>
       </button>
     );
   }
