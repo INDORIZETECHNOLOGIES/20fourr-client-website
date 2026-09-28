@@ -121,8 +121,7 @@ export function ProductShowcase({ provider }: { provider: MaskedProvider | null 
   return (
     <section id="product" className="border-t border-rule">
       <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
-        <p className="text-eyebrow text-ink-faint">The product</p>
-        <h2 className="text-h1 mt-3 max-w-[22ch] text-ink">What you actually use, in order</h2>
+        <h2 className="text-h1 max-w-[22ch] text-ink">What you actually use, in order</h2>
         <p className="mt-4 max-w-prose text-body text-ink-mid">
           Discovery, quote, booking, OTP duty and documents are the same path as the signed-in
           app. These frames are the interface, not a campaign illustration.

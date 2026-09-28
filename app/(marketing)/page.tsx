@@ -10,12 +10,9 @@ import { ProductShowcase } from "@/components/marketing/ProductShowcase";
 import { PublicListings } from "@/components/marketing/PublicListings";
 import { SocialProofBand } from "@/components/marketing/SocialProofBand";
 import { TeamBookingMock } from "@/components/marketing/TeamBookingMock";
-import { TrustStrip } from "@/components/marketing/TrustStrip";
 import { SERVICE_CATALOGUE, EX_SERVICEMAN_FILTER } from "@/lib/services";
 import { getCoverage } from "@/lib/marketing-data";
 import { CANCELLATION_SUMMARY } from "@/lib/cancellation-policy";
-
-const TRUST_PILLS = ["PSARA Licensed", "OTP Attendance", "GST Invoiced"];
 
 export const metadata: Metadata = {
   title: "Verified security. Documented shifts.",
@@ -23,6 +20,9 @@ export const metadata: Metadata = {
     "Book verified security guards, bouncers, gunmen and PSOs, one person or a whole team, by the day or the month, with transparent pricing, OTP attendance and GST documents for every shift.",
   alternates: { canonical: "/" },
 };
+
+// Public URL of the provider website. Not hardcoded: the link only renders once it is configured.
+const PROVIDER_SITE_URL = process.env.NEXT_PUBLIC_PROVIDER_SITE_URL ?? null;
 
 const WHEN: Record<string, string> = {
   guard: "Offices, facilities, residential associations and site gates.",
@@ -91,7 +91,7 @@ const COMPLIANCE = [
   },
   {
     dt: "Arms licence before armed duty",
-    dd: "A gunman or PSO booking is not accepted until the arms licence is verified (SC_611).",
+    dd: "A gunman or PSO booking is not accepted until the provider's arms licence is verified.",
   },
   {
     dt: "OTP-gated duty",
@@ -213,8 +213,7 @@ export default async function LandingPage() {
         <div className="mx-auto max-w-[1200px] px-4 py-12 lg:px-6 lg:py-20">
           <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-12 lg:gap-12">
             <div className="lg:col-span-6">
-              <p className="text-eyebrow text-ink-faint">PSARA-licensed marketplace</p>
-              <h1 className="text-display mt-4 text-ink">Verified security. Documented shifts.</h1>
+              <h1 className="text-display text-ink">Verified security. Documented shifts.</h1>
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <MarketingCta href="/#find" className="w-full sm:w-auto">
                   Book a verified guard
@@ -224,20 +223,10 @@ export default async function LandingPage() {
                 </MarketingCta>
               </div>
               <p className="mt-5 max-w-[60ch] text-body text-ink-mid">
-                The only security marketplace where every shift starts on an OTP and closes with a
-                GST document. Built for procurement teams.
+                Every shift starts on the client&apos;s OTP and closes with a GST document, from
+                providers whose PSARA licence is checked for that state and date. Built for procurement
+                teams.
               </p>
-              <ul className="mt-8 flex flex-wrap gap-2">
-                {TRUST_PILLS.map((label) => (
-                  <li
-                    key={label}
-                    className="inline-flex items-center gap-1.5 rounded-pill border border-live bg-paper px-3 py-1.5 text-label font-medium text-live"
-                  >
-                    <CheckIcon size={14} />
-                    {label}
-                  </li>
-                ))}
-              </ul>
             </div>
             <div className="lg:col-span-6 lg:col-start-7">
               <ProductHero provider={coverage.featured} />
@@ -248,14 +237,11 @@ export default async function LandingPage() {
 
       <SocialProofBand />
 
-      <TrustStrip />
-
       <PublicListings listings={coverage.listings} />
 
       <section id="services" className="border-b border-rule">
         <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
-          <p className="text-eyebrow text-ink-faint">What you can book</p>
-          <h2 className="text-h1 mt-3 text-ink">Four categories. Ex-serviceman is a filter.</h2>
+          <h2 className="text-h1 text-ink">Four categories. Ex-serviceman is a filter.</h2>
           <ul className="mt-10 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-rule bg-rule sm:grid-cols-2">
             {SERVICE_CATALOGUE.map((s) => (
               <li key={s.id} className="flex flex-col bg-paper p-6 transition-colors duration-150 hover:bg-paper-raised">
@@ -288,8 +274,7 @@ export default async function LandingPage() {
         <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
           <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-12 lg:gap-12">
             <div className="lg:col-span-6">
-              <p className="text-eyebrow text-ink-faint">For businesses</p>
-              <h2 className="text-h1 mt-3 max-w-[20ch] text-ink">A whole team, for as long as you need it</h2>
+              <h2 className="text-h1 max-w-[20ch] text-ink">A whole team, for as long as you need it</h2>
               <p className="mt-4 max-w-prose text-body text-ink-mid">
                 Offices, sites, venues and events rarely need one guard for one day. Book the headcount and
                 the dates you actually need, from agencies that can staff every day of it.
@@ -320,8 +305,7 @@ export default async function LandingPage() {
 
       <section id="how-it-works">
         <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
-          <p className="text-eyebrow text-ink-faint">How it works</p>
-          <h2 className="text-h1 mt-3 text-ink">From search to a documented shift</h2>
+          <h2 className="text-h1 text-ink">From search to a documented shift</h2>
           <ol className="mt-10 border-l border-rule pl-6 xl:grid xl:grid-cols-5 xl:gap-0 xl:border-l-0 xl:border-t xl:pl-0">
             {STEPS.map((s) => (
               <li
@@ -347,8 +331,7 @@ export default async function LandingPage() {
 
       <section id="pricing" className="border-t border-rule bg-paper-raised">
         <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
-          <p className="text-eyebrow text-ink-faint">Transparent pricing</p>
-          <h2 className="text-h1 mt-3 text-ink">Every line, including both GST components</h2>
+          <h2 className="text-h1 text-ink">Every line, including both GST components</h2>
           <p className="mt-4 max-w-prose text-body text-ink-mid">
             Live quotes are generated in the booking funnel from the provider&apos;s rates. This
             section is a worked example so the structure is visible before you create an account.
@@ -368,8 +351,7 @@ export default async function LandingPage() {
 
       <section id="compliance" className="border-t border-rule bg-paper">
         <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
-          <p className="text-eyebrow text-ink-faint">Trust and compliance</p>
-          <h2 className="text-h1 mt-3 text-ink">Built for accountable security operations.</h2>
+          <h2 className="text-h1 text-ink">Built for accountable security operations.</h2>
           <dl className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-2">
             {COMPLIANCE.map((c) => (
               <div key={c.dt} className="border-t border-rule pt-4">
@@ -383,8 +365,7 @@ export default async function LandingPage() {
 
       <section id="coverage" className="border-t border-rule">
         <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
-          <p className="text-eyebrow text-ink-faint">Coverage</p>
-          <h2 className="text-h1 mt-3 max-w-[20ch] text-ink">Verified supply, by city</h2>
+          <h2 className="text-h1 max-w-[20ch] text-ink">Verified supply, by city</h2>
           <p className="mt-3 max-w-prose text-body text-ink-mid">
             Live from the public provider index. A city appears only if at least one verified
             provider lists it.
@@ -400,15 +381,14 @@ export default async function LandingPage() {
 
       <section id="faq" className="border-t border-rule">
         <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
-          <p className="text-eyebrow text-ink-faint">FAQ</p>
-          <h2 className="text-h1 mt-3 text-ink">Straight answers</h2>
+          <h2 className="text-h1 text-ink">Straight answers</h2>
           <div className="mt-8 flex max-w-[680px] flex-col gap-8">
             {FAQ_CATEGORIES.map((category) => {
               const items = FAQS.filter((f) => f.category === category);
               if (items.length === 0) return null;
               return (
                 <div key={category}>
-                  <p className="text-eyebrow text-ink-faint">{category}</p>
+                  <h3 className="text-label font-semibold text-ink-mid">{category}</h3>
                   <div className="mt-3 divide-y divide-rule border-y border-rule">
                     {items.map((f) => (
                       <details
@@ -438,12 +418,18 @@ export default async function LandingPage() {
 
       <section id="providers" className="border-t border-rule bg-paper-raised">
         <div className="mx-auto max-w-[1200px] px-4 py-12 lg:px-6">
-          <p className="text-eyebrow text-ink-faint">For providers</p>
-          <h2 className="text-h2 mt-3 text-ink">Supply is onboarded in the provider app</h2>
+          <h2 className="text-h2 text-ink">Run a security agency, or work on your own?</h2>
           <p className="mt-4 max-w-prose text-body text-ink-mid">
-            This page is for clients booking a shift. Provider applications, PSARA documents and
-            payouts live in the 20fourr provider app, not on this website.
+            This site is for booking security. Agencies and professionals join 20fourr, get verified
+            and set their rates on the provider website or the provider app.
           </p>
+          {PROVIDER_SITE_URL ? (
+            <p className="mt-4 text-body font-medium text-ink">
+              <a href={PROVIDER_SITE_URL} className="underline underline-offset-4 hover:no-underline">
+                Join as a provider
+              </a>
+            </p>
+          ) : null}
         </div>
       </section>
 
