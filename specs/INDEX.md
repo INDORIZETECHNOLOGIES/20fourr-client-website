@@ -11,6 +11,7 @@ name means the backend's.
 | --- | --- | --- | --- |
 | 0001 | [Design system v2 and the public landing page](0001-design-system-v2-and-landing-page.md) | building | One palette, one type scale, two radii, applied across marketing, auth, funnel and dashboard — plus the landing page the site doesn't have. |
 | 0002 | [v6 billing and API realignment](0002-v6-billing-and-api-realignment.md) | building | Make the site engine-aware: v6 quotes, deployment location, tax documents, and honest refund copy. |
+| 0003 | [Business bookings, contracts, document history, personnel and live sync](0003-business-bookings-contracts-documents-and-live-sync.md) | draft | Web side of backend 0011–0017 and 0020: headcount and date ranges, long-term contracts with a mandate, one document history, assigned personnel, and live `account_event` updates. |
 
 0001 and 0002 both touch `app/book/PriceSummary.tsx`. 0002 owns its data contract, 0001 owns its
 appearance — 0002's union landed first, as planned.
