@@ -9,6 +9,7 @@ import { ProductHero } from "@/components/marketing/ProductHero";
 import { ProductShowcase } from "@/components/marketing/ProductShowcase";
 import { PublicListings } from "@/components/marketing/PublicListings";
 import { SocialProofBand } from "@/components/marketing/SocialProofBand";
+import { TeamBookingMock } from "@/components/marketing/TeamBookingMock";
 import { TrustStrip } from "@/components/marketing/TrustStrip";
 import { SERVICE_CATALOGUE, EX_SERVICEMAN_FILTER } from "@/lib/services";
 import { getCoverage } from "@/lib/marketing-data";
@@ -19,7 +20,7 @@ const TRUST_PILLS = ["PSARA Licensed", "OTP Attendance", "GST Invoiced"];
 export const metadata: Metadata = {
   title: "Verified security. Documented shifts.",
   description:
-    "Find verified security guards, bouncers, gunmen and PSOs with transparent pricing, OTP attendance and GST documents for every shift.",
+    "Book verified security guards, bouncers, gunmen and PSOs, one person or a whole team, by the day or the month, with transparent pricing, OTP attendance and GST documents for every shift.",
   alternates: { canonical: "/" },
 };
 
@@ -34,7 +35,7 @@ const STEPS = [
   {
     n: "01",
     title: "Search",
-    body: "Pick a category and city. The quote lists service, platform fee and GST lines before you commit.",
+    body: "Pick a category, city, dates and how many people. The quote lists service, platform fee and GST lines before you commit.",
   },
   {
     n: "02",
@@ -55,6 +56,27 @@ const STEPS = [
     n: "05",
     title: "Complete",
     body: "A GST tax invoice for the platform fee and a service document for the shift, with CGST/SGST/IGST by place of supply.",
+  },
+];
+
+// Spec 0003 (backend 0011, 0012, 0013, 0017). Long-term contracts are built but switched off, so
+// they are deliberately not offered here.
+const BUSINESS = [
+  {
+    dt: "A team, as one booking",
+    dd: "Ask for six bouncers for three nights and it is one booking: one quote, one payment and one set of documents, itemised as 6 × Bouncer. It only reaches agencies that have declared enough staff for every date.",
+  },
+  {
+    dt: "Monthly and yearly packages",
+    dd: "For a month or more, the provider's monthly or yearly package applies wherever it is cheaper than their daily rate. The quote shows which one you are paying.",
+  },
+  {
+    dt: "Priced for the city you deploy in",
+    dd: "Providers set their rates city by city, and every booking is priced from the city where the guards work, not where you are billed.",
+  },
+  {
+    dt: "See who is coming",
+    dd: "Once the agency assigns the team you see each person's photo, first initial, experience and languages before you pay, and their name and phone once you have. After the job you can rate each person individually.",
   },
 ];
 
@@ -111,6 +133,21 @@ const FAQS = [
     q: "How do refunds work?",
     a: CANCELLATION_SUMMARY,
     category: "Payments",
+  },
+  {
+    q: "Can I book several guards in one go?",
+    a: "Yes. Set how many people you need and the dates; it is one booking with one payment and one set of documents. Only agencies with enough staff declared for every one of those dates are offered to you.",
+    category: "Operations",
+  },
+  {
+    q: "Is there a monthly rate?",
+    a: "Where the provider offers one. For bookings of a month or more their monthly or yearly package is used if it costs less than the daily rate for the same days, and the quote says which applies.",
+    category: "Payments",
+  },
+  {
+    q: "Can I see who will turn up?",
+    a: "Yes. When an agency assigns its team you see each person's photo, first initial, experience and languages before paying, and their full name and phone number after. You can rate each of them once the job is done.",
+    category: "Operations",
   },
   {
     q: "Can I book the same guard weekly?",
@@ -244,6 +281,40 @@ export default async function LandingPage() {
           <p className="mt-6 text-body-sm text-ink-mid">
             {EX_SERVICEMAN_FILTER.name}: {EX_SERVICEMAN_FILTER.desc}
           </p>
+        </div>
+      </section>
+
+      <section id="business" className="border-b border-rule bg-paper-raised">
+        <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
+          <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-12 lg:gap-12">
+            <div className="lg:col-span-6">
+              <p className="text-eyebrow text-ink-faint">For businesses</p>
+              <h2 className="text-h1 mt-3 max-w-[20ch] text-ink">A whole team, for as long as you need it</h2>
+              <p className="mt-4 max-w-prose text-body text-ink-mid">
+                Offices, sites, venues and events rarely need one guard for one day. Book the headcount and
+                the dates you actually need, from agencies that can staff every day of it.
+              </p>
+              <dl className="mt-8 flex flex-col">
+                {BUSINESS.map((b) => (
+                  <div key={b.dt} className="border-t border-rule py-4">
+                    <dt className="text-h3 text-ink">{b.dt}</dt>
+                    <dd className="mt-1.5 text-body text-ink-mid">{b.dd}</dd>
+                  </div>
+                ))}
+              </dl>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                <MarketingCta href="/#find" className="w-full sm:w-auto">
+                  Book a team
+                </MarketingCta>
+                <MarketingCta href="/for-business" variant="secondary" className="w-full sm:w-auto">
+                  More for businesses
+                </MarketingCta>
+              </div>
+            </div>
+            <div className="lg:sticky lg:top-24 lg:col-span-5 lg:col-start-8">
+              <TeamBookingMock />
+            </div>
+          </div>
         </div>
       </section>
 
