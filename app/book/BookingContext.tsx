@@ -61,11 +61,24 @@ export type BookingDraft = {
    * choice is made. Null when the provider card didn't carry one.
    */
   providerMinimumHours: number | null;
+  /**
+   * Agency or individual, from the provider card. An individual can fill one position only
+   * (backend spec 0011, SC_1502), so the headcount stepper is fixed at 1 for them.
+   */
+  providerKind: "agency" | "individual" | null;
   purposeId: string | null;
   purposeNote: string;
   date: string;
   startTime: string;
   hours: number;
+  /**
+   * Spec 0003 A — "For business". Off: one shift on `date`, exactly as before. On: the same
+   * daily shift on every day from `date` to `endDate`, for `headcount` people. The switch
+   * itself never changes the price (backend 0013 rule 10); only the dates and headcount do.
+   */
+  forBusiness: boolean;
+  endDate: string;
+  headcount: number;
   address: string;
   /**
    * Structured deployment (spec 0004). GST place of supply uses this, not the
@@ -103,11 +116,15 @@ const EMPTY: BookingDraft = {
   providerId: null,
   providerName: null,
   providerMinimumHours: null,
+  providerKind: null,
   purposeId: null,
   purposeNote: "",
   date: "",
   startTime: "",
   hours: 8,
+  forBusiness: false,
+  endDate: "",
+  headcount: 1,
   address: "",
   deployment: { addressLine: "", city: "", stateName: "", pincode: "" },
   vehicleOption: "none",
@@ -200,6 +217,7 @@ export function BookingProvider({ children }: { children: ReactNode }) {
     if (!draft.providerId) return 1;
     if (!draft.purposeId) return 2;
     if (!draft.date || !draft.startTime || !draft.address.trim()) return 3;
+    if (draft.forBusiness && !draft.endDate) return 3;
     if (!draft.riskAccepted) return 4;
     if (!draft.safetyAccepted) return 5;
     if (!draft.absencePolicyAccepted) return 6;

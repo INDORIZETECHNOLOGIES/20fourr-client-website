@@ -67,6 +67,36 @@ dashboard page updates within seconds when the thing it shows changes on the ser
    `headcount > 1`, also call the capacity-aware search/preview so the client learns about
    `SC_1503` before submitting.
 
+**As built (A):**
+- **"For business" off** keeps the request exactly as before. Headcount is only sent above one,
+  so a single booking's `POST /bookings` body and preview query are unchanged (AC 1).
+- **"For business" on** adds a last day and a people stepper.
+  - A range means the same daily shift on every day from the first day to the last. That is how
+    the backend prices it (`startDate`/`endDate` + `startTime`/`endTime`); it has no
+    `shiftHours` parameter, so AC 2's `shiftHours` is carried by `endTime`.
+  - `scheduleWindow()` in `lib/api/pricing.ts` builds that window once, for both the preview and
+    the booking.
+  - Turning the switch off resets the range and headcount to one person, one day.
+- **Individual providers** keep the stepper fixed at 1, with the reason shown. The provider's
+  kind is carried from the search card.
+- **Headcount ceiling.** The stepper allows up to 50, the backend's
+  `PlatformSettings.booking.maxHeadcount` default. The real limit isn't exposed to clients; the
+  preview refuses anything above it with SC_1501, and that message is shown.
+- **Blocked dates** are checked across the whole range.
+- **SC_1503** (not enough staff on every date) is caught when the booking is submitted. There is
+  no separate capacity preview, because the price preview doesn't check capacity.
+  SC_1500/1501/1502 map to plain messages as well.
+- **Price summary.** The service line reads "Service charge (N people)" and carries the server's
+  basis as its note ("Monthly package per person: 1 month + 5 days, cheaper than 35 days at the
+  daily rate", or "Daily rate per person × N days"). Fixtures are in `npm run test:quote` (AC 4).
+- **`paymentPath: 'contract'`** blocks the step with an explanation instead of routing to
+  `/book/contract/review`. Contracts are switched off (backend 0014), so part B doesn't exist
+  yet. AC 3 applies once part B ships.
+- **GSTIN link.** A client who isn't a `registered_business` gets a non-blocking link to add a
+  GSTIN.
+- **Verified** against the local API: a 35-day, 4-person Mumbai guard booking previews as a
+  monthly package (1 month + 5 days), with the service line at four times the per-person price.
+
 ### B. Contracts: new `app/dashboard/contracts` (0014)
 
 - `/book/contract/review`: `POST /contracts/quote`, a cycle table, the notice period, and the

@@ -8,9 +8,9 @@ import { PriceSummary } from "../PriceSummary";
 import { PinFill } from "@/components/dashboard/icons";
 import { useApiQuery } from "@/hooks/useApiQuery";
 import { usePricePreview } from "@/hooks/usePricePreview";
-import { endOfShift } from "@/lib/api/pricing";
+import { daysInRange, endOfShift } from "@/lib/api/pricing";
 import { adaptAddress } from "@/lib/api/adapters";
-import type { ApiSavedAddress, ProviderAvailability } from "@/lib/api/types";
+import type { ApiClientProfile, ApiSavedAddress, ProviderAvailability } from "@/lib/api/types";
 import { DURATION_PRESETS } from "@/lib/booking-data";
 import { formatAddress } from "@/lib/dashboard-data";
 import { matchGstStateName } from "@/lib/gst-states";
@@ -38,8 +38,18 @@ export default function ScheduleStep() {
     draft.providerId ? `client/providers/${draft.providerId}/availability` : null,
   );
   const blocked = availability?.blockedDates ?? [];
-  // Compared as plain "YYYY-MM-DD" strings, never parsed — see the type note.
-  const blockedOn = blocked.find((d) => d.date === draft.date);
+  // Compared as plain "YYYY-MM-DD" strings, never parsed — see the type note. With "For
+  // business" on, every day of the range has to be free, not just the first.
+  const rangeEnd = draft.forBusiness && draft.endDate ? draft.endDate : draft.date;
+  const blockedOn = blocked.find((d) => d.date >= draft.date && d.date <= rangeEnd);
+  const rangeDays = draft.forBusiness ? daysInRange(draft.date, draft.endDate) : 1;
+
+  // Only to offer the GSTIN link; never blocks the step.
+  const { data: profileData } = useApiQuery<{ profile: ApiClientProfile }>(
+    draft.forBusiness ? "client/profile" : null,
+  );
+  const isRegisteredBusiness = profileData?.profile?.clientType === "registered_business";
+  const individualProvider = draft.providerKind === "individual";
   const workingHours = availability?.workingHours;
 
   // Priced by the server against this provider's own rates.
@@ -57,7 +67,14 @@ export default function ScheduleStep() {
       : draft.date < today
         ? "Date is in the past."
         : blockedOn
-          ? `The provider is unavailable on this date${blockedOn.reason ? ` (${blockedOn.reason})` : ""}. Pick another day.`
+          ? `The provider is unavailable on ${draft.forBusiness ? blockedOn.date : "this date"}${blockedOn.reason ? ` (${blockedOn.reason})` : ""}. Pick ${draft.forBusiness ? "other dates" : "another day"}.`
+          : "",
+    endDate: !draft.forBusiness
+      ? ""
+      : !draft.endDate
+        ? "Pick the last day."
+        : rangeDays === null
+          ? "The last day is before the first."
           : "",
     startTime: !draft.startTime ? "Pick a start time." : "",
     hours:
@@ -69,7 +86,12 @@ export default function ScheduleStep() {
       ? "Pincode is six digits."
       : "",
   };
+  // Backend spec 0013 rule 7: a booking longer than one payment can cover becomes a contract.
+  // Contracts are switched off, so there is nowhere to send this yet; say so instead of failing.
+  const needsContract = price?.engine === "v6" && price.quote.paymentPath === "contract";
   const valid =
+    !needsContract &&
+    !errors.endDate &&
     !errors.date &&
     !errors.startTime &&
     !errors.address &&
@@ -84,8 +106,25 @@ export default function ScheduleStep() {
         <div className="flex flex-col gap-6">
           <section>
             <SectionLabel>Date &amp; time</SectionLabel>
+            <label className="mb-4 flex cursor-pointer items-start gap-3 rounded-lg border border-hairline bg-panel-raised px-4 py-3">
+              <input
+                type="checkbox"
+                checked={draft.forBusiness}
+                onChange={(e) =>
+                  update({ forBusiness: e.target.checked, ...(e.target.checked ? {} : { endDate: "", headcount: 1 }) })
+                }
+                className="mt-1 h-4 w-4 accent-[var(--color-brand)]"
+              />
+              <span>
+                <span className="block text-body font-medium text-fg">For business</span>
+                <span className="block text-body-sm text-fg-mid">
+                  Book a team, or the same shift for several days. This doesn&apos;t change the price; the dates
+                  and number of people do.
+                </span>
+              </span>
+            </label>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field id="date" label="Start date" error={touched ? errors.date : ""}>
+              <Field id="date" label={draft.forBusiness ? "First day" : "Start date"} error={touched ? errors.date : ""}>
                 <input
                   id="date"
                   type="date"
@@ -105,6 +144,24 @@ export default function ScheduleStep() {
                   </p>
                 ) : null}
               </Field>
+              {draft.forBusiness ? (
+                <Field id="end-date" label="Last day" error={touched ? errors.endDate : ""}>
+                  <input
+                    id="end-date"
+                    type="date"
+                    min={draft.date || today}
+                    value={draft.endDate}
+                    onChange={(e) => update({ endDate: e.target.value })}
+                    className={inputCls}
+                  />
+                  {rangeDays ? (
+                    <p className="mt-1.5 text-label text-fg-faint">
+                      {rangeDays} {rangeDays === 1 ? "day" : "days"}, the same shift each day.
+                      {rangeDays >= 30 ? " A month or more can be priced from the provider's package." : ""}
+                    </p>
+                  ) : null}
+                </Field>
+              ) : null}
               <Field
                 id="start-time"
                 label="Start time"
@@ -127,8 +184,43 @@ export default function ScheduleStep() {
             </div>
           </section>
 
+          {draft.forBusiness ? (
+            <section>
+              <SectionLabel>People</SectionLabel>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  aria-label="One fewer person"
+                  disabled={individualProvider || draft.headcount <= 1}
+                  onClick={() => update({ headcount: Math.max(1, draft.headcount - 1) })}
+                  className="h-11 w-11 rounded-sm border border-hairline text-h3 text-fg transition-colors hover:border-edge disabled:opacity-40"
+                >
+                  −
+                </button>
+                <output aria-live="polite" className="min-w-[3ch] text-center text-h3 text-fg">
+                  {draft.headcount}
+                </output>
+                <button
+                  type="button"
+                  aria-label="One more person"
+                  disabled={individualProvider || draft.headcount >= MAX_HEADCOUNT}
+                  onClick={() => update({ headcount: Math.min(MAX_HEADCOUNT, draft.headcount + 1) })}
+                  className="h-11 w-11 rounded-sm border border-hairline text-h3 text-fg transition-colors hover:border-edge disabled:opacity-40"
+                >
+                  +
+                </button>
+                <span className="text-body-sm text-fg-mid">each day</span>
+              </div>
+              <p className="mt-2.5 text-body-sm text-fg-faint">
+                {individualProvider
+                  ? "This provider works alone, so it's one person. For a team, go back and choose an agency."
+                  : "The agency assigns the team once it accepts. Only agencies with enough people free on every day can accept."}
+              </p>
+            </section>
+          ) : null}
+
           <section>
-            <SectionLabel>Duration</SectionLabel>
+            <SectionLabel>{draft.forBusiness ? "Shift length, each day" : "Duration"}</SectionLabel>
             <div className="flex flex-wrap gap-2.5">
               {DURATION_PRESETS.map((h) => (
                 <button
@@ -300,6 +392,21 @@ export default function ScheduleStep() {
             Price Breakdown
           </h2>
           <PriceSummary price={price} loading={priceLoading} error={priceMessage} />
+          {needsContract ? (
+            <p role="alert" className="mt-3 text-body-sm text-fault">
+              A booking this long is billed month by month as a contract, which isn&apos;t available yet. Choose a
+              shorter range for now.
+            </p>
+          ) : null}
+          {draft.forBusiness && profileData && !isRegisteredBusiness ? (
+            <p className="mt-3 text-label leading-relaxed text-fg-faint">
+              Want the GST invoice in your company&apos;s name?{" "}
+              <a href="/dashboard/profile/edit" className="text-fg-mid underline underline-offset-2 hover:text-fg">
+                Add your GSTIN
+              </a>{" "}
+              first. You can still book without it.
+            </p>
+          ) : null}
           {end ? (
             <p className="mt-3 text-label text-fg-faint">
               Ends {end.endDate === draft.date ? "" : `${end.endDate} at `}
@@ -323,6 +430,13 @@ export default function ScheduleStep() {
     </>
   );
 }
+
+/**
+ * Upper bound for the stepper only. The platform's real limit is PlatformSettings.booking.maxHeadcount
+ * (backend spec 0011, default 50), which isn't exposed to clients; the price preview refuses
+ * anything above it with SC_1501, and that message is what the client sees.
+ */
+const MAX_HEADCOUNT = 50;
 
 const inputCls =
   "w-full rounded-lg border border-hairline bg-panel-raised px-4 py-3 text-body text-fg outline-none transition-colors placeholder:text-fg-faint focus:border-edge [color-scheme:dark]";

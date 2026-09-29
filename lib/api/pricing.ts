@@ -1,5 +1,5 @@
 import type { BookingDraft } from "@/app/book/BookingContext";
-import type { ApiBooking, Quote, QuoteLine } from "@/lib/api/types";
+import type { ApiBooking, Quote, QuoteLine, RangePricing } from "@/lib/api/types";
 
 /**
  * Booking price, from the server.
@@ -59,11 +59,16 @@ function isV6Payload(obj: Record<string, unknown>): boolean {
 
 function asQuote(obj: Record<string, unknown>): Quote {
   const lines = Array.isArray(obj.lines) ? (obj.lines as QuoteLine[]) : [];
+  const range = asRecord(obj.rangePricing);
   return {
     billingEngine: typeof obj.billingEngine === "string" ? obj.billingEngine : "v6",
     currency: typeof obj.currency === "string" ? obj.currency : undefined,
     lines,
     clientTotalPaise: asNumber(obj.clientTotalPaise),
+    headcount: typeof obj.headcount === "number" ? obj.headcount : undefined,
+    unitProviderPricePaise: typeof obj.unitProviderPricePaise === "number" ? obj.unitProviderPricePaise : undefined,
+    rangePricing: range ? (range as unknown as RangePricing) : null,
+    paymentPath: obj.paymentPath === "contract" ? "contract" : obj.paymentPath === "upfront" ? "upfront" : undefined,
   };
 }
 
@@ -163,8 +168,13 @@ export function toDisplayLines(quote: PriceQuote): DisplayLine[] {
     const feeGst = feeGstLine?.amountPaise ?? quote.quote.platformGstPaise ?? 0;
     const rate = feeGstLine?.ratePct ?? serviceGstLine?.ratePct ?? 18;
 
+    const headcount = quote.quote.headcount ?? 1;
     return [
-      { label: "Service charge (base price)", amountPaise: service },
+      {
+        label: headcount > 1 ? `Service charge (${headcount} people)` : "Service charge (base price)",
+        amountPaise: service,
+        note: serviceBasisNote(quote.quote.rangePricing ?? null, headcount),
+      },
       { label: "Platform fee", amountPaise: fee },
       { label: "Total", amountPaise: service + fee, subtotal: true },
       {
@@ -207,6 +217,63 @@ export function toDisplayLines(quote: PriceQuote): DisplayLine[] {
   return lines;
 }
 
+const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? "" : "s"}`;
+
+/**
+ * How a multi-day booking was priced, in words — the basis the server chose (backend spec 0013),
+ * never recomputed here. Undefined for a single day, which needs no explanation.
+ */
+export function serviceBasisNote(range: RangePricing | null, headcount: number): string | undefined {
+  const perPerson = headcount > 1 ? " per person" : "";
+  if (!range) return undefined;
+  if (range.basis === "package") {
+    const parts = [
+      range.yearlyBlocks ? plural(range.yearlyBlocks, "year") : "",
+      range.monthlyPeriods ? plural(range.monthlyPeriods, "month") : "",
+      range.remainderDays ? plural(range.remainderDays, "day") : "",
+    ].filter(Boolean);
+    const basis = range.yearlyBlocks ? "Yearly package" : "Monthly package";
+    return `${basis}${perPerson}: ${parts.join(" + ")}, cheaper than ${plural(range.days, "day")} at the daily rate`;
+  }
+  return `Daily rate${perPerson} × ${plural(range.days, "day")}`;
+}
+
+/**
+ * The schedule the API is sent — one window for the price preview and the booking, so they
+ * can never disagree. "For business" off: one shift starting on `date`. On: the same daily
+ * shift on every day from `date` to `endDate` (the backend prices a range as that).
+ * An overnight shift ends on the calendar day after its start, for a range as for one day.
+ */
+export function scheduleWindow(
+  draft: Pick<BookingDraft, "date" | "startTime" | "hours" | "forBusiness" | "endDate">,
+): { startDate: string; startTime: string; endDate: string; endTime: string } | null {
+  const end = endOfShift(draft.date, draft.startTime, draft.hours);
+  if (!end) return null;
+  if (!draft.forBusiness || !draft.endDate) {
+    return { startDate: draft.date, startTime: draft.startTime, endDate: end.endDate, endTime: end.endTime };
+  }
+  const overnight = end.endDate !== draft.date;
+  return {
+    startDate: draft.date,
+    startTime: draft.startTime,
+    endDate: overnight ? addDays(draft.endDate, 1) : draft.endDate,
+    endTime: end.endTime,
+  };
+}
+
+/** Calendar days from `start` to `end`, both included. Null when the range is backwards. */
+export function daysInRange(start: string, end: string): number | null {
+  if (!start || !end) return null;
+  const ms = Date.parse(`${end}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`);
+  if (Number.isNaN(ms) || ms < 0) return null;
+  return Math.round(ms / 86_400_000) + 1;
+}
+
+function addDays(date: string, n: number): string {
+  const d = new Date(Date.parse(`${date}T00:00:00Z`) + n * 86_400_000);
+  return d.toISOString().slice(0, 10);
+}
+
 /**
  * The funnel collects a start and a duration; the API wants an explicit end.
  * Rolls over midnight, so an 8-hour shift from 22:00 ends 06:00 the next day.
@@ -232,19 +299,18 @@ export function endOfShift(
 
 /** The exact query the preview endpoint needs, or null when the draft isn't ready. */
 export function previewQuery(draft: BookingDraft) {
-  const end = endOfShift(draft.date, draft.startTime, draft.hours);
-  if (!draft.providerId || !draft.serviceCategory || !end) return null;
+  const slot = scheduleWindow(draft);
+  if (!draft.providerId || !draft.serviceCategory || !slot) return null;
   const deploymentState = draft.deployment.stateName.trim();
   if (!deploymentState) return null;
 
   return {
     serviceCategory: draft.serviceCategory,
-    startDate: draft.date,
-    startTime: draft.startTime,
-    endDate: end.endDate,
-    endTime: end.endTime,
+    ...slot,
     vehicleOption: draft.vehicleOption,
     /** State name, never a code — controller uses stateCodeFromName(). */
     deploymentState,
+    // Sent only above one, so a single booking's request is exactly what it was before.
+    ...(draft.headcount > 1 ? { headcount: String(draft.headcount) } : {}),
   };
 }
