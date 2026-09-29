@@ -10,10 +10,27 @@ import { api } from "@/lib/api/client";
 import { errorMessage, isApiError } from "@/lib/api/errors";
 import { usePricePreview } from "@/hooks/usePricePreview";
 import { useV6Enabled } from "@/hooks/useV6Enabled";
-import { endOfShift, quoteTotalPaise, quotePlatformFeePaise } from "@/lib/api/pricing";
+import { daysInRange, scheduleWindow, quoteTotalPaise, quotePlatformFeePaise } from "@/lib/api/pricing";
 import type { ApiBooking } from "@/lib/api/types";
 import { BOOKING_PURPOSES, isBookingPurpose } from "@/lib/booking-data";
 import { CANCELLATION_SUMMARY, NOTHING_CHARGED_YET, refundDestination } from "@/lib/cancellation-policy";
+
+/** Backend spec 0011 refusals, in the client's terms. Null for anything else. */
+function teamErrorMessage(cause: unknown): string | null {
+  if (!isApiError(cause)) return null;
+  switch (cause.code) {
+    case "SC_1503":
+      return "This agency doesn't have enough people free on every one of those dates. Try fewer people, other dates, or another agency.";
+    case "SC_1502":
+      return "This provider works alone and can fill one position only. Book one person, or choose an agency.";
+    case "SC_1501":
+      return "That's more people than one booking can take. Split it into two bookings.";
+    case "SC_1500":
+      return "Booking more than one person isn't available yet. Book one person for now.";
+    default:
+      return null;
+  }
+}
 
 export default function ConfirmStep() {
   const { draft, update } = useBooking();
@@ -43,8 +60,8 @@ export default function ConfirmStep() {
    * no payment order can even be opened until the provider accepts.
    */
   async function createBooking() {
-    const end = endOfShift(draft.date, draft.startTime, draft.hours);
-    if (!draft.providerId || !draft.serviceCategory || !end) {
+    const slot = scheduleWindow(draft);
+    if (!draft.providerId || !draft.serviceCategory || !slot) {
       setSubmitError("Some booking details are missing. Go back and complete them.");
       return;
     }
@@ -58,10 +75,12 @@ export default function ConfirmStep() {
         body: {
           providerId: draft.providerId,
           serviceCategory: draft.serviceCategory,
-          startDate: draft.date,
-          endDate: end.endDate,
-          startTime: draft.startTime,
-          endTime: end.endTime,
+          startDate: slot.startDate,
+          endDate: slot.endDate,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+          // Backend spec 0011 — omitted for one person, so that request is unchanged.
+          ...(draft.headcount > 1 ? { headcount: draft.headcount } : {}),
           vehicleOption: draft.vehicleOption,
           address: draft.address.trim() || undefined,
           deployment: {
@@ -104,7 +123,7 @@ export default function ConfirmStep() {
       if (isApiError(cause) && providerCodes.includes(cause.code)) {
         setProviderRejected(true);
       }
-      setSubmitError(errorMessage(cause));
+      setSubmitError(teamErrorMessage(cause) ?? errorMessage(cause));
       setSubmitting(false);
     }
   }
@@ -163,9 +182,20 @@ export default function ConfirmStep() {
         <dl className="grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2">
           <Row label="Service" value={draft.serviceName ?? "—"} />
           <Row label="Provider" value={draft.providerName ?? "—"} />
-          <Row label="Date" value={draft.date || "—"} />
+          <Row
+            label={draft.forBusiness && draft.endDate ? "Dates" : "Date"}
+            value={
+              draft.forBusiness && draft.endDate
+                ? `${draft.date} to ${draft.endDate} (${daysInRange(draft.date, draft.endDate) ?? "?"} days)`
+                : draft.date || "—"
+            }
+          />
           <Row label="Start time" value={draft.startTime || "—"} />
-          <Row label="Duration" value={`${draft.hours} hours`} />
+          <Row
+            label={draft.forBusiness && draft.endDate ? "Shift, each day" : "Duration"}
+            value={`${draft.hours} hours`}
+          />
+          {draft.headcount > 1 ? <Row label="People" value={`${draft.headcount}`} /> : null}
           <Row
             label="Vehicle"
             value={

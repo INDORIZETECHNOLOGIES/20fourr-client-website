@@ -206,6 +206,9 @@ export default function ProviderStep() {
                   providerId: p.id,
                   providerName: label,
                   providerMinimumHours: p.pricing?.minimumHours ?? null,
+                  providerKind: masked?.kind ?? null,
+                  // A different provider may not staff the same headcount; start again from one.
+                  headcount: masked?.kind === "individual" ? 1 : draft.headcount,
                 })
               }
             />

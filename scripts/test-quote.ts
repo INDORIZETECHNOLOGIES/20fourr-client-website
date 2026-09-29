@@ -81,6 +81,49 @@ assert.equal(
   106166,
 );
 
+// Spec 0003 A — a team on a monthly package: the headcount on the service line and the
+// basis the server chose (1 month + 5 days) as its note. Nothing here is recomputed.
+const teamPackage = tagPriceQuote({
+  ...v6Registered,
+  headcount: 4,
+  unitProviderPricePaise: 4_200_000,
+  rangePricing: {
+    basis: "package",
+    days: 35,
+    perPersonPaise: 4_200_000,
+    dailyPerPersonPaise: 5_250_000,
+    packagePerPersonPaise: 4_200_000,
+    yearlyBlocks: 0,
+    monthlyPeriods: 1,
+    remainderDays: 5,
+  },
+  paymentPath: "upfront",
+});
+assert.equal(teamPackage.engine, "v6");
+const teamLines = toDisplayLines(teamPackage);
+assert.equal(teamLines[0].label, "Service charge (4 people)");
+assert.equal(teamLines[0].note, "Monthly package per person: 1 month + 5 days, cheaper than 35 days at the daily rate");
+assert.equal(quoteTotalPaise(teamPackage), 13570);
+
+// A range under a month stays on the daily rate, and says so.
+const teamDaily = toDisplayLines(
+  tagPriceQuote({
+    ...v6Registered,
+    headcount: 6,
+    rangePricing: { basis: "daily", days: 3, perPersonPaise: 0, dailyPerPersonPaise: 0, packagePerPersonPaise: null, yearlyBlocks: 0, monthlyPeriods: 0, remainderDays: 0 },
+  }),
+);
+assert.equal(teamDaily[0].label, "Service charge (6 people)");
+assert.equal(teamDaily[0].note, "Daily rate per person × 3 days");
+
+// One person for one day: exactly the lines it always had, no note.
+assert.equal(lines[0].label, "Service charge (base price)");
+assert.equal(lines[0].note, undefined);
+
+// A preview that must become a contract is tagged so the funnel can stop it.
+const contractPath = tagPriceQuote({ ...v6Registered, paymentPath: "contract" });
+assert.equal(contractPath.engine === "v6" && contractPath.quote.paymentPath, "contract");
+
 console.log("toDisplayLines fixtures passed");
 
 // --- spec 0005 worked example: the marketing page must match the engine ----

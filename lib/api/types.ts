@@ -134,11 +134,32 @@ export type QuoteLine = {
   split?: GstSplit;
 };
 
+/** Backend spec 0013 rule 9 — how a multi-day booking was priced. */
+export type RangePricing = {
+  basis: "daily" | "package" | string;
+  days: number;
+  perPersonPaise: number;
+  dailyPerPersonPaise: number;
+  packagePerPersonPaise: number | null;
+  yearlyBlocks: number;
+  monthlyPeriods: number;
+  remainderDays: number;
+  packageNotCheaper?: boolean;
+};
+
 export type Quote = {
   billingEngine?: "v6" | string;
   currency?: string;
   lines: QuoteLine[];
   clientTotalPaise: number;
+  /** Backend spec 0011 — people on the booking; absent on older quotes (read as 1). */
+  headcount?: number;
+  unitProviderPricePaise?: number;
+  vehicleChargesPaise?: number;
+  /** Null on single-day bookings and on quotes built before spec 0013. */
+  rangePricing?: RangePricing | null;
+  /** Backend spec 0013 rule 7 — only on price previews. */
+  paymentPath?: "upfront" | "contract";
   providerPreGstPaise?: number;
   platformFeePaise?: number;
   serviceGstPaise?: number;
