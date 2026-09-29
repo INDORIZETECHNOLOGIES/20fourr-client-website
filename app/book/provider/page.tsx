@@ -207,6 +207,8 @@ export default function ProviderStep() {
                   providerName: label,
                   providerMinimumHours: p.pricing?.minimumHours ?? null,
                   providerKind: masked?.kind ?? null,
+                  // A vehicle picked for another provider can't carry over to one that has none.
+                  vehicleOption: p.offersVehicle ? draft.vehicleOption : "none",
                   // A different provider may not staff the same headcount; start again from one.
                   headcount: masked?.kind === "individual" ? 1 : draft.headcount,
                 })

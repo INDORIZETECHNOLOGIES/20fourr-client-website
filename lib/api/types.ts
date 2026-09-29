@@ -818,6 +818,9 @@ export type ApiPublicProvider = {
   isoCertification?: string | null;
   /** Integer paise. One entry per service category the provider prices. */
   pricing?: {
+    /** Spec 0012: the city this row prices. Null on a pre-0012 row, which prices anywhere. */
+    cityKey?: string | null;
+    cityName?: string | null;
     category: string;
     dailyRate?: number | null;
     hourlyEnabled?: boolean;
