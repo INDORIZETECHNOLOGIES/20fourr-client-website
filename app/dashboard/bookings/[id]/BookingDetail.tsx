@@ -14,6 +14,7 @@ import {
   UserIcon,
 } from "@/components/dashboard/icons";
 import { useApiQuery } from "@/hooks/useApiQuery";
+import { AssignedTeam } from "./AssignedTeam";
 import { adaptBooking, dutyStartsAt } from "@/lib/api/adapters";
 import type { ApiBooking, RatingRequiredResponse } from "@/lib/api/types";
 import { PayNowButton } from "./PayNowButton";
@@ -191,6 +192,8 @@ export function BookingDetail({ id }: { id: string }) {
               <Detail icon={<UserIcon size={14} />} label="Provider" value={bk.guard} />
             </dl>
           </Card>
+
+          <AssignedTeam bookingId={id} completed={bk.status === "completed"} />
 
           <Card className="p-5">
             <h3 className="mb-5 font-sans text-body font-semibold text-fg">

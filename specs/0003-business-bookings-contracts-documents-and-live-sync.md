@@ -148,6 +148,23 @@ dashboard page updates within seconds when the thing it shows changes on the ser
   optimisation, since that would proxy and cache the image.
 - **Rate your team** after completion, per person.
 
+**As built (D):**
+- **Assigned team panel.** `AssignedTeam.tsx` on booking detail reads
+  `GET /client/bookings/:id/personnel` and renders only the fields that arrive, so visibility is
+  the serializer's decision alone.
+  - Before payment: initial, category, experience, languages, rating. No name or phone (AC 9).
+  - After payment: full name, a tap-to-call phone, and document type and validity.
+  - After the access window: no photo.
+- **Replaced people** stay listed with a "Replaced" tag, so they can still be rated.
+- **Photos** are a plain `<img>` with `referrerPolicy="no-referrer"`, never next/image. They
+  fall back to the initial if the five-minute URL has lapsed; a reload fetches a fresh one.
+- **Rating.** Once the booking is `completed`, each person can be given 1–5 stars with an
+  optional comment. SC_1586 (already rated) reads as rated, and SC_1587 as "the rating window
+  for this booking has closed".
+- **The panel is hidden** when no team is assigned (individual providers, older bookings).
+- **Verified** against the local API on a six-bouncer booking with one replacement: masked
+  before payment, full after, and one rating saved when completed. The test data was restored.
+
 ### E. Live sync (0020)
 
 - New `hooks/useAccountEvents.ts`: one socket per session, using the existing

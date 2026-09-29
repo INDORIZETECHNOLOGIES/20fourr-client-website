@@ -918,3 +918,30 @@ export type BillingDocumentsResponse = {
   documents: BillingDocument[];
   pagination: { page: number; limit: number; total: number; pages: number };
 };
+
+/**
+ * A person the agency assigned to a booking, as the serializer lets the client see them
+ * (backend spec 0017 rules 5–7). Absent fields are absent: render what arrives, decide nothing.
+ */
+export type AssignedPerson = {
+  personnelId: string;
+  /** False for someone replaced partway through; kept so they can still be rated. */
+  active: boolean;
+  initial: string | null;
+  category: string;
+  yearsExperience: number;
+  languages: string[];
+  rating: { average: number; count: number };
+  /** Short-lived (5 min). Absent once the access window has closed. */
+  photoUrl?: string;
+  /** From payment until the access window closes. */
+  fullName?: string;
+  phone?: string | null;
+  documents?: Array<{ type: string; expiresAt: string | null; valid: boolean }>;
+};
+
+export type BookingPersonnelResponse = {
+  bookingId: string;
+  access: "masked" | "full" | "expired";
+  team: AssignedPerson[];
+};
