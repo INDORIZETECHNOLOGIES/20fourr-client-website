@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { getV6Enabled } from "@/lib/api/billing-flags";
+import { getBillingFlags } from "@/lib/api/billing-flags";
 
-/** Browser-readable flag for the booking funnel. No session. */
+/** Browser-readable flags for the booking funnel and the dashboard nav. No session. */
 export async function GET() {
-  const v6Enabled = await getV6Enabled();
-  return NextResponse.json({ v6Enabled });
+  return NextResponse.json(await getBillingFlags());
 }

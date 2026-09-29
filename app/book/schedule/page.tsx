@@ -8,7 +8,8 @@ import { PriceSummary } from "../PriceSummary";
 import { PinFill } from "@/components/dashboard/icons";
 import { useApiQuery } from "@/hooks/useApiQuery";
 import { usePricePreview } from "@/hooks/usePricePreview";
-import { daysInRange, endOfShift, vehicleDailyRates } from "@/lib/api/pricing";
+import { daysInRange, endOfShift, isContractPath, vehicleDailyRates } from "@/lib/api/pricing";
+import { useBillingFlags } from "@/hooks/useBillingFlags";
 import { adaptAddress } from "@/lib/api/adapters";
 import type { ApiClientProfile, ApiSavedAddress, ProviderAvailability, ProviderProfileResponse } from "@/lib/api/types";
 import { DURATION_PRESETS } from "@/lib/booking-data";
@@ -63,10 +64,17 @@ export default function ScheduleStep() {
     draft.serviceCategory,
     draft.deployment.city || draft.city || "",
   );
-  const vehicleOffered = (id: VehicleOption) => id === "none" || !providerData || vehicleRates[id] !== null;
 
   // Priced by the server against this provider's own rates.
   const { data: price, loading: priceLoading, error: priceError } = usePricePreview(draft);
+  // Backend spec 0013 rule 7: a booking longer than one payment can cover becomes a contract
+  // (spec 0003 B), which goes on to a contract review instead of a booking. Contracts carry no
+  // vehicle (0014 build decision 13).
+  const { contractsEnabled } = useBillingFlags();
+  const contractPath = isContractPath(price);
+  const needsContract = contractPath && !contractsEnabled;
+  const vehicleOffered = (id: VehicleOption) =>
+    id === "none" || (!contractPath && (!providerData || vehicleRates[id] !== null));
   const end = endOfShift(draft.date, draft.startTime, draft.hours);
   const priceMessage = !draft.deployment.stateName
     ? "Go back to Service and pick the deployment state to see the price."
@@ -99,15 +107,14 @@ export default function ScheduleStep() {
       ? "Pincode is six digits."
       : "",
   };
-  // Backend spec 0013 rule 7: a booking longer than one payment can cover becomes a contract.
-  // Contracts are switched off, so there is nowhere to send this yet; say so instead of failing.
-  const needsContract = price?.engine === "v6" && price.quote.paymentPath === "contract";
   // The server has the last word on a vehicle: it charges ₹0 for one it doesn't price, and says so
   // in the quote. Never let a booking go through that looks like it includes a vehicle and doesn't.
   const vehicleError =
     draft.vehicleOption === "none"
       ? ""
-      : !vehicleOffered(draft.vehicleOption) ||
+      : contractPath
+        ? "A contract doesn't include a vehicle. Choose No vehicle."
+        : !vehicleOffered(draft.vehicleOption) ||
           (price?.engine === "v6" && price.quote.vehicleChargesPaise === 0)
         ? `This provider doesn't offer ${draft.vehicleOption === "vehicle" ? "a vehicle" : "a vehicle with driver"} ${draft.deployment.city || draft.city ? `in ${draft.deployment.city || draft.city}` : "here"}. Choose another option.`
         : "";
@@ -385,7 +392,7 @@ export default function ScheduleStep() {
                     <span className="text-body font-semibold">{v.label}</span>
                     {v.id !== "none" && providerData ? (
                       <span className="text-label font-normal text-fg-faint">
-                        {rate ? `+${formatPaiseRounded(rate)} a day` : "Not offered"}
+                        {offered && rate ? `+${formatPaiseRounded(rate)} a day` : "Not offered"}
                       </span>
                     ) : null}
                   </button>
@@ -398,7 +405,9 @@ export default function ScheduleStep() {
               </p>
             ) : (
               <p className="mt-2.5 text-body-sm text-fg-faint">
-                {vehicleRates.vehicle || vehicleRates.vehicleWithDriver
+                {contractPath
+                  ? "A contract doesn't include a vehicle."
+                  : vehicleRates.vehicle || vehicleRates.vehicleWithDriver
                   ? "One vehicle for the booking, charged per day on top of the service."
                   : providerData
                     ? "This provider doesn't offer a vehicle for this service."
@@ -432,6 +441,11 @@ export default function ScheduleStep() {
             <p role="alert" className="mt-3 text-body-sm text-fault">
               A booking this long is billed month by month as a contract, which isn&apos;t available yet. Choose a
               shorter range for now.
+            </p>
+          ) : contractPath ? (
+            <p className="mt-3 rounded-sm border border-hairline bg-panel-raised px-3 py-2.5 text-body-sm leading-relaxed text-fg-mid">
+              <strong className="font-semibold text-fg">This is a contract.</strong> A booking this long is billed one
+              month at a time. You&apos;ll see each month&apos;s amount before you send the request.
             </p>
           ) : null}
           {draft.forBusiness && profileData && !isRegisteredBusiness ? (

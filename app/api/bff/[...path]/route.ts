@@ -41,6 +41,8 @@ const ALLOWED_PREFIXES = [
   "protection/",
   "duty/",
   "chat/",
+  // Backend spec 0014. Every write refuses with SC_1530 while contracts are switched off.
+  "contracts",
 ];
 
 /** Paths whose responses are files, not JSON. */

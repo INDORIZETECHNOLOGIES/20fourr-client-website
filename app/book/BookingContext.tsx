@@ -226,7 +226,9 @@ export function BookingProvider({ children }: { children: ReactNode }) {
   }, [draft]);
 
   const currentStep = useMemo(() => {
-    const slug = pathname.split("/")[2] ?? "service";
+    // The contract review (spec 0003 B) comes after Confirm and belongs to that step.
+    const raw = pathname.split("/")[2] ?? "service";
+    const slug = raw === "contract" ? "confirm" : raw;
     const i = BOOKING_STEPS.findIndex((s) => s.slug === slug);
     return i === -1 ? 0 : i;
   }, [pathname]);

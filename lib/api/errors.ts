@@ -82,6 +82,17 @@ const FRIENDLY: Record<string, string> = {
   SC_1415: "This provider's PSARA licence for that state has expired. Pick another provider.",
   SC_1440: "That document could not be found.",
   SC_1441: "You don't have access to that document.",
+  // Backend spec 0014 — long-term contracts.
+  SC_1530: "Long-term contracts aren't available yet. Choose a shorter range for now.",
+  SC_1531: "A contract has to be longer than one month and no longer than the maximum term. Change the dates.",
+  SC_1532: "That contract could not be found.",
+  SC_1533: "This contract can't do that in its current state. Refresh to see where it stands.",
+  SC_1534: "This agency doesn't have enough people free for the whole term. Try fewer people, other dates, or another agency.",
+  SC_1535: "Nothing is due on this contract right now.",
+  SC_1536: "Autopay isn't confirmed yet, so this month can't be charged automatically. Pay it here instead.",
+  SC_1537: "This month's amount is too large for UPI or card autopay. Use a bank mandate (eNACH).",
+  SC_1538: "A payment for this month is already in progress. Wait a few minutes, then refresh.",
+  SC_1539: "Notice has already been given on this contract.",
 };
 
 function friendlyMessage(code: string, fallback: string): string {

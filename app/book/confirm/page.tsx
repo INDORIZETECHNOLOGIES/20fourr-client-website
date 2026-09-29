@@ -10,7 +10,7 @@ import { api } from "@/lib/api/client";
 import { errorMessage, isApiError } from "@/lib/api/errors";
 import { usePricePreview } from "@/hooks/usePricePreview";
 import { useV6Enabled } from "@/hooks/useV6Enabled";
-import { daysInRange, scheduleWindow, quoteTotalPaise, quotePlatformFeePaise } from "@/lib/api/pricing";
+import { daysInRange, isContractPath, scheduleWindow, quoteTotalPaise, quotePlatformFeePaise } from "@/lib/api/pricing";
 import type { ApiBooking } from "@/lib/api/types";
 import { BOOKING_PURPOSES, isBookingPurpose } from "@/lib/booking-data";
 import { CANCELLATION_SUMMARY, NOTHING_CHARGED_YET, refundDestination } from "@/lib/cancellation-policy";
@@ -54,6 +54,15 @@ export default function ConfirmStep() {
    * pick someone else — so say that and offer the way back.
    */
   const [providerRejected, setProviderRejected] = useState(false);
+
+  // Spec 0003 B: longer than one payment covers → a contract. The schedule step only lets this
+  // through while contracts are switched on. Ticking the box here is the same waiver; the request
+  // itself is sent from the review, once the client has seen every month.
+  const contract = isContractPath(price);
+  function reviewContract() {
+    update({ waiverAccepted: true });
+    router.push("/book/contract/review");
+  }
 
   /**
    * Creates the booking. It lands as `pending` — nothing is charged here, and
@@ -130,9 +139,9 @@ export default function ConfirmStep() {
 
   return (
     <ConsentGate
-      title="Booking Confirmation"
-      subtitle="Check the details, then confirm."
-      confirmLabel={submitting ? "Sending request…" : "Confirm & Send Request"}
+      title={contract ? "Contract request" : "Booking Confirmation"}
+      subtitle={contract ? "Check the details, then review each month." : "Check the details, then confirm."}
+      confirmLabel={contract ? "Review the months" : submitting ? "Sending request…" : "Confirm & Send Request"}
       confirmDisabled={submitting || loading || !price}
       error={
         submitError ? (
@@ -158,9 +167,13 @@ export default function ConfirmStep() {
           </div>
         ) : null
       }
-      acknowledgement="I confirm this booking and accept the terms of service and cancellation policy."
-      onAccept={createBooking}
-      points={[
+      acknowledgement={
+        contract
+          ? "I want to request this contract and accept the terms of service."
+          : "I confirm this booking and accept the terms of service and cancellation policy."
+      }
+      onAccept={contract ? reviewContract : createBooking}
+      points={contract ? CONTRACT_POINTS : [
         {
           heading: "Cancellation refunds are tiered",
           body: `${NOTHING_CHARGED_YET} Once paid, what you get back depends on how close to the start time you cancel. ${CANCELLATION_SUMMARY} ${refundDestination(v6Enabled ? "v6" : "v1")}`,
@@ -254,6 +267,21 @@ export default function ConfirmStep() {
     </ConsentGate>
   );
 }
+
+const CONTRACT_POINTS = [
+  {
+    heading: "Paid one month at a time",
+    body: "Nothing is charged when you send the request. Once the provider accepts, you pay the first month to start; each later month is due before it begins.",
+  },
+  {
+    heading: "Unpaid means paused",
+    body: "If a month starts unpaid, service pauses and the provider isn't on duty until you pay. Paying resumes it from the next day, and the missed days aren't billed.",
+  },
+  {
+    heading: "Ending it takes notice",
+    body: "Either side can end the contract with notice. It then runs to the end of the month the notice period ends in.",
+  },
+];
 
 function Row({ label, value }: { label: string; value: string }) {
   return (

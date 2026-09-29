@@ -89,9 +89,9 @@ dashboard page updates within seconds when the thing it shows changes on the ser
 - **Price summary.** The service line reads "Service charge (N people)" and carries the server's
   basis as its note ("Monthly package per person: 1 month + 5 days, cheaper than 35 days at the
   daily rate", or "Daily rate per person × N days"). Fixtures are in `npm run test:quote` (AC 4).
-- **`paymentPath: 'contract'`** blocks the step with an explanation instead of routing to
-  `/book/contract/review`. Contracts are switched off (backend 0014), so part B doesn't exist
-  yet. AC 3 applies once part B ships.
+- **`paymentPath: 'contract'`** routes to `/book/contract/review` now that part B is built (see
+  As built (B)). The explanation remains for a preview that says `contract` while the client's
+  cached flag still says off.
 - **GSTIN link.** A client who isn't a `registered_business` gets a non-blocking link to add a
   GSTIN.
 - **Verified** against the local API: a 35-day, 4-person Mumbai guard booking previews as a
@@ -111,6 +111,48 @@ dashboard page updates within seconds when the thing it shows changes on the ser
   invoice, disputes and chat.
 - Sidebar gains **Contracts**, shown only when the server reports contracts enabled
   (`/public/billing-flags` or its successor, whichever exposes `contracts.enabled`).
+
+**As built (B):**
+- **Switch.** `GET /public/billing-flags` now reports `contractsEnabled` (backend PR
+  `feat/billing-flags-contracts`, the same pair `assertEnabled` reads). `/api/billing-flags` and
+  `useBillingFlags()` pass it through, failing closed. The Contracts nav item is hidden while it's
+  false (AC 10). While contracts are off the server never returns `paymentPath: 'contract'`
+  (`paymentPathFor` answers `upfront`), so a long range is one upfront booking, as the backend
+  decides.
+- **Funnel.** A `contract` preview is allowed through the schedule step with a note, the price
+  total reads "Whole term", and vehicles are refused (0014 build decision 13). The confirm step
+  becomes "Contract request" with contract-specific points; ticking it records the waiver and goes
+  to `/book/contract/review` (AC 3), which the step bar shows as Confirm.
+- **Review.** `POST /contracts/quote` → a month-by-month table, the whole-term total, the billing
+  basis, the autopay methods offered, the notice period and the pause rule, all from the quote.
+  "Send contract request" → `POST /contracts` with the four acknowledgements, then the success
+  screen's contract variant, which clears the draft. The contract's `endDate` is the last day of
+  service, not the booking window's end (which moves a day on for an overnight shift).
+- **Dashboard.** `/dashboard/contracts` lists live contracts first, with the next amount due.
+  `/dashboard/contracts/[id]` shows where it stands and the one action for it:
+  - **Pay** the due month through the ordinary `PayNowButton` (build decision 3).
+  - **Pay to resume** when suspended: `POST /contracts/:id/pay` first, because the server may
+    re-price the month from tomorrow. The new amount is shown before checkout opens.
+  - **Autopay**: method choice → `POST /contracts/:id/mandate` → Razorpay Checkout with
+    `customer_id` and `recurring`. There's no verify call; the bank's answer arrives by webhook.
+    "Start again" stays available while pending, because pending is set before checkout.
+  - **Give notice** (or **Cancel contract** before the first payment) → `POST /terminate`. The end
+    date comes back from the server.
+  - Each month links to its booking for documents, invoices, disputes and chat.
+- **Not built:** there is no `POST /contracts/:id/checkout`. The backend made mandate registration
+  its own step (0014 build decision 4), so cycle 1 is an ordinary booking payment.
+- **Verified** against the local API with contracts switched on (local DB only): request → accept
+  (provider API) → pay button, autopay opening Razorpay test checkout, cancel, pay-to-resume on a
+  suspended contract; the review's whole-term total matched the booking preview to the paisa.
+  Switched off: no nav item and no contract path.
+
+**Vehicles (fixed in the same PR).** The backend charges a vehicle only when the provider has
+`offersVehicle` on and the rate row has a rate for that option; otherwise it adds ₹0 silently.
+The schedule step now reads the provider's rate card, shows "+₹X a day" or "Not offered" per
+option, and blocks when the preview's `vehicleChargesPaise` says the option wasn't charged.
+`toDisplayLines` splits the vehicle out of the server's service line as "Vehicle charge". The
+preview also sends `deploymentCity` now (backend 0012), so it prices the same rate row as the
+booking.
 
 ### C. Documents: replace `app/dashboard/profile/invoices` list (0016)
 

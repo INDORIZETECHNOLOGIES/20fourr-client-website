@@ -19,10 +19,17 @@ function unwrap(body: unknown): Record<string, unknown> {
   return root;
 }
 
-export async function getV6Enabled(): Promise<boolean> {
-  if (process.env.NEXT_PUBLIC_FORCE_V6 === "1" || process.env.NEXT_PUBLIC_FORCE_V6 === "true") {
-    return true;
-  }
+export type BillingFlags = {
+  v6Enabled: boolean;
+  /**
+   * Backend spec 0014: long-term contracts can be requested. Hides the Contracts nav and the
+   * contract step of the funnel while false (website spec 0003, AC 10). Fails closed.
+   */
+  contractsEnabled: boolean;
+};
+
+export async function getBillingFlags(): Promise<BillingFlags> {
+  const forceV6 = process.env.NEXT_PUBLIC_FORCE_V6 === "1" || process.env.NEXT_PUBLIC_FORCE_V6 === "true";
 
   try {
     const url = `${API_BASE_URL.replace(/\/$/, "")}/public/billing-flags`;
@@ -30,10 +37,14 @@ export async function getV6Enabled(): Promise<boolean> {
       headers: { Accept: "application/json" },
       next: { revalidate: 60 },
     });
-    if (!res.ok) return false;
-    const body: unknown = await res.json();
-    return unwrap(body).v6Enabled === true;
+    if (!res.ok) return { v6Enabled: forceV6, contractsEnabled: false };
+    const flags = unwrap(await res.json());
+    return { v6Enabled: forceV6 || flags.v6Enabled === true, contractsEnabled: flags.contractsEnabled === true };
   } catch {
-    return false;
+    return { v6Enabled: forceV6, contractsEnabled: false };
   }
+}
+
+export async function getV6Enabled(): Promise<boolean> {
+  return (await getBillingFlags()).v6Enabled;
 }

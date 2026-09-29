@@ -360,3 +360,8 @@ export function vehicleDailyRates(
   };
   return { vehicle: pick((r) => r.vehicleRate), vehicleWithDriver: pick((r) => r.vehicleWithDriverRate) };
 }
+
+/** Backend 0013 rule 7: a range longer than one payment can cover is a contract, not a booking. */
+export function isContractPath(quote: PriceQuote | null | undefined): boolean {
+  return quote?.engine === "v6" && quote.quote.paymentPath === "contract";
+}
