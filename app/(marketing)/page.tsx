@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
+import siteTeam from "@/components/marketing/photos/site-team.webp";
 import { CheckIcon } from "@/components/icons";
 import { CostCalculator } from "@/components/marketing/CostCalculator";
 import { CoverageDirectory } from "@/components/marketing/CoverageDirectory";
@@ -349,14 +351,29 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <section id="compliance" className="border-t border-rule bg-paper">
+      <section id="compliance" className="bg-ground">
+        <figure className="relative mx-auto h-[clamp(300px,34vw,480px)] max-w-[1440px] overflow-hidden">
+          <Image
+            src={siteTeam}
+            alt="A squad of uniformed security guards marching in step across an industrial site."
+            fill
+            sizes="(max-width: 1440px) 100vw, 1440px"
+            className="object-cover object-[50%_34%]"
+          />
+          <figcaption className="absolute bottom-4 left-4 max-w-[calc(100%-2rem)] rounded-sm bg-ground/90 px-3 py-1.5 text-label text-ground-ink lg:left-6">
+            A site security team on parade at an industrial plant. Photograph: Secura Force, an agency on 20fourr.
+          </figcaption>
+        </figure>
         <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
-          <h2 className="text-h1 text-ink">Built for accountable security operations.</h2>
-          <dl className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-2">
+          <h2 className="text-h1 max-w-[22ch] text-ground-ink">Built for accountable security operations.</h2>
+          <p className="mt-4 max-w-prose text-body text-ground-mid">
+            Each of these is enforced by the platform, not promised by the provider.
+          </p>
+          <dl className="mt-10 grid grid-cols-1 gap-x-12 gap-y-8 md:grid-cols-2">
             {COMPLIANCE.map((c) => (
-              <div key={c.dt} className="border-t border-rule pt-4">
-                <dt className="text-h3 text-ink">{c.dt}</dt>
-                <dd className="mt-2 text-body text-ink-mid">{c.dd}</dd>
+              <div key={c.dt} className="border-t border-ground-rule pt-4">
+                <dt className="text-h3 text-ground-ink">{c.dt}</dt>
+                <dd className="mt-2 text-body text-ground-mid">{c.dd}</dd>
               </div>
             ))}
           </dl>
