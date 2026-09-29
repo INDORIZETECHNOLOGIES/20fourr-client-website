@@ -93,6 +93,8 @@ const FRIENDLY: Record<string, string> = {
   SC_1537: "This month's amount is too large for UPI or card autopay. Use a bank mandate (eNACH).",
   SC_1538: "A payment for this month is already in progress. Wait a few minutes, then refresh.",
   SC_1539: "Notice has already been given on this contract.",
+  // Backend spec 0021.
+  SC_1600: "This provider doesn't offer that vehicle option here. Choose another option, or No vehicle.",
 };
 
 function friendlyMessage(code: string, fallback: string): string {

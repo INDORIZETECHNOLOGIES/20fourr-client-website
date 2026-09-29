@@ -66,7 +66,7 @@ export default function ScheduleStep() {
   );
 
   // Priced by the server against this provider's own rates.
-  const { data: price, loading: priceLoading, error: priceError } = usePricePreview(draft);
+  const { data: price, loading: priceLoading, error: priceError, errorCode: priceErrorCode } = usePricePreview(draft);
   // Backend spec 0013 rule 7: a booking longer than one payment can cover becomes a contract
   // (spec 0003 B), which goes on to a contract review instead of a booking. Contracts carry no
   // vehicle (0014 build decision 13).
@@ -115,6 +115,9 @@ export default function ScheduleStep() {
       : contractPath
         ? "A contract doesn't include a vehicle. Choose No vehicle."
         : !vehicleOffered(draft.vehicleOption) ||
+          // Backend spec 0021 refuses an option it can't price (SC_1600). Before it shipped, the
+          // same request was quietly priced at ₹0, which vehicleChargesPaise still catches.
+          priceErrorCode === "SC_1600" ||
           (price?.engine === "v6" && price.quote.vehicleChargesPaise === 0)
         ? `This provider doesn't offer ${draft.vehicleOption === "vehicle" ? "a vehicle" : "a vehicle with driver"} ${draft.deployment.city || draft.city ? `in ${draft.deployment.city || draft.city}` : "here"}. Choose another option.`
         : "";

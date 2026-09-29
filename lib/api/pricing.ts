@@ -332,11 +332,10 @@ export type VehicleChoice = "vehicle" | "vehicleWithDriver";
 /**
  * What each vehicle option costs per day with this provider, in paise; null when it isn't offered.
  *
- * Mirrors the backend's rule (booking.service calculateBookingAmount): a vehicle is charged only
- * when the provider has `offersVehicle` on AND the rate row that prices the booking has a non-zero
- * rate for that option. Anything else is quietly charged ₹0, so the funnel must not offer it.
- * The backend checks `offersVehicle` for both options, never `offersVehicleWithDriver`, and so
- * does this.
+ * Mirrors backend spec 0021 (`vehicleDailyRate` in booking.service): each option is available
+ * when its own switch is on (`offersVehicle` for a vehicle, `offersVehicleWithDriver` for one with
+ * a driver) AND the rate row that prices the booking has a non-zero rate for it. The server
+ * refuses anything else with SC_1600, so the funnel doesn't offer it.
  *
  * The row is the deployment city's, else the provider's unscoped row. When neither matches by
  * name (the server also knows city aliases this can't), any row for the category counts, and the
@@ -348,7 +347,8 @@ export function vehicleDailyRates(
   city: string,
 ): Record<VehicleChoice, number | null> {
   const none = { vehicle: null, vehicleWithDriver: null };
-  if (!provider?.vehicleOptions?.offersVehicle || !category) return none;
+  const offers = provider?.vehicleOptions;
+  if (!offers || !category) return none;
   const rows = (provider.pricing ?? []).filter((r) => r.category === category);
   const name = city.trim().toLowerCase();
   const row =
@@ -358,7 +358,10 @@ export function vehicleDailyRates(
     const found = candidates.map(rate).find((v) => typeof v === "number" && v > 0);
     return found ?? null;
   };
-  return { vehicle: pick((r) => r.vehicleRate), vehicleWithDriver: pick((r) => r.vehicleWithDriverRate) };
+  return {
+    vehicle: offers.offersVehicle ? pick((r) => r.vehicleRate) : null,
+    vehicleWithDriver: offers.offersVehicleWithDriver ? pick((r) => r.vehicleWithDriverRate) : null,
+  };
 }
 
 /** Backend 0013 rule 7: a range longer than one payment can cover is a contract, not a booking. */
