@@ -292,6 +292,24 @@ data protection officer contact (IT Act 2000 / Intermediary Guidelines 2021 — 
 at `GET /client/grievance-officer`, which is public and should be the source rather than hardcoded
 text), links to terms, privacy, cancellation and refund policy, and the PSARA licence statement.
 
+### Landing page amendments (2026-09-29)
+
+- **Section labels are removed.** The small uppercase label over each section heading, including
+  the hero's, was the page's loudest template habit. Every heading already names its section. FAQ
+  groups use real subheadings instead.
+- **Each claim appears once.** The hero pills and the checkmark trust strip repeated PSARA, OTP
+  and GST before the page had shown anything. The hero paragraph and the Compliance section carry
+  those claims.
+- **Listings are a ruled table.** Columns are listing code with a verified mark, individual or
+  agency, service, city, rating and from-price. It replaces eight identical cards.
+- **Compliance sits on the dark ground.** It opens with one real photograph: Secura Force, an
+  agency on 20fourr, used with permission, with its origin recorded beside the file.
+- **New "For businesses" section,** from spec 0003: team bookings, packages, city pricing and
+  assigned personnel.
+- **Copy fixes:** "The only security marketplace…" is replaced with what is actually checked; the
+  SC_611 code is gone from the copy; the providers band links to the provider website through
+  `NEXT_PUBLIC_PROVIDER_SITE_URL`.
+
 ### Additional marketing routes
 
 `/for-business`, `/services/[category]` (four pages), `/coverage`, `/pricing` — all inheriting the

@@ -3,7 +3,7 @@ import { formatPaise } from "@/lib/money";
 import type { WorkedQuote, WorkedQuoteLine } from "@/lib/sample-quote";
 import { productSurface, type ProductSurface } from "@/components/marketing/product-surface";
 
-const isGst = (line: WorkedQuoteLine) => line.id === "gst";
+const isGst = (line: WorkedQuoteLine) => line.id.startsWith("gst");
 const isSubtotal = (line: WorkedQuoteLine) => line.id === "subtotal";
 
 export function QuoteBreakdown({

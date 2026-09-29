@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
+import siteTeam from "@/components/marketing/photos/site-team.webp";
 import { CheckIcon } from "@/components/icons";
 import { CostCalculator } from "@/components/marketing/CostCalculator";
 import { CoverageDirectory } from "@/components/marketing/CoverageDirectory";
@@ -8,20 +10,20 @@ import { MarketingCta } from "@/components/marketing/MarketingCta";
 import { ProductHero } from "@/components/marketing/ProductHero";
 import { ProductShowcase } from "@/components/marketing/ProductShowcase";
 import { PublicListings } from "@/components/marketing/PublicListings";
-import { SocialProofBand } from "@/components/marketing/SocialProofBand";
-import { TrustStrip } from "@/components/marketing/TrustStrip";
+import { TeamBookingMock } from "@/components/marketing/TeamBookingMock";
 import { SERVICE_CATALOGUE, EX_SERVICEMAN_FILTER } from "@/lib/services";
 import { getCoverage } from "@/lib/marketing-data";
 import { CANCELLATION_SUMMARY } from "@/lib/cancellation-policy";
 
-const TRUST_PILLS = ["PSARA Licensed", "OTP Attendance", "GST Invoiced"];
-
 export const metadata: Metadata = {
   title: "Verified security. Documented shifts.",
   description:
-    "Find verified security guards, bouncers, gunmen and PSOs with transparent pricing, OTP attendance and GST documents for every shift.",
+    "Book verified security guards, bouncers, gunmen and PSOs, one person or a whole team, by the day or the month, with transparent pricing, OTP attendance and GST documents for every shift.",
   alternates: { canonical: "/" },
 };
+
+// Public URL of the provider website. Not hardcoded: the link only renders once it is configured.
+const PROVIDER_SITE_URL = process.env.NEXT_PUBLIC_PROVIDER_SITE_URL ?? null;
 
 const WHEN: Record<string, string> = {
   guard: "Offices, facilities, residential associations and site gates.",
@@ -30,31 +32,25 @@ const WHEN: Record<string, string> = {
   pso: "Close protection for a named individual.",
 };
 
-const STEPS = [
+
+// Spec 0003 (backend 0011, 0012, 0013, 0017). Long-term contracts are built but switched off, so
+// they are deliberately not offered here.
+const BUSINESS = [
   {
-    n: "01",
-    title: "Search",
-    body: "Pick a category and city. The quote lists service, platform fee and GST lines before you commit.",
+    dt: "A team, as one booking",
+    dd: "Ask for six bouncers for three nights and it is one booking: one quote, one payment and one set of documents, itemised as 6 × Bouncer. It only reaches agencies that have declared enough staff for every date.",
   },
   {
-    n: "02",
-    title: "Compare",
-    body: "Review verified profiles, rates and availability for the shift you named.",
+    dt: "Monthly and yearly packages",
+    dd: "For a month or more, the provider's monthly or yearly package applies wherever it is cheaper than their daily rate. The quote shows which one you are paying.",
   },
   {
-    n: "03",
-    title: "Book",
-    body: "Purpose, risk, absence and safety acknowledgements are stored on the booking. Nothing is charged until a provider accepts. Payment is taken once, in full.",
+    dt: "Priced for the city you deploy in",
+    dd: "Providers set their rates city by city, and every booking is priced from the city where the guards work, not where you are billed.",
   },
   {
-    n: "04",
-    title: "Start with OTP",
-    body: "Duty start and end are codes you show the guard in person. Timestamps are recorded, not self-reported.",
-  },
-  {
-    n: "05",
-    title: "Complete",
-    body: "A GST tax invoice for the platform fee and a service document for the shift, with CGST/SGST/IGST by place of supply.",
+    dt: "See who is coming",
+    dd: "Once the agency assigns the team you see each person's photo, first initial, experience and languages before you pay, and their name and phone once you have. After the job you can rate each person individually.",
   },
 ];
 
@@ -69,7 +65,7 @@ const COMPLIANCE = [
   },
   {
     dt: "Arms licence before armed duty",
-    dd: "A gunman or PSO booking is not accepted until the arms licence is verified (SC_611).",
+    dd: "A gunman or PSO booking is not accepted until the provider's arms licence is verified.",
   },
   {
     dt: "OTP-gated duty",
@@ -85,7 +81,7 @@ const COMPLIANCE = [
   },
   {
     dt: "DPDP Act data rights",
-    dd: "Export, consent withdrawal and erasure, with a named grievance officer published in-product.",
+    dd: "Export, consent withdrawal and erasure, with a grievance officer published in the product.",
   },
 ];
 
@@ -113,6 +109,21 @@ const FAQS = [
     category: "Payments",
   },
   {
+    q: "Can I book several guards in one go?",
+    a: "Yes. Set how many people you need and the dates; it is one booking with one payment and one set of documents. Only agencies with enough staff declared for every one of those dates are offered to you.",
+    category: "Operations",
+  },
+  {
+    q: "Is there a monthly rate?",
+    a: "Where the provider offers one. For bookings of a month or more their monthly or yearly package is used if it costs less than the daily rate for the same days, and the quote says which applies.",
+    category: "Payments",
+  },
+  {
+    q: "Can I see who will turn up?",
+    a: "Yes. When an agency assigns its team you see each person's photo, first initial, experience and languages before paying, and their full name and phone number after. You can rate each of them once the job is done.",
+    category: "Operations",
+  },
+  {
     q: "Can I book the same guard weekly?",
     a: "Yes, as a recurring series. Cancelling the series stops still-pending occurrences; bookings already generated stay live unless you cancel those too.",
     category: "Operations",
@@ -129,7 +140,7 @@ const FAQS = [
   },
   {
     q: "How is my data handled?",
-    a: "Under the DPDP Act. You can export, withdraw consent and request erasure from Privacy and data rights in the account. A named grievance officer is listed there.",
+    a: "Under the DPDP Act. You can export, withdraw consent and request erasure from Privacy and data rights in the account. The grievance officer's contact is listed there.",
     category: "Compliance",
   },
 ] as const;
@@ -176,8 +187,7 @@ export default async function LandingPage() {
         <div className="mx-auto max-w-[1200px] px-4 py-12 lg:px-6 lg:py-20">
           <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-12 lg:gap-12">
             <div className="lg:col-span-6">
-              <p className="text-eyebrow text-ink-faint">PSARA-licensed marketplace</p>
-              <h1 className="text-display mt-4 text-ink">Verified security. Documented shifts.</h1>
+              <h1 className="text-display text-ink">Verified security. Documented shifts.</h1>
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <MarketingCta href="/#find" className="w-full sm:w-auto">
                   Book a verified guard
@@ -187,20 +197,10 @@ export default async function LandingPage() {
                 </MarketingCta>
               </div>
               <p className="mt-5 max-w-[60ch] text-body text-ink-mid">
-                The only security marketplace where every shift starts on an OTP and closes with a
-                GST document. Built for procurement teams.
+                Every shift starts on the client&apos;s OTP and closes with a GST document, from
+                providers whose PSARA licence is checked for that state and date. Built for procurement
+                teams.
               </p>
-              <ul className="mt-8 flex flex-wrap gap-2">
-                {TRUST_PILLS.map((label) => (
-                  <li
-                    key={label}
-                    className="inline-flex items-center gap-1.5 rounded-pill border border-live bg-paper px-3 py-1.5 text-label font-medium text-live"
-                  >
-                    <CheckIcon size={14} />
-                    {label}
-                  </li>
-                ))}
-              </ul>
             </div>
             <div className="lg:col-span-6 lg:col-start-7">
               <ProductHero provider={coverage.featured} />
@@ -209,16 +209,11 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <SocialProofBand />
-
-      <TrustStrip />
-
       <PublicListings listings={coverage.listings} />
 
       <section id="services" className="border-b border-rule">
         <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
-          <p className="text-eyebrow text-ink-faint">What you can book</p>
-          <h2 className="text-h1 mt-3 text-ink">Four categories. Ex-serviceman is a filter.</h2>
+          <h2 className="text-h1 text-ink">Four categories. Ex-serviceman is a filter.</h2>
           <ul className="mt-10 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-rule bg-rule sm:grid-cols-2">
             {SERVICE_CATALOGUE.map((s) => (
               <li key={s.id} className="flex flex-col bg-paper p-6 transition-colors duration-150 hover:bg-paper-raised">
@@ -242,33 +237,38 @@ export default async function LandingPage() {
             ))}
           </ul>
           <p className="mt-6 text-body-sm text-ink-mid">
-            {EX_SERVICEMAN_FILTER.name}: {EX_SERVICEMAN_FILTER.desc}
+            {EX_SERVICEMAN_FILTER.name}. {EX_SERVICEMAN_FILTER.desc}.
           </p>
         </div>
       </section>
 
-      <section id="how-it-works">
+      <section id="business" className="border-b border-rule bg-paper-raised">
         <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
-          <p className="text-eyebrow text-ink-faint">How it works</p>
-          <h2 className="text-h1 mt-3 text-ink">From search to a documented shift</h2>
-          <ol className="mt-10 border-l border-rule pl-6 xl:grid xl:grid-cols-5 xl:gap-0 xl:border-l-0 xl:border-t xl:pl-0">
-            {STEPS.map((s) => (
-              <li
-                key={s.n}
-                className="relative py-6 xl:border-r xl:px-4 xl:py-8 last:xl:border-r-0"
-              >
-                <span
-                  aria-hidden
-                  className="absolute -left-[25px] top-8 h-2 w-2 rounded-full bg-ink xl:hidden"
-                />
-                <p className="inline-flex h-8 min-w-8 items-center justify-center rounded-sm border border-rule px-2 text-mono text-ink">
-                  {s.n}
-                </p>
-                <h3 className="text-h3 mt-3 text-ink">{s.title}</h3>
-                <p className="mt-2 text-body-sm text-ink-mid">{s.body}</p>
-              </li>
-            ))}
-          </ol>
+          <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-12 lg:gap-12">
+            <div className="lg:col-span-6">
+              <h2 className="text-h1 max-w-[20ch] text-ink">A whole team, for as long as you need it</h2>
+              <p className="mt-4 max-w-prose text-body text-ink-mid">
+                Offices, sites, venues and events rarely need one guard for one day. Book the headcount and
+                the dates you actually need, from agencies that can staff every day of it.
+              </p>
+              <dl className="mt-8 flex flex-col">
+                {BUSINESS.map((b) => (
+                  <div key={b.dt} className="border-t border-rule py-4">
+                    <dt className="text-h3 text-ink">{b.dt}</dt>
+                    <dd className="mt-1.5 text-body text-ink-mid">{b.dd}</dd>
+                  </div>
+                ))}
+              </dl>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                <MarketingCta href="/for-business" className="w-full sm:w-auto">
+                  See how business bookings work
+                </MarketingCta>
+              </div>
+            </div>
+            <div className="lg:sticky lg:top-24 lg:col-span-5 lg:col-start-8">
+              <TeamBookingMock />
+            </div>
+          </div>
         </div>
       </section>
 
@@ -276,14 +276,13 @@ export default async function LandingPage() {
 
       <section id="pricing" className="border-t border-rule bg-paper-raised">
         <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
-          <p className="text-eyebrow text-ink-faint">Transparent pricing</p>
-          <h2 className="text-h1 mt-3 text-ink">Every line, including both GST components</h2>
+          <h2 className="text-h1 text-ink">Every line of the price, before you book</h2>
           <p className="mt-4 max-w-prose text-body text-ink-mid">
             Live quotes are generated in the booking funnel from the provider&apos;s rates. This
             section is a worked example so the structure is visible before you create an account.
           </p>
           <div className="mt-10">
-            <CostCalculator provider={coverage.featured} showLiveRateBadge mutedGst elevated />
+            <CostCalculator provider={coverage.featured} mutedGst elevated />
           </div>
           <p className="mt-6 text-body-sm text-ink-mid">Platform fee is 15%. No hidden charges.</p>
           <p className="mt-2 text-body-sm text-ink-mid">
@@ -295,15 +294,29 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <section id="compliance" className="border-t border-rule bg-paper">
+      <section id="compliance" className="bg-ground">
+        <figure className="relative mx-auto h-[clamp(300px,34vw,480px)] max-w-[1440px] overflow-hidden">
+          <Image
+            src={siteTeam}
+            alt="A squad of uniformed security guards marching in step across an industrial site."
+            fill
+            sizes="(max-width: 1440px) 100vw, 1440px"
+            className="object-cover object-[50%_34%]"
+          />
+          <figcaption className="absolute bottom-4 left-4 max-w-[calc(100%-2rem)] rounded-sm bg-ground/90 px-3 py-1.5 text-label text-ground-ink lg:left-6">
+            A site security team on parade at an industrial plant. Photograph: Secura Force, an agency on 20fourr.
+          </figcaption>
+        </figure>
         <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
-          <p className="text-eyebrow text-ink-faint">Trust and compliance</p>
-          <h2 className="text-h1 mt-3 text-ink">Built for accountable security operations.</h2>
-          <dl className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-2">
+          <h2 className="text-h1 max-w-[22ch] text-ground-ink">Built for accountable security operations.</h2>
+          <p className="mt-4 max-w-prose text-body text-ground-mid">
+            Each of these is enforced by the platform, not promised by the provider.
+          </p>
+          <dl className="mt-10 grid grid-cols-1 gap-x-12 gap-y-8 md:grid-cols-2">
             {COMPLIANCE.map((c) => (
-              <div key={c.dt} className="border-t border-rule pt-4">
-                <dt className="text-h3 text-ink">{c.dt}</dt>
-                <dd className="mt-2 text-body text-ink-mid">{c.dd}</dd>
+              <div key={c.dt} className="border-t border-ground-rule pt-4">
+                <dt className="text-h3 text-ground-ink">{c.dt}</dt>
+                <dd className="mt-2 text-body text-ground-mid">{c.dd}</dd>
               </div>
             ))}
           </dl>
@@ -312,8 +325,7 @@ export default async function LandingPage() {
 
       <section id="coverage" className="border-t border-rule">
         <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
-          <p className="text-eyebrow text-ink-faint">Coverage</p>
-          <h2 className="text-h1 mt-3 max-w-[20ch] text-ink">Verified supply, by city</h2>
+          <h2 className="text-h1 max-w-[20ch] text-ink">Verified supply, by city</h2>
           <p className="mt-3 max-w-prose text-body text-ink-mid">
             Live from the public provider index. A city appears only if at least one verified
             provider lists it.
@@ -329,15 +341,14 @@ export default async function LandingPage() {
 
       <section id="faq" className="border-t border-rule">
         <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
-          <p className="text-eyebrow text-ink-faint">FAQ</p>
-          <h2 className="text-h1 mt-3 text-ink">Straight answers</h2>
+          <h2 className="text-h1 text-ink">Straight answers</h2>
           <div className="mt-8 flex max-w-[680px] flex-col gap-8">
             {FAQ_CATEGORIES.map((category) => {
               const items = FAQS.filter((f) => f.category === category);
               if (items.length === 0) return null;
               return (
                 <div key={category}>
-                  <p className="text-eyebrow text-ink-faint">{category}</p>
+                  <h3 className="text-label font-semibold text-ink-mid">{category}</h3>
                   <div className="mt-3 divide-y divide-rule border-y border-rule">
                     {items.map((f) => (
                       <details
@@ -365,16 +376,22 @@ export default async function LandingPage() {
         </div>
       </section>
 
+      {PROVIDER_SITE_URL ? (
       <section id="providers" className="border-t border-rule bg-paper-raised">
         <div className="mx-auto max-w-[1200px] px-4 py-12 lg:px-6">
-          <p className="text-eyebrow text-ink-faint">For providers</p>
-          <h2 className="text-h2 mt-3 text-ink">Supply is onboarded in the provider app</h2>
+          <h2 className="text-h2 text-ink">Run a security agency, or work on your own?</h2>
           <p className="mt-4 max-w-prose text-body text-ink-mid">
-            This page is for clients booking a shift. Provider applications, PSARA documents and
-            payouts live in the 20fourr provider app, not on this website.
+            This site is for booking security. Agencies and professionals join 20fourr, get verified
+            and set their rates on the provider website or the provider app.
+          </p>
+          <p className="mt-4 text-body font-medium text-ink">
+            <a href={PROVIDER_SITE_URL} className="underline underline-offset-4 hover:no-underline">
+              Join as a provider
+            </a>
           </p>
         </div>
       </section>
+      ) : null}
 
       <LandingFooterCta />
     </>

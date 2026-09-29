@@ -46,3 +46,7 @@ next-env.d.ts
 # Stale single-file design baseline — reproduces the PRE-redesign UI and is
 # regenerated on demand, so committing it would ship a misleading artifact.
 20fourr-all-pages.html
+
+# Impeccable working files
+.impeccable/review/
+.impeccable/questions/
