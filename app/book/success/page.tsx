@@ -17,14 +17,20 @@ import { useBooking } from "../BookingContext";
 export default function BookingSuccessPage() {
   const { reset } = useBooking();
   const [bookingId, setBookingId] = useState<string | null>(null);
+  // Spec 0003 B: the contract review lands here too, with ?contract=.
+  const [contractId, setContractId] = useState<string | null>(null);
 
   useEffect(() => {
-    setBookingId(new URLSearchParams(window.location.search).get("id"));
+    const params = new URLSearchParams(window.location.search);
+    setBookingId(params.get("id"));
+    setContractId(params.get("contract"));
     // Cleared here rather than on the confirm step: dropping furthestStep to 0
     // while still on a gated route lets the shell's guard bounce the user back
     // to step 1. This route short-circuits that guard.
     reset();
   }, [reset]);
+
+  if (contractId) return <ContractRequested contractId={contractId} />;
 
   return (
     <div className="mx-auto max-w-[620px] text-center">
@@ -72,6 +78,57 @@ export default function BookingSuccessPage() {
           className="rounded-sm bg-brand text-brand-ink px-7 py-3 text-body font-semibold"
         >
           View booking
+        </Link>
+        <Link
+          href="/dashboard"
+          className="rounded-sm border border-hairline px-7 py-3 text-body font-semibold text-fg-mid transition-colors hover:bg-panel-raised"
+        >
+          Back to dashboard
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function ContractRequested({ contractId }: { contractId: string }) {
+  return (
+    <div className="mx-auto max-w-[620px] text-center">
+      <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-panel-raised text-live">
+        <CheckCircleFill size={40} />
+      </div>
+
+      <h1 className="mt-6 font-sans text-h2 font-semibold tracking-[-0.5px] text-fg">Contract requested</h1>
+      <p className="mt-2.5 text-body leading-relaxed text-fg-faint">
+        The provider has the whole term to review. You&apos;ll be notified when they accept.
+      </p>
+
+      <div className="mt-7 text-left">
+        <Notice>
+          <strong className="text-fg">Nothing has been charged.</strong> Once the provider accepts, pay the first month
+          from the contract to start. If they decline, nothing is charged at all.
+        </Notice>
+      </div>
+
+      <div className="mt-6 rounded-lg border border-hairline bg-panel p-5 text-left">
+        <p className="flex items-center gap-2 text-body-sm font-semibold text-fg-mid">
+          <span className="text-fg">
+            <ShieldFill size={15} />
+          </span>
+          What happens next
+        </p>
+        <ol className="mt-3 flex list-decimal flex-col gap-2 pl-5 text-body-sm leading-relaxed text-fg-faint">
+          <li>The provider checks they can staff every day of the term, and accepts.</li>
+          <li>You pay the first month, and the contract starts on its first day.</li>
+          <li>Each later month is due before it begins. Set up autopay from the contract if you like.</li>
+        </ol>
+      </div>
+
+      <div className="mt-8 flex flex-wrap justify-center gap-3">
+        <Link
+          href={`/dashboard/contracts/${contractId}`}
+          className="rounded-sm bg-brand text-brand-ink px-7 py-3 text-body font-semibold"
+        >
+          View contract
         </Link>
         <Link
           href="/dashboard"

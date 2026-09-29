@@ -120,6 +120,35 @@ assert.equal(teamDaily[0].note, "Daily rate per person × 3 days");
 assert.equal(lines[0].label, "Service charge (base price)");
 assert.equal(lines[0].note, undefined);
 
+// A vehicle is inside the server's service line; it is split back out as its own row, and the
+// rows still add up to what is charged. (Figures from a live preview: ₹1,800 + ₹1,000 vehicle.)
+const withVehicle = toDisplayLines(
+  tagPriceQuote({
+    ...v6Registered,
+    lines: [
+      { key: "service", label: "Security Service", amountPaise: 280000 },
+      { key: "serviceGst", label: "GST on Security Service", ratePct: 18, amountPaise: 0 },
+      { key: "platformFee", label: "20fourr Platform Fee", amountPaise: 42000 },
+      { key: "platformGst", label: "GST on Platform Fee", ratePct: 18, amountPaise: 7560 },
+    ],
+    vehicleChargesPaise: 100000,
+    clientTotalPaise: 329560,
+  }),
+);
+assert.deepEqual(
+  withVehicle.map((l) => [l.label, l.amountPaise]),
+  [
+    ["Service charge (base price)", 180000],
+    ["Vehicle charge", 100000],
+    ["Platform fee", 42000],
+    ["Total", 322000],
+    ["GST 18% on platform fee", 7560],
+  ],
+);
+// No vehicle, or a zero charge: no vehicle row at all.
+assert.ok(!lines.some((l) => l.label === "Vehicle charge"));
+assert.ok(!toDisplayLines(tagPriceQuote({ ...v6Registered, vehicleChargesPaise: 0 })).some((l) => l.label === "Vehicle charge"));
+
 // A preview that must become a contract is tagged so the funnel can stop it.
 const contractPath = tagPriceQuote({ ...v6Registered, paymentPath: "contract" });
 assert.equal(contractPath.engine === "v6" && contractPath.quote.paymentPath, "contract");

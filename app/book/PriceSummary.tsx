@@ -1,7 +1,7 @@
 "use client";
 
 import type { PriceQuote } from "@/lib/api/pricing";
-import { quoteTotalPaise, toDisplayLines } from "@/lib/api/pricing";
+import { isContractPath, quoteTotalPaise, toDisplayLines } from "@/lib/api/pricing";
 import { formatPaise } from "@/lib/money";
 
 export function PriceSummary({
@@ -15,6 +15,8 @@ export function PriceSummary({
   error?: string | null;
   className?: string;
 }) {
+  // A contract (backend 0013 rule 7) is never paid in one go; the total is the whole term.
+  const totalLabel = price && isContractPath(price) ? "Whole term" : undefined;
   if (loading) {
     return (
       <div className={`flex flex-col gap-3 ${className}`}>
@@ -33,7 +35,7 @@ export function PriceSummary({
     );
   }
 
-  return <QuoteBreakdown quote={price} className={className} />;
+  return <QuoteBreakdown quote={price} className={className} totalLabel={totalLabel} />;
 }
 
 /** Itemized money for any surface that already has a tagged quote. */
@@ -41,10 +43,12 @@ export function QuoteBreakdown({
   quote,
   className = "",
   compact = false,
+  totalLabel = "To be paid",
 }: {
   quote: PriceQuote;
   className?: string;
   compact?: boolean;
+  totalLabel?: string;
 }) {
   const rows = toDisplayLines(quote);
   const total = quoteTotalPaise(quote);
@@ -83,7 +87,7 @@ export function QuoteBreakdown({
           ].join(" ")}
         >
           <dt className={compact ? "text-body-sm font-medium text-fg" : "text-body font-medium text-fg"}>
-            To be paid
+            {totalLabel}
           </dt>
           <dd className={`tabular-nums ${compact ? "text-mono text-fg" : "text-mono-lg text-fg"}`}>
             {formatPaise(total)}

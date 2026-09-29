@@ -5,10 +5,12 @@ import { usePathname } from "next/navigation";
 import { Logo } from "@/components/brand/Logo";
 import { useSession } from "@/components/session/SessionProvider";
 import { useApiQuery } from "@/hooks/useApiQuery";
+import { useBillingFlags } from "@/hooks/useBillingFlags";
 import type { BookingListResponse } from "@/lib/api/types";
 import { ONGOING_STATUSES, type BookingStatus } from "@/lib/dashboard-data";
 import { formatRupees } from "@/lib/money";
 import {
+  BriefcaseIcon,
   CalendarIcon,
   CardIcon,
   ChatIcon,
@@ -27,6 +29,8 @@ const NAV = [
   { href: "/dashboard", label: "Dashboard", Icon: GridIcon },
   { href: "/dashboard/services", label: "Services", Icon: ShieldIcon },
   { href: "/dashboard/bookings", label: "Bookings", Icon: CalendarIcon, badge: true },
+  // Backend spec 0014 — shown only while contracts are switched on (website spec 0003, AC 10).
+  { href: "/dashboard/contracts", label: "Contracts", Icon: BriefcaseIcon, contracts: true },
   { href: "/dashboard/profile", label: "Profile", Icon: UserIcon },
   { href: "/dashboard/support", label: "Support", Icon: ChatIcon },
 ] as const;
@@ -34,6 +38,7 @@ const NAV = [
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const { profile } = useSession();
+  const { contractsEnabled } = useBillingFlags();
   // SecureCoins + SecurePoints. Both are whole rupees (1 coin = ₹1), not
   // paise — see lib/money.ts. They stay separate everywhere except this
   // one-line summary; the wallet screen breaks them out.
@@ -73,7 +78,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       </div>
 
       <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2.5">
-        {NAV.map(({ href, label, Icon, ...rest }) => {
+        {NAV.filter((item) => contractsEnabled || !("contracts" in item)).map(({ href, label, Icon, ...rest }) => {
           // `/dashboard` would otherwise match every child route.
           const active =
             href === "/dashboard" ? pathname === href : pathname.startsWith(href);

@@ -818,6 +818,9 @@ export type ApiPublicProvider = {
   isoCertification?: string | null;
   /** Integer paise. One entry per service category the provider prices. */
   pricing?: {
+    /** Spec 0012: the city this row prices. Null on a pre-0012 row, which prices anywhere. */
+    cityKey?: string | null;
+    cityName?: string | null;
     category: string;
     dailyRate?: number | null;
     hourlyEnabled?: boolean;
@@ -944,4 +947,104 @@ export type BookingPersonnelResponse = {
   bookingId: string;
   access: "masked" | "full" | "expired";
   team: AssignedPerson[];
+};
+
+// ── Backend spec 0014: long-term contracts ───────────────────────────────────
+
+export type ContractStatus =
+  | "requested"
+  | "accepted"
+  | "active"
+  | "suspended"
+  | "completed"
+  | "rejected"
+  | "cancelled"
+  | "terminated";
+
+export type MandateMethod = "emandate" | "upi" | "card";
+
+/** One calendar-month billing period. Every amount is integer paise, for all people. */
+export type ContractCycle = {
+  index: number;
+  /** India calendar days, "YYYY-MM-DD". */
+  startDate: string;
+  endDate: string;
+  days: number;
+  providerPreGstPaise: number;
+  /** The cycle booking's own quote once it exists, else the amount planned at request time. */
+  clientTotalPaise: number;
+  /** The cycle's booking, created a few days before it starts. Null until then. */
+  bookingId: string | null;
+  bookingStatus: string | null;
+};
+
+/**
+ * GET /contracts/:id. The view never carries Razorpay ids or the rate snapshot; the mandate is
+ * status and method only (0014 build decision 14).
+ */
+export type ApiContract = {
+  _id: string;
+  /** Human id, "CT20260929PXRM2H". */
+  contractId: string;
+  providerId: string;
+  serviceCategory: string;
+  headcount: number;
+  deployment?: {
+    addressLine?: string;
+    city?: string;
+    stateName?: string;
+    pincode?: string;
+  };
+  startDate: string;
+  endDate: string;
+  dailyStartTime: string;
+  dailyEndTime: string;
+  status: ContractStatus;
+  cycles: ContractCycle[];
+  /** The cycle whose booking is waiting for payment, if any. */
+  dueCycle: ContractCycle | null;
+  mandate: { status: "none" | "pending" | "confirmed" | "rejected" | "cancelled"; method: MandateMethod | null; confirmedAt: string | null };
+  suspendedAt?: string | null;
+  terminationNotice?: {
+    by: "client" | "provider" | "admin";
+    givenAt: string;
+    effectiveCycleIndex: number;
+    effectiveOn: string;
+    reason: string | null;
+  } | null;
+  endedAt?: string | null;
+  createdAt?: string;
+};
+
+export type ContractListResponse = { contracts: ApiContract[]; pagination: ApiPagination };
+
+/** POST /contracts/quote — the whole term, cycle by cycle, before anything is created. */
+export type ContractQuote = {
+  basis: "package" | "daily";
+  headcount: number;
+  cycles: Omit<ContractCycle, "bookingId" | "bookingStatus">[];
+  termProviderPreGstPaise: number;
+  termClientTotalPaise: number;
+  /** eNACH only above the no-authentication limit; UPI and card below it. */
+  mandateMethods: MandateMethod[];
+  noticeDays: number;
+  graceDays: number;
+};
+
+/** POST /contracts/:id/mandate — the Razorpay order that registers the mandate. */
+export type MandateOrder = {
+  contractId: string;
+  orderId: string;
+  customerId: string;
+  amount: number;
+  method: MandateMethod;
+  maxAmountPaise: number;
+};
+
+/** POST /contracts/:id/pay — the booking to pay through the ordinary checkout. */
+export type DuePayment = {
+  bookingId: string;
+  clientTotalPaise: number;
+  /** Set when a suspended contract was re-priced from tomorrow (0014 rule 7). */
+  resumesOn: string | null;
 };

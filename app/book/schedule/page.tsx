@@ -8,11 +8,13 @@ import { PriceSummary } from "../PriceSummary";
 import { PinFill } from "@/components/dashboard/icons";
 import { useApiQuery } from "@/hooks/useApiQuery";
 import { usePricePreview } from "@/hooks/usePricePreview";
-import { daysInRange, endOfShift } from "@/lib/api/pricing";
+import { daysInRange, endOfShift, isContractPath, vehicleDailyRates } from "@/lib/api/pricing";
+import { useBillingFlags } from "@/hooks/useBillingFlags";
 import { adaptAddress } from "@/lib/api/adapters";
-import type { ApiClientProfile, ApiSavedAddress, ProviderAvailability } from "@/lib/api/types";
+import type { ApiClientProfile, ApiSavedAddress, ProviderAvailability, ProviderProfileResponse } from "@/lib/api/types";
 import { DURATION_PRESETS } from "@/lib/booking-data";
 import { formatAddress } from "@/lib/dashboard-data";
+import { formatPaiseRounded } from "@/lib/money";
 import { matchGstStateName } from "@/lib/gst-states";
 
 export default function ScheduleStep() {
@@ -52,8 +54,27 @@ export default function ScheduleStep() {
   const individualProvider = draft.providerKind === "individual";
   const workingHours = availability?.workingHours;
 
+  // Which vehicle options this provider actually charges for, here. The same request the provider
+  // step made for its detail panel.
+  const { data: providerData } = useApiQuery<ProviderProfileResponse>(
+    draft.providerId ? `client/providers/${draft.providerId}` : null,
+  );
+  const vehicleRates = vehicleDailyRates(
+    providerData?.provider,
+    draft.serviceCategory,
+    draft.deployment.city || draft.city || "",
+  );
+
   // Priced by the server against this provider's own rates.
   const { data: price, loading: priceLoading, error: priceError } = usePricePreview(draft);
+  // Backend spec 0013 rule 7: a booking longer than one payment can cover becomes a contract
+  // (spec 0003 B), which goes on to a contract review instead of a booking. Contracts carry no
+  // vehicle (0014 build decision 13).
+  const { contractsEnabled } = useBillingFlags();
+  const contractPath = isContractPath(price);
+  const needsContract = contractPath && !contractsEnabled;
+  const vehicleOffered = (id: VehicleOption) =>
+    id === "none" || (!contractPath && (!providerData || vehicleRates[id] !== null));
   const end = endOfShift(draft.date, draft.startTime, draft.hours);
   const priceMessage = !draft.deployment.stateName
     ? "Go back to Service and pick the deployment state to see the price."
@@ -86,11 +107,20 @@ export default function ScheduleStep() {
       ? "Pincode is six digits."
       : "",
   };
-  // Backend spec 0013 rule 7: a booking longer than one payment can cover becomes a contract.
-  // Contracts are switched off, so there is nowhere to send this yet; say so instead of failing.
-  const needsContract = price?.engine === "v6" && price.quote.paymentPath === "contract";
+  // The server has the last word on a vehicle: it charges ₹0 for one it doesn't price, and says so
+  // in the quote. Never let a booking go through that looks like it includes a vehicle and doesn't.
+  const vehicleError =
+    draft.vehicleOption === "none"
+      ? ""
+      : contractPath
+        ? "A contract doesn't include a vehicle. Choose No vehicle."
+        : !vehicleOffered(draft.vehicleOption) ||
+          (price?.engine === "v6" && price.quote.vehicleChargesPaise === 0)
+        ? `This provider doesn't offer ${draft.vehicleOption === "vehicle" ? "a vehicle" : "a vehicle with driver"} ${draft.deployment.city || draft.city ? `in ${draft.deployment.city || draft.city}` : "here"}. Choose another option.`
+        : "";
   const valid =
     !needsContract &&
+    !vehicleError &&
     !errors.endDate &&
     !errors.date &&
     !errors.startTime &&
@@ -342,33 +372,48 @@ export default function ScheduleStep() {
           <section>
             <SectionLabel>Vehicle</SectionLabel>
             <div className="flex flex-wrap gap-2.5">
-              {(
-                [
-                  { id: "none", label: "No vehicle" },
-                  { id: "vehicle", label: "Vehicle" },
-                  { id: "vehicleWithDriver", label: "Vehicle with driver" },
-                ] as const
-              ).map((v) => (
-                <button
-                  key={v.id}
-                  type="button"
-                  onClick={() => update({ vehicleOption: v.id })}
-                  aria-pressed={draft.vehicleOption === v.id}
-                  className={[
-                    "rounded-sm border px-5 py-2.5 text-body font-semibold transition-colors",
-                    draft.vehicleOption === v.id
-                      ? "border-brand bg-panel-raised text-brand"
-                      : "border-hairline text-fg-mid hover:border-edge",
-                  ].join(" ")}
-                >
-                  {v.label}
-                </button>
-              ))}
+              {VEHICLE_OPTIONS.map((v) => {
+                const offered = vehicleOffered(v.id);
+                const rate = v.id === "none" ? null : vehicleRates[v.id];
+                return (
+                  <button
+                    key={v.id}
+                    type="button"
+                    disabled={!offered}
+                    onClick={() => update({ vehicleOption: v.id })}
+                    aria-pressed={draft.vehicleOption === v.id}
+                    className={[
+                      "flex flex-col items-start rounded-sm border px-5 py-2.5 text-left transition-colors disabled:cursor-not-allowed",
+                      draft.vehicleOption === v.id
+                        ? "border-brand bg-panel-raised text-brand"
+                        : "border-hairline text-fg-mid hover:border-edge disabled:border-hairline disabled:text-fg-faint",
+                    ].join(" ")}
+                  >
+                    <span className="text-body font-semibold">{v.label}</span>
+                    {v.id !== "none" && providerData ? (
+                      <span className="text-label font-normal text-fg-faint">
+                        {offered && rate ? `+${formatPaiseRounded(rate)} a day` : "Not offered"}
+                      </span>
+                    ) : null}
+                  </button>
+                );
+              })}
             </div>
-            <p className="mt-2.5 text-body-sm text-fg-faint">
-              Adds the provider&apos;s vehicle charge to the total. Only offered by
-              providers who run one.
-            </p>
+            {vehicleError ? (
+              <p role="alert" className="mt-2.5 text-body-sm text-fault">
+                {vehicleError}
+              </p>
+            ) : (
+              <p className="mt-2.5 text-body-sm text-fg-faint">
+                {contractPath
+                  ? "A contract doesn't include a vehicle."
+                  : vehicleRates.vehicle || vehicleRates.vehicleWithDriver
+                  ? "One vehicle for the booking, charged per day on top of the service."
+                  : providerData
+                    ? "This provider doesn't offer a vehicle for this service."
+                    : "Adds the provider's vehicle charge to the total, where they offer one."}
+              </p>
+            )}
           </section>
 
           {/* The repeat control that used to live here collected a pattern and
@@ -396,6 +441,11 @@ export default function ScheduleStep() {
             <p role="alert" className="mt-3 text-body-sm text-fault">
               A booking this long is billed month by month as a contract, which isn&apos;t available yet. Choose a
               shorter range for now.
+            </p>
+          ) : contractPath ? (
+            <p className="mt-3 rounded-sm border border-hairline bg-panel-raised px-3 py-2.5 text-body-sm leading-relaxed text-fg-mid">
+              <strong className="font-semibold text-fg">This is a contract.</strong> A booking this long is billed one
+              month at a time. You&apos;ll see each month&apos;s amount before you send the request.
             </p>
           ) : null}
           {draft.forBusiness && profileData && !isRegisteredBusiness ? (
@@ -430,6 +480,14 @@ export default function ScheduleStep() {
     </>
   );
 }
+
+type VehicleOption = "none" | "vehicle" | "vehicleWithDriver";
+
+const VEHICLE_OPTIONS: { id: VehicleOption; label: string }[] = [
+  { id: "none", label: "No vehicle" },
+  { id: "vehicle", label: "Vehicle" },
+  { id: "vehicleWithDriver", label: "Vehicle with driver" },
+];
 
 /**
  * Upper bound for the stepper only. The platform's real limit is PlatformSettings.booking.maxHeadcount

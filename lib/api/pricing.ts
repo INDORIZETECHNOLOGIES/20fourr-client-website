@@ -1,5 +1,5 @@
 import type { BookingDraft } from "@/app/book/BookingContext";
-import type { ApiBooking, Quote, QuoteLine, RangePricing } from "@/lib/api/types";
+import type { ApiBooking, ApiPublicProvider, Quote, QuoteLine, RangePricing } from "@/lib/api/types";
 
 /**
  * Booking price, from the server.
@@ -67,6 +67,7 @@ function asQuote(obj: Record<string, unknown>): Quote {
     clientTotalPaise: asNumber(obj.clientTotalPaise),
     headcount: typeof obj.headcount === "number" ? obj.headcount : undefined,
     unitProviderPricePaise: typeof obj.unitProviderPricePaise === "number" ? obj.unitProviderPricePaise : undefined,
+    vehicleChargesPaise: typeof obj.vehicleChargesPaise === "number" ? obj.vehicleChargesPaise : undefined,
     rangePricing: range ? (range as unknown as RangePricing) : null,
     paymentPath: obj.paymentPath === "contract" ? "contract" : obj.paymentPath === "upfront" ? "upfront" : undefined,
   };
@@ -143,6 +144,7 @@ export function quotePlatformFeePaise(quote: PriceQuote): number {
  * The client-facing shape, as the business specified it:
  *
  *   Service charge (base price)   100
+ *   Vehicle charge                  (only when a vehicle was booked)
  *   Platform fee                   15
  *   Total                         115
  *   GST 18%                     20.70
@@ -155,12 +157,17 @@ export function quotePlatformFeePaise(quote: PriceQuote): number {
  *
  * An unregistered provider charges no GST on the service, so there the single
  * line is GST on the platform fee only, and is labelled as such.
+ *
+ * The server's `service` line already includes the vehicle (backend: provider pre-GST price =
+ * unit price × headcount + vehicle). Left folded in, a vehicle just made "Service charge" bigger
+ * and read as not charged at all, so it is split back out from `vehicleChargesPaise`.
  */
 export function toDisplayLines(quote: PriceQuote): DisplayLine[] {
   if (quote.engine === "v6") {
     const lines = quote.quote.lines;
     const byKey = (key: string) => lines.find((line) => line.key === key);
     const service = byKey("service")?.amountPaise ?? quote.quote.providerPreGstPaise ?? 0;
+    const vehicle = Math.min(Math.max(quote.quote.vehicleChargesPaise ?? 0, 0), service);
     const fee = byKey("platformFee")?.amountPaise ?? quote.quote.platformFeePaise ?? 0;
     const serviceGstLine = byKey("serviceGst");
     const feeGstLine = byKey("platformGst");
@@ -172,9 +179,10 @@ export function toDisplayLines(quote: PriceQuote): DisplayLine[] {
     return [
       {
         label: headcount > 1 ? `Service charge (${headcount} people)` : "Service charge (base price)",
-        amountPaise: service,
+        amountPaise: service - vehicle,
         note: serviceBasisNote(quote.quote.rangePricing ?? null, headcount),
       },
+      ...(vehicle > 0 ? [{ label: "Vehicle charge", amountPaise: vehicle }] : []),
       { label: "Platform fee", amountPaise: fee },
       { label: "Total", amountPaise: service + fee, subtotal: true },
       {
@@ -303,6 +311,7 @@ export function previewQuery(draft: BookingDraft) {
   if (!draft.providerId || !draft.serviceCategory || !slot) return null;
   const deploymentState = draft.deployment.stateName.trim();
   if (!deploymentState) return null;
+  const deploymentCity = (draft.deployment.city || draft.city || "").trim();
 
   return {
     serviceCategory: draft.serviceCategory,
@@ -310,7 +319,49 @@ export function previewQuery(draft: BookingDraft) {
     vehicleOption: draft.vehicleOption,
     /** State name, never a code — controller uses stateCodeFromName(). */
     deploymentState,
+    // Spec 0012: without it the preview prices at the provider's primary city, while the booking
+    // itself prices at the deployment city — two different rate rows, two different totals.
+    ...(deploymentCity ? { deploymentCity } : {}),
     // Sent only above one, so a single booking's request is exactly what it was before.
     ...(draft.headcount > 1 ? { headcount: String(draft.headcount) } : {}),
   };
+}
+
+export type VehicleChoice = "vehicle" | "vehicleWithDriver";
+
+/**
+ * What each vehicle option costs per day with this provider, in paise; null when it isn't offered.
+ *
+ * Mirrors the backend's rule (booking.service calculateBookingAmount): a vehicle is charged only
+ * when the provider has `offersVehicle` on AND the rate row that prices the booking has a non-zero
+ * rate for that option. Anything else is quietly charged ₹0, so the funnel must not offer it.
+ * The backend checks `offersVehicle` for both options, never `offersVehicleWithDriver`, and so
+ * does this.
+ *
+ * The row is the deployment city's, else the provider's unscoped row. When neither matches by
+ * name (the server also knows city aliases this can't), any row for the category counts, and the
+ * price preview's `vehicleChargesPaise` has the final word.
+ */
+export function vehicleDailyRates(
+  provider: Pick<ApiPublicProvider, "pricing" | "vehicleOptions"> | null | undefined,
+  category: string | null,
+  city: string,
+): Record<VehicleChoice, number | null> {
+  const none = { vehicle: null, vehicleWithDriver: null };
+  if (!provider?.vehicleOptions?.offersVehicle || !category) return none;
+  const rows = (provider.pricing ?? []).filter((r) => r.category === category);
+  const name = city.trim().toLowerCase();
+  const row =
+    (name && rows.find((r) => r.cityName?.trim().toLowerCase() === name)) || rows.find((r) => !r.cityKey);
+  const pick = (rate: (r: (typeof rows)[number]) => number | null | undefined) => {
+    const candidates = row ? [row] : rows;
+    const found = candidates.map(rate).find((v) => typeof v === "number" && v > 0);
+    return found ?? null;
+  };
+  return { vehicle: pick((r) => r.vehicleRate), vehicleWithDriver: pick((r) => r.vehicleWithDriverRate) };
+}
+
+/** Backend 0013 rule 7: a range longer than one payment can cover is a contract, not a booking. */
+export function isContractPath(quote: PriceQuote | null | undefined): boolean {
+  return quote?.engine === "v6" && quote.quote.paymentPath === "contract";
 }
