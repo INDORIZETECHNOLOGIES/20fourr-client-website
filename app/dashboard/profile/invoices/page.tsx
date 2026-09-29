@@ -8,7 +8,7 @@ export default function InvoicesPage() {
   return (
     <SubPage
       title="Documents and invoices"
-      subtitle="20fourr's platform fee invoices, issued at payment. Each provider's own invoice is on its booking's Invoices page."
+      subtitle="Every invoice, bill of supply and credit note for your bookings, including each provider's own invoice. Filter by year or dates and download them as a CSV register or a ZIP of PDFs."
     >
       <InvoiceList />
     </SubPage>

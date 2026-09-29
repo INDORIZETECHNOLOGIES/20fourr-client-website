@@ -863,3 +863,37 @@ export const TRUST_BADGE_LABELS: Record<string, string> = {
   top_rated: "Top rated",
   elite_protection: "Elite protection",
 };
+
+/**
+ * One row of the client's document history (backend spec 0016). The server merges v1
+ * invoices, v6 tax documents and provider-uploaded invoices into this one shape; the site
+ * never merges them itself.
+ */
+export type BillingDocumentSource = "v1_invoice" | "v6_document" | "provider_upload";
+
+export type BillingDocument = {
+  id: string;
+  source: BillingDocumentSource;
+  /** 'invoice' (v1), a v6 docType ('platform_fee_invoice', 'service_tax_invoice', ...), or 'provider_invoice'. */
+  documentType: string;
+  isCreditNote: boolean;
+  number: string;
+  issuedAt: string;
+  status: "issued" | "cancelled" | string;
+  /** A v6 document fully reversed by a credit note: still valid, netted by the credit note. */
+  reversedByCreditNote: boolean;
+  bookingId: string | null;
+  bookingRef: string | null;
+  issuer: { party: "platform" | "provider"; legalName: string | null; gstin: string | null };
+  recipientGstin: string | null;
+  reversesNumber: string | null;
+  /** Integer paise. Taxable and GST are null for a provider's uploaded invoice (not parsed). */
+  taxablePaise: number | null;
+  gstPaise: number | null;
+  totalPaise: number;
+};
+
+export type BillingDocumentsResponse = {
+  documents: BillingDocument[];
+  pagination: { page: number; limit: number; total: number; pages: number };
+};

@@ -90,6 +90,26 @@ dashboard page updates within seconds when the thing it shows changes on the ser
   browser. `SC_1571` shown inline.
 - Existing `[id]` detail pages stay and are linked from each row.
 
+**As built (C):**
+- **One list call.** `/dashboard/profile/invoices` lists from one call to
+  `GET /client/billing-documents` (AC 6). The client-side merge of `/invoices` and `/documents` is
+  gone.
+- **Filters:** financial year (April–March, the current year plus three back), from/to dates
+  and type (tax documents, earlier invoices, providers' own invoices). A reversed range is caught
+  before asking; `SC_1570` is shown in plain words. Paging is newer/older, 25 per page.
+- **Downloads.** **Download CSV** and **Download PDFs (ZIP)** use the same filters and stream
+  through the BFF: the export paths are added to its binary allow-list. `SC_1571` (too many PDFs
+  for one ZIP) is shown inline, asking for a narrower period.
+- **Row status:** a v6 document reversed by a credit note reads "Reversed" and a cancelled v1
+  invoice reads "Void" (backend 0016 rule 4). Credit notes show as negative amounts.
+- **Row links:** v1 and v6 rows open their existing detail pages. A provider's uploaded invoice
+  opens its booking, where that invoice is already downloadable.
+- **The booking's own Invoices page** is unchanged. It isn't a merged list: it shows one
+  booking's documents per engine, plus the provider's upload with its download link.
+- **Tests:** helpers in `lib/billing-documents.ts`, covered by `npm run test:documents`.
+- **Verified** against the local API: the list, the FY filter, a CSV register (BOM, CRLF, net
+  total row) and a ZIP with the invoice PDF.
+
 ### D. Personnel on booking detail (0017)
 
 - An **Assigned team** panel in `BookingDetail.tsx`. It renders only the fields present in
