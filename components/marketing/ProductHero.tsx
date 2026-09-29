@@ -1,4 +1,3 @@
-import { QuoteBreakdown } from "@/components/marketing/QuoteBreakdown";
 import { MarketingCta } from "@/components/marketing/MarketingCta";
 import { DEFAULT_QUOTE } from "@/lib/sample-quote";
 import { formatPaise, formatPaiseRounded } from "@/lib/money";
@@ -23,7 +22,7 @@ export function ProductHero({ provider }: { provider: MaskedProvider | null }) {
         <p className="text-mono text-ink-faint">{provider?.code ?? "guard · 8h"}</p>
       </div>
 
-      <div className="border-b border-rule px-4 py-5">
+      <div className="px-4 py-5">
         <div className="flex flex-wrap items-center gap-2">
           <p className="text-h3 text-ink">{provider?.title ?? "Licensed professional"}</p>
           {provider?.isVerified !== false ? (
@@ -69,8 +68,6 @@ export function ProductHero({ provider }: { provider: MaskedProvider | null }) {
           Find security
         </MarketingCta>
       </div>
-
-      <QuoteBreakdown quote={DEFAULT_QUOTE} className="rounded-none border-0 bg-paper-raised" />
     </div>
   );
 }

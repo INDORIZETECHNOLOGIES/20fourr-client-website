@@ -1,7 +1,8 @@
 /**
  * A team booking as the client sees it before paying (backend specs 0011, 0012, 0013, 0017).
  * Illustrative: the people are examples and shown only as the client would see them before
- * payment — first initial, experience and languages. Names and phones arrive after payment.
+ * payment: photo (a marked slot here, never an invented face), first initial, experience and
+ * languages. Names and phones arrive after payment.
  */
 const TEAM = [
   { initial: "R", years: 6, languages: "Marathi, Hindi" },
@@ -11,7 +12,7 @@ const TEAM = [
 
 export function TeamBookingMock() {
   return (
-    <figure className="rounded-lg border border-rule bg-paper transition-colors duration-150 hover:border-edge">
+    <figure className="overflow-hidden rounded-lg border border-rule bg-paper transition-colors duration-150 hover:border-edge">
       <div className="flex items-center justify-between border-b border-rule px-4 py-3">
         <p className="text-label text-ink-mid">Booking</p>
         <p className="text-mono text-ink-faint">6 × bouncer · 3 nights</p>
@@ -44,11 +45,13 @@ export function TeamBookingMock() {
         <ul className="mt-3 divide-y divide-rule border-y border-rule">
           {TEAM.map((p) => (
             <li key={p.initial} className="flex items-center gap-3 py-3">
+              {/* The client sees the person's photo here; this illustration marks the slot instead of
+                  inventing a face. */}
               <span
                 aria-hidden
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-rule bg-paper-raised text-body-sm font-medium text-ink"
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-sm border border-dashed border-edge bg-paper-raised text-label text-ink-faint"
               >
-                {p.initial}.
+                Photo
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block text-body-sm font-medium text-ink">{p.initial}. · Bouncer</span>
@@ -56,7 +59,6 @@ export function TeamBookingMock() {
                   {p.years} years · {p.languages}
                 </span>
               </span>
-              <span className="text-label text-ink-faint">PSARA trained</span>
             </li>
           ))}
           <li className="py-3 text-label text-ink-mid">and 3 more</li>
@@ -64,7 +66,7 @@ export function TeamBookingMock() {
         <p className="mt-3 text-body-sm text-ink-mid">Full names and phone numbers appear once you pay.</p>
       </div>
 
-      <figcaption className="border-t border-rule bg-paper-raised px-4 py-3 text-label text-ink-faint">
+      <figcaption className="border-t border-dashed border-rule bg-paper px-4 py-3 text-label text-ink-mid">
         Illustration. You see the real team once the agency assigns it, and rate each person after the job.
       </figcaption>
     </figure>

@@ -119,7 +119,7 @@ export function ProductShowcase({ provider }: { provider: MaskedProvider | null 
   ];
 
   return (
-    <section id="product" className="border-t border-rule">
+    <section id="how-it-works" className="border-t border-rule">
       <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
         <h2 className="text-h1 max-w-[22ch] text-ink">What you actually use, in order</h2>
         <p className="mt-4 max-w-prose text-body text-ink-mid">

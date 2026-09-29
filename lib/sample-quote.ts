@@ -60,19 +60,22 @@ export function workedQuote(category: string, hours: number): WorkedQuote {
   const eightHourBase = SERVICE_BASE[category] ?? SERVICE_BASE.guard;
   const service = Math.round((eightHourBase * hours) / 8);
   const platform = Math.round(service * COMMISSION_RATE);
-  const gst = gstSplit(service).gst + gstSplit(platform).gst;
+  const svc = gstSplit(service);
+  const fee = gstSplit(platform);
+  const gst = svc.gst + fee.gst;
   const lines: WorkedQuoteLine[] = [
     { id: "service", label: "Service charge (base price)", amountPaise: service },
     { id: "platform", label: "Platform fee (15%)", amountPaise: platform },
-    { id: "subtotal", label: "Total", amountPaise: service + platform },
-    { id: "gst", label: "GST 18%", amountPaise: gst },
+    { id: "subtotal", label: "Taxable value", amountPaise: service + platform },
+    { id: "gst-cgst", label: "CGST 9%", amountPaise: svc.cgst + fee.cgst },
+    { id: "gst-sgst", label: "SGST 9%", amountPaise: svc.sgst + fee.sgst },
   ];
   return {
     categoryLabel: category,
     hours,
     lines,
     totalPaise: service + platform + gst,
-    note: "Worked example: platform fee 15% of the service price, GST 18% on the total, intra-state supply. Not a live quote — rates are the platform defaults.",
+    note: "Worked example: platform fee 15% of the service price, GST 18% split CGST 9% and SGST 9% on an intra-state supply. Not a live quote — rates are the platform defaults.",
   };
 }
 

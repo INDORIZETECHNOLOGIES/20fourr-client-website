@@ -10,7 +10,6 @@ import { MarketingCta } from "@/components/marketing/MarketingCta";
 import { ProductHero } from "@/components/marketing/ProductHero";
 import { ProductShowcase } from "@/components/marketing/ProductShowcase";
 import { PublicListings } from "@/components/marketing/PublicListings";
-import { SocialProofBand } from "@/components/marketing/SocialProofBand";
 import { TeamBookingMock } from "@/components/marketing/TeamBookingMock";
 import { SERVICE_CATALOGUE, EX_SERVICEMAN_FILTER } from "@/lib/services";
 import { getCoverage } from "@/lib/marketing-data";
@@ -33,33 +32,6 @@ const WHEN: Record<string, string> = {
   pso: "Close protection for a named individual.",
 };
 
-const STEPS = [
-  {
-    n: "01",
-    title: "Search",
-    body: "Pick a category, city, dates and how many people. The quote lists service, platform fee and GST lines before you commit.",
-  },
-  {
-    n: "02",
-    title: "Compare",
-    body: "Review verified profiles, rates and availability for the shift you named.",
-  },
-  {
-    n: "03",
-    title: "Book",
-    body: "Purpose, risk, absence and safety acknowledgements are stored on the booking. Nothing is charged until a provider accepts. Payment is taken once, in full.",
-  },
-  {
-    n: "04",
-    title: "Start with OTP",
-    body: "Duty start and end are codes you show the guard in person. Timestamps are recorded, not self-reported.",
-  },
-  {
-    n: "05",
-    title: "Complete",
-    body: "A GST tax invoice for the platform fee and a service document for the shift, with CGST/SGST/IGST by place of supply.",
-  },
-];
 
 // Spec 0003 (backend 0011, 0012, 0013, 0017). Long-term contracts are built but switched off, so
 // they are deliberately not offered here.
@@ -109,7 +81,7 @@ const COMPLIANCE = [
   },
   {
     dt: "DPDP Act data rights",
-    dd: "Export, consent withdrawal and erasure, with a named grievance officer published in-product.",
+    dd: "Export, consent withdrawal and erasure, with a grievance officer published in the product.",
   },
 ];
 
@@ -168,7 +140,7 @@ const FAQS = [
   },
   {
     q: "How is my data handled?",
-    a: "Under the DPDP Act. You can export, withdraw consent and request erasure from Privacy and data rights in the account. A named grievance officer is listed there.",
+    a: "Under the DPDP Act. You can export, withdraw consent and request erasure from Privacy and data rights in the account. The grievance officer's contact is listed there.",
     category: "Compliance",
   },
 ] as const;
@@ -237,8 +209,6 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <SocialProofBand />
-
       <PublicListings listings={coverage.listings} />
 
       <section id="services" className="border-b border-rule">
@@ -267,7 +237,7 @@ export default async function LandingPage() {
             ))}
           </ul>
           <p className="mt-6 text-body-sm text-ink-mid">
-            {EX_SERVICEMAN_FILTER.name}: {EX_SERVICEMAN_FILTER.desc}
+            {EX_SERVICEMAN_FILTER.name}. {EX_SERVICEMAN_FILTER.desc}.
           </p>
         </div>
       </section>
@@ -290,11 +260,8 @@ export default async function LandingPage() {
                 ))}
               </dl>
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <MarketingCta href="/#find" className="w-full sm:w-auto">
-                  Book a team
-                </MarketingCta>
-                <MarketingCta href="/for-business" variant="secondary" className="w-full sm:w-auto">
-                  More for businesses
+                <MarketingCta href="/for-business" className="w-full sm:w-auto">
+                  See how business bookings work
                 </MarketingCta>
               </div>
             </div>
@@ -305,41 +272,17 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <section id="how-it-works">
-        <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
-          <h2 className="text-h1 text-ink">From search to a documented shift</h2>
-          <ol className="mt-10 border-l border-rule pl-6 xl:grid xl:grid-cols-5 xl:gap-0 xl:border-l-0 xl:border-t xl:pl-0">
-            {STEPS.map((s) => (
-              <li
-                key={s.n}
-                className="relative py-6 xl:border-r xl:px-4 xl:py-8 last:xl:border-r-0"
-              >
-                <span
-                  aria-hidden
-                  className="absolute -left-[25px] top-8 h-2 w-2 rounded-full bg-ink xl:hidden"
-                />
-                <p className="inline-flex h-8 min-w-8 items-center justify-center rounded-sm border border-rule px-2 text-mono text-ink">
-                  {s.n}
-                </p>
-                <h3 className="text-h3 mt-3 text-ink">{s.title}</h3>
-                <p className="mt-2 text-body-sm text-ink-mid">{s.body}</p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
       <ProductShowcase provider={coverage.featured} />
 
       <section id="pricing" className="border-t border-rule bg-paper-raised">
         <div className="mx-auto max-w-[1200px] px-4 py-16 lg:px-6 lg:py-24">
-          <h2 className="text-h1 text-ink">Every line, including both GST components</h2>
+          <h2 className="text-h1 text-ink">Every line of the price, before you book</h2>
           <p className="mt-4 max-w-prose text-body text-ink-mid">
             Live quotes are generated in the booking funnel from the provider&apos;s rates. This
             section is a worked example so the structure is visible before you create an account.
           </p>
           <div className="mt-10">
-            <CostCalculator provider={coverage.featured} showLiveRateBadge mutedGst elevated />
+            <CostCalculator provider={coverage.featured} mutedGst elevated />
           </div>
           <p className="mt-6 text-body-sm text-ink-mid">Platform fee is 15%. No hidden charges.</p>
           <p className="mt-2 text-body-sm text-ink-mid">
@@ -433,6 +376,7 @@ export default async function LandingPage() {
         </div>
       </section>
 
+      {PROVIDER_SITE_URL ? (
       <section id="providers" className="border-t border-rule bg-paper-raised">
         <div className="mx-auto max-w-[1200px] px-4 py-12 lg:px-6">
           <h2 className="text-h2 text-ink">Run a security agency, or work on your own?</h2>
@@ -440,15 +384,14 @@ export default async function LandingPage() {
             This site is for booking security. Agencies and professionals join 20fourr, get verified
             and set their rates on the provider website or the provider app.
           </p>
-          {PROVIDER_SITE_URL ? (
-            <p className="mt-4 text-body font-medium text-ink">
-              <a href={PROVIDER_SITE_URL} className="underline underline-offset-4 hover:no-underline">
-                Join as a provider
-              </a>
-            </p>
-          ) : null}
+          <p className="mt-4 text-body font-medium text-ink">
+            <a href={PROVIDER_SITE_URL} className="underline underline-offset-4 hover:no-underline">
+              Join as a provider
+            </a>
+          </p>
         </div>
       </section>
+      ) : null}
 
       <LandingFooterCta />
     </>

@@ -15,8 +15,35 @@ export function PublicListings({ listings }: { listings: MaskedProvider[] }) {
         </p>
         {/* A ruled table, not a card grid: with names withheld, each listing is a row of facts, and
             rows compare at a glance where eight identical cards only repeated themselves. */}
-        <div className="mt-10 overflow-x-auto">
-          <table className="w-full min-w-[640px] border-collapse text-left">
+        <ul className="mt-8 divide-y divide-rule border-y border-rule sm:hidden">
+          {listings.map((p) => {
+            const rate = p.hourlyRatePaise
+              ? `${formatPaiseRounded(p.hourlyRatePaise)}/hr`
+              : p.dailyRatePaise
+                ? `${formatPaiseRounded(p.dailyRatePaise)}/day`
+                : null;
+            return (
+              <li key={p.id} className="py-4">
+                <p className="flex items-center gap-2">
+                  <span className="text-mono text-ink">{p.code}</span>
+                  {p.isVerified ? (
+                    <span className="rounded-sm border border-live px-1.5 py-px text-label font-medium text-live">Verified</span>
+                  ) : null}
+                  <span className="text-label text-ink-mid">{p.kind === "agency" ? "Agency" : "Individual"}</span>
+                </p>
+                <p className="mt-1 text-body text-ink">{[p.categoryLabel, p.city].filter(Boolean).join(" · ")}</p>
+                <p className="mt-1 flex justify-between gap-3 text-body-sm">
+                  <span className="text-ink">
+                    {p.averageRating != null ? `${p.averageRating.toFixed(1)}${p.totalRatings ? ` · ${p.totalRatings} ratings` : ""}` : "No ratings yet"}
+                  </span>
+                  <span className="text-mono text-ink">{rate ?? "In the quote"}</span>
+                </p>
+              </li>
+            );
+          })}
+        </ul>
+        <div className="mt-10 hidden sm:block">
+          <table className="w-full border-collapse text-left">
             <thead>
               <tr className="border-b-2 border-ink">
                 <th scope="col" className="py-3 pr-4 text-label font-semibold text-ink-mid">Listing</th>

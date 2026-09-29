@@ -50,7 +50,7 @@ export function MarketingFooter({ contacts }: { contacts: SiteContacts | null })
               <Link href="/coverage">Coverage</Link>
             </li>
             <li>
-              <Link href="/for-business">For business</Link>
+              <Link href="/for-business">For businesses</Link>
             </li>
             <li>
               <Link href="/#find">Find security</Link>

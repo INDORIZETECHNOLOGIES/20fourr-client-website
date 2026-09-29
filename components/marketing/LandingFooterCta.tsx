@@ -8,7 +8,7 @@ export function LandingFooterCta() {
         <div className="max-w-[36rem]">
           <h2 className="text-h1 text-ground-ink">Your next shift is one booking away.</h2>
           <p className="mt-4 text-body text-ground-mid">
-            Verified guard, OTP duty, GST document. No follow-up calls.
+            Search, quote and book in one sitting. No follow-up calls.
           </p>
         </div>
         <MarketingCta href="/#find" variant="inverse">
