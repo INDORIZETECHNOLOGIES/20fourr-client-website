@@ -120,6 +120,26 @@ dashboard page updates within seconds when the thing it shows changes on the ser
   browser. `SC_1571` shown inline.
 - Existing `[id]` detail pages stay and are linked from each row.
 
+**As built (C):**
+- **One list call.** `/dashboard/profile/invoices` lists from one call to
+  `GET /client/billing-documents` (AC 6). The client-side merge of `/invoices` and `/documents` is
+  gone.
+- **Filters:** financial year (April–March, the current year plus three back), from/to dates
+  and type (tax documents, earlier invoices, providers' own invoices). A reversed range is caught
+  before asking; `SC_1570` is shown in plain words. Paging is newer/older, 25 per page.
+- **Downloads.** **Download CSV** and **Download PDFs (ZIP)** use the same filters and stream
+  through the BFF: the export paths are added to its binary allow-list. `SC_1571` (too many PDFs
+  for one ZIP) is shown inline, asking for a narrower period.
+- **Row status:** a v6 document reversed by a credit note reads "Reversed" and a cancelled v1
+  invoice reads "Void" (backend 0016 rule 4). Credit notes show as negative amounts.
+- **Row links:** v1 and v6 rows open their existing detail pages. A provider's uploaded invoice
+  opens its booking, where that invoice is already downloadable.
+- **The booking's own Invoices page** is unchanged. It isn't a merged list: it shows one
+  booking's documents per engine, plus the provider's upload with its download link.
+- **Tests:** helpers in `lib/billing-documents.ts`, covered by `npm run test:documents`.
+- **Verified** against the local API: the list, the FY filter, a CSV register (BOM, CRLF, net
+  total row) and a ZIP with the invoice PDF.
+
 ### D. Personnel on booking detail (0017)
 
 - An **Assigned team** panel in `BookingDetail.tsx`. It renders only the fields present in
@@ -158,6 +178,31 @@ dashboard page updates within seconds when the thing it shows changes on the ser
 - On reconnect after a disconnect, invalidate all dashboard queries once (missed events aren't
   replayed).
 - The notification bell count refetches on every event.
+
+**As built (E):**
+- **One connection.** `hooks/useAccountEvents.ts` opens one Socket.IO connection per signed-in
+  session, mounted once by `DashboardShell`. It fetches a fresh token from
+  `/api/auth/socket-token` on every (re)connect and holds it in memory only.
+- **Refresh by staleness.** `useApiQuery` registers every mounted query in
+  `lib/live/query-registry.ts`. An `account_event` refreshes only the queries
+  `staleMatcher()` (`lib/live/account-events.ts`) marks stale:
+  - `booking`/`payment` → that booking, its sub-pages and the bookings list;
+  - `document` → the document lists;
+  - `contract` → contracts;
+  - `ticket`, `rating` and `account` → their pages;
+  - every event → the notification bell.
+- **Quiet refetch.** A live refresh refetches in place, with no loading skeleton. A failed
+  quiet refresh leaves what's on screen. Payloads are never rendered.
+- **Bursts** are coalesced for 300 ms. A reconnect refreshes every query on screen once, since
+  missed events aren't replayed.
+- **Chat** keeps its own connection. Sharing one socket needs chat's room handling reworked,
+  so it's left for the next chat change.
+- **Tests:** `npm run test:live`.
+- **Verified** against the local API:
+  - AC 7: a provider re-assigning a booking's team refreshed the client's open booking, the list
+    and the bell (9 → 9+) in 0.5 s, without a reload.
+  - AC 8: restarting the API dropped the socket, and on reconnect each mounted query refetched
+    once. Paths read by two components show two requests.
 
 ## Acceptance criteria
 

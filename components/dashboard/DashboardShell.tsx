@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Topbar } from "@/components/dashboard/Topbar";
 import { CloseIcon } from "@/components/dashboard/icons";
+import { useAccountEvents } from "@/hooks/useAccountEvents";
 
 /**
  * The design's sidebar is `position:fixed; width:248px` with no mobile treatment
@@ -12,6 +13,8 @@ import { CloseIcon } from "@/components/dashboard/icons";
  * at lg and above, and becomes an off-canvas drawer below that.
  */
 export function DashboardShell({ children }: { children: ReactNode }) {
+  // Spec 0003 E: open pages refresh themselves when the server records a change for this user.
+  useAccountEvents(true);
   const [navOpen, setNavOpen] = useState(false);
   const pathname = usePathname();
 

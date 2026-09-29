@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "check:design": "node scripts/check-design.mjs",
-    "test:quote": "node --experimental-strip-types scripts/test-quote.ts"
+    "test:quote": "node --experimental-strip-types scripts/test-quote.ts",
+    "test:documents": "node --experimental-strip-types scripts/test-documents.ts",
+    "test:live": "node --experimental-strip-types scripts/test-live.ts"
   },
   "dependencies": {
     "next": "16.3.0",
