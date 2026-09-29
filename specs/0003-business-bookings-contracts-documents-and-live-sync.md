@@ -162,6 +162,31 @@ dashboard page updates within seconds when the thing it shows changes on the ser
   replayed).
 - The notification bell count refetches on every event.
 
+**As built (E):**
+- **One connection.** `hooks/useAccountEvents.ts` opens one Socket.IO connection per signed-in
+  session, mounted once by `DashboardShell`. It fetches a fresh token from
+  `/api/auth/socket-token` on every (re)connect and holds it in memory only.
+- **Refresh by staleness.** `useApiQuery` registers every mounted query in
+  `lib/live/query-registry.ts`. An `account_event` refreshes only the queries
+  `staleMatcher()` (`lib/live/account-events.ts`) marks stale:
+  - `booking`/`payment` → that booking, its sub-pages and the bookings list;
+  - `document` → the document lists;
+  - `contract` → contracts;
+  - `ticket`, `rating` and `account` → their pages;
+  - every event → the notification bell.
+- **Quiet refetch.** A live refresh refetches in place, with no loading skeleton. A failed
+  quiet refresh leaves what's on screen. Payloads are never rendered.
+- **Bursts** are coalesced for 300 ms. A reconnect refreshes every query on screen once, since
+  missed events aren't replayed.
+- **Chat** keeps its own connection. Sharing one socket needs chat's room handling reworked,
+  so it's left for the next chat change.
+- **Tests:** `npm run test:live`.
+- **Verified** against the local API:
+  - AC 7: a provider re-assigning a booking's team refreshed the client's open booking, the list
+    and the bell (9 → 9+) in 0.5 s, without a reload.
+  - AC 8: restarting the API dropped the socket, and on reconnect each mounted query refetched
+    once. Paths read by two components show two requests.
+
 ## Acceptance criteria
 
 1. With "For business" off and headcount 1, the `POST /bookings` body is byte-identical to

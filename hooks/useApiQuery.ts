@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api/client";
 import { errorCode, errorMessage, isApiError } from "@/lib/api/errors";
+import { registerQuery } from "@/lib/live/query-registry";
 
 type QueryOptions = {
   /** Query string parameters. Changing these re-runs the request. */
@@ -42,6 +43,9 @@ export function useApiQuery<T>(path: string | null, options: QueryOptions = {}):
   const queryKey = JSON.stringify(query ?? {});
 
   const abortRef = useRef<AbortController | null>(null);
+  // Set by a live-event refresh (spec 0003 E): refetch in place, keeping the current data on
+  // screen instead of dropping back to a loading state.
+  const quietRef = useRef(false);
 
   useEffect(() => {
     if (!path || !enabled) {
@@ -53,19 +57,29 @@ export function useApiQuery<T>(path: string | null, options: QueryOptions = {}):
     const controller = new AbortController();
     abortRef.current = controller;
 
-    setLoading(true);
-    setError(null);
-    setErrCode(null);
+    const quiet = quietRef.current;
+    quietRef.current = false;
+    if (!quiet) {
+      setLoading(true);
+      setError(null);
+      setErrCode(null);
+    }
 
     api<T>(path, { query: JSON.parse(queryKey), signal: controller.signal })
       .then((result) => {
         if (!controller.signal.aborted) {
           setData(result);
           setLoading(false);
+          if (quiet) {
+            setError(null);
+            setErrCode(null);
+          }
         }
       })
       .catch((cause: unknown) => {
         if (controller.signal.aborted) return;
+        // A quiet refresh that fails keeps what's on screen; the next event or reload retries.
+        if (quiet) return;
         setError(errorMessage(cause));
         setErrCode(isApiError(cause) ? cause.code : errorCode(cause));
         setLoading(false);
@@ -75,6 +89,17 @@ export function useApiQuery<T>(path: string | null, options: QueryOptions = {}):
   }, [path, queryKey, enabled, nonce]);
 
   const refetch = useCallback(() => setNonce((n) => n + 1), []);
+
+  useEffect(() => {
+    if (!path || !enabled) return;
+    return registerQuery({
+      path,
+      refresh: () => {
+        quietRef.current = true;
+        setNonce((n) => n + 1);
+      },
+    });
+  }, [path, enabled]);
 
   return { data, loading, error, errorCode: errCode, refetch };
 }
